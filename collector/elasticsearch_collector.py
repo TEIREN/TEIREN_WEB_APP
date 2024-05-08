@@ -49,7 +49,7 @@ async def genian_log(request: Request):
     log_request = await request.json()
     for log in log_request:
         log['teiren_request_ip'] = request.client.host
-        print(log)
+        log['teiren_stamp'] = datetime.now()
         await elasticsearch_input(log, 'genian')
 
     return {"message": "Log received successfully"}
