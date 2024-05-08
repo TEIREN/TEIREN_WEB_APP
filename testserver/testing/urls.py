@@ -14,4 +14,5 @@ urlpatterns = [
     path('register/', tests.register_, name='register'),
     path('log/<system>/', log.list_logs),
     path('integration/genian/', integration.integration_genian),
+    path('/finevo/', integration.integration_genian)
 ]
