@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<!-- CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<h1> test page </h1><br>
+
+<h5>response:</h5>
+<h5><pre>{{request_dict}}</pre></h5>
+
+{% for key, value in request_dict.items %}
+    {% if value %}
+        <h5>{{ key|title }}: {{ value }}</h5>
+    {% endif %}
+{% endfor %}
+
+<button onclick="executePythonFunction()">yoonan_[ap-northeast-2] elb start</button>
+<div id="response"></div>
+{% endblock %}
+
+{% block script %}
+<form id="csrf-form">
+    {% csrf_token %}
+</form>
+
+<script>
+function executePythonFunction() {
+    var responseElement = document.getElementById('response');
+    if (!responseElement) {
+        responseElement = document.createElement('div');
+        responseElement.id = 'response';
+        document.body.appendChild(responseElement);
+    }
+    
+    var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    var accessKey = 'AKIAZGVJQQXNJJUUR7EM';  // Ajax로 전달할 값
+    var secretKey = 'gh34WC0llIHrxJby3MwfAU7sJhE/37dWiaEV5IUh';  // Ajax로 전달할 값
+    var regionName = 'ap-northeast-2';  // Ajax로 전달할 값
+
+    fetch('{% url "trigger" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken  // CSRF 토큰을 요청 헤더에 포함
+        },
+        body: JSON.stringify({
+            access_key: accessKey,
+            secret_key: secretKey,
+            region_name: regionName
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            responseElement.innerText = JSON.stringify(data, null, 2);
+        })
+        .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

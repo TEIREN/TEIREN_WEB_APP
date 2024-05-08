@@ -1,0 +1,213 @@
+<div class="searchcard shadow mb-4">
+    <form id="search" >
+        <div class="searchcard-body py-3">
+            <div class="d-flex align-items-end text-center mb-2 w-100">
+                <select class="btn-select" name="main_search_key" style="width:15%">
+                    {% if compliance_type == 'ISMS-P' %}
+                    <option value="all">All</option>
+                    <option value="c">Chapter</option>
+                    <option value="s">Section</option>
+                    {% endif %}
+                    <option value="a">Article</option>
+                    <option value="comment">Comment</option>
+                </select>
+                <input type="text" class="search-input ml-0" name="main_search_value" style="width:90% !important;" placeholder="Search"/>
+            </div>
+        </div>
+        <div class="searchcard-body pt-0">
+            <div class="search-select">
+                <div class="searchbox-header">
+                    Version
+                </div>
+                <select id="com_version" name="version" class="btn-select" onChange="versionModify()">
+                    {% for version in version_list %}
+                    <option value="{{version}}">{{version}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="search-select">
+                <div class="searchbox-header">
+                    Resource
+                </div>
+                <select id="com_product" name="product" class="btn-select" onChange="versionModify()">
+                    {% for resource in resource_list %}
+                    <option value="{{resource.productName}}">{{resource.productName}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="button" class="btn-search ml-auto" onclick="versionModify()">
+                <i class="fa-solid fa-magnifying-glass mr-2"></i>
+                Search
+            </button>
+        </form>
+    </div>
+
+    <div class="collapsecard" style="display:none;">
+        <div class="searchcard-collapse pb-3" style="display:none;">
+            <div class="collapsebox">
+                <div class="searchbox">
+                    <div class="searchbox-header">
+                        Chapter
+                    </div>
+                    <div class="w-75">
+                        <input class="searchbox-input dropdown-toggle" placeholder="Rule Type">
+                        <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input ruleType" type="checkbox" name="ruleType" value="all" onclick="selectAll(this, 'ruleType')">All
+                                </label>
+                            </li>
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input ruleType" type="checkbox" name="ruleType" value="regex" onclick="selectcheck(this, 'ruleType')">Regex
+                                </label>
+                            </li>
+                            {%for ruleType in ruleType_list %}
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input ruleType" type="checkbox" name="ruleType" value="{{ruleType}}" onclick="selectcheck(this, 'ruleType')">{{ruleType}}
+                                </label>
+                            </li>
+                            {%endfor%}
+                        </ul>
+                    </div>
+                </div>
+                <div id="ruleType_regex" class="regexbox" style="display: none;">
+                    <input name="ruleType_regex" class="regex-input" placeholder="Rule Type Regex">
+                </div>
+            </div>
+            <div class="collapsebox">
+                <div class="searchbox">
+                    <div class="searchbox-header">
+                        Section
+                    </div>
+                    <div class="w-75">
+                        <input class="searchbox-input dropdown-toggle" placeholder="Rule Name">
+                        <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input ruleName" type="checkbox" name="ruleName" value="all" onclick="selectAll(this, 'ruleName')">All
+                                </label>
+                            </li>
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input ruleName" type="checkbox" name="ruleName" value="regex" onclick="selectcheck(this, 'ruleName')">Regex
+                                </label>
+                            </li>
+                            {%for ruleName in ruleName_list %}
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input ruleName" type="checkbox" name="ruleName" value="{{ruleName}}" onclick="selectcheck(this, 'ruleName')">{{ruleName}}
+                                </label>
+                            </li>
+                            {%endfor%}
+                        </ul>
+                    </div>
+                </div>
+                <div id="ruleName_regex" class="regexbox" style="display: none;">
+                    <input name="ruleName_regex" class="regex-input" placeholder="Rule Name Regex">
+                </div>
+            </div>
+            <div class="collapsebox">
+                <div class="searchbox">
+                    <div class="searchbox-header">
+                        Comment
+                    </div>
+                    <div class="w-75">
+                        <input class="searchbox-input dropdown-toggle" placeholder="Comment">
+                        <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input comment" type="checkbox" name="comment" value="all" onclick="selectAll(this, 'comment')">All
+                                </label>
+                            </li>
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input comment" type="checkbox" name="comment" value="regex" onclick="selectcheck(this, 'comment')">Regex
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="comment_regex" class="regexbox" style="display: none;">
+                    <input name="comment_regex" class="regex-input" placeholder="Comment Regex">
+                </div>
+            </div>
+        </div>
+        <div class="searchcard-collapse pb-3" style="display:none;">
+            <div class="collapsebox">
+                <div class="searchbox">
+                    <div class="searchbox-header">
+                        Comply
+                    </div>
+                    <div class="w-75">
+                        <input class="searchbox-input dropdown-toggle" placeholder="Severity">
+                        <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input severity" type="checkbox" name="severity" value="all" onclick="selectAll(this, 'severity')">All
+                                </label>
+                            </li>
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input severity" type="checkbox" name="severity" value="['CRITICAL', 'danger']" onclick="selectcheck(this, 'severity')">CRITICAL
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="collapsebox">
+                <div class="searchbox">
+                    <div class="searchbox-header">
+                        Policy
+                    </div>
+                    <div class="w-75">
+                        <input class="searchbox-input dropdown-toggle" placeholder="On/Off">
+                        <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input on_off" type="checkbox" name="on_off" value="all" onclick="selectAll(this, 'on_off')">All
+                                </label>
+                            </li>
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input on_off" type="checkbox" name="on_off" value="1" onclick="selectcheck(this, 'on_off')">On
+                                </label>
+                            </li>
+                            <li class="dropdown-item">
+                                <label>
+                                    <input class="form-check-input on_off" type="checkbox" name="on_off" value="0" onclick="selectcheck(this, 'on_off')">Off
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="collapsebox">
+                <div class="searchbox">
+                    <div class="searchbox-header">
+                        Last Update
+                    </div>
+                    <div class="calandar">
+                        <input class="calandar-input" type="date" name="eventTime_date_start">
+                        <span style="font-size:14px;">~</span>
+                        <input class="calandar-input" type="date" name="eventTime_date_end">
+                    </div>
+                </div>
+            </div>
+            <button class="btn-reset" type="button" onClick="searchFilter('reset')">
+                <span class="material-symbols-outlined">
+                    restart_alt
+                </span>
+                Reset
+            </button>
+            <button class="btn-info disabled" type="button" onClick="searchFilter('reset')">
+                <span class="material-symbols-outlined">
+                    info
+                </span>
+                Info
+            </button>
+        </div>
+    </div>
+</div>

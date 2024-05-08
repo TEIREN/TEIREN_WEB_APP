@@ -1,0 +1,87 @@
+<div class="table-responsive" style="overflow:hidden; font-size:12px">
+    <table class="table table-bordered" id="dataTable_default" width="100%" cellspacing="0" style="text-align:center;">
+        <thead>
+            <th>No</th>
+            <th>Rule Type</th>
+            <th>Rule Name</th>
+            <th>Comment</th>
+            <th>Severity</th>
+            <th>On/Off</th>
+            <th>Details</th>
+        </thead>
+        <tfoot>
+            <th>No</th>
+            <th>Rule Type</th>
+            <th>Rule Name</th>
+            <th>Comment</th>
+            <th>Severity</th>
+            <th>On/Off</th>
+            <th>Details</th>
+        </tfoot>
+        <tbody>
+            {% if default %}
+                {% for rule in default %}
+                <tr>
+                    <td style="width: 4%">{{ forloop.counter }}</td>
+                    <td style="width: 8%">{{ rule.type }}</td>                
+                    <td style="width: 10%">{{ rule.name }}</td>
+                    <td align="left">{{ rule.comment }}</td>
+                    <td style="width: 10%">
+                        <div class="color-box color-box-{{rule.level.1}}">{{rule.level.0}}</div>
+                    </td>
+                    <td style="width: 7%">
+                        <form>
+                            <input type="hidden" name="rule_name" value="{{ rule.name }}">
+                            <input type='hidden' name='log_type' value="{{logType}}">
+                            <input type="hidden" name="on_off" value="{{ rule.on_off }}">
+                            {% if rule.on_off == 1 %}
+                            <input type="button" value="  On  " class="btn btn-teiren btn-md text-center"
+                                style="overflow:hidden;" onclick='ruleOnOff(this)'>
+                            {% else %}
+                            <input type="button" value="  Off  " class="btn btn-teiren btn-md text-center"
+                                style="background-color:#D3D3D3;border-color:#D3D3D3;"
+                                onclick='ruleOnOff(this)'>
+                            {% endif %}
+                        </form>
+                    </td>
+                    <td style="width: 7%">
+                        <form>
+                            <input type='hidden' name='address' value='default/details/'>
+                            <input type='hidden' name='rule_name' value="{{ rule.name }}">
+                            <input type='hidden' name='rule_type' value="{{ rule.type }}">
+                            <input type='hidden' name='log_type' value="{{logType}}">
+                            <input type='hidden' name='on_off' value="{{ rule.on_off }}">
+                            <input type='button' onclick="ruleDetails(this.parentNode)"
+                                class="btn btn-teiren btn-md" style="overflow:hidden;"
+                                value='Details' data-toggle='modal' data-target='#detail-modal'>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript">
+    $(function() {
+        $("#dataTable_default").DataTable({
+            //데이터 테이블 0번째 인덱스부터 거꾸로 정렬(최신순 정렬)
+            order: [
+                [0, 'asc']
+            ],
+            columnDefs: [{
+                targets: 4,
+                type: 'threat-level'
+            },
+            {
+                targets: 5,
+                type: 'threat-on-off'
+            }],
+            ordering: true,
+            // 표시 건수기능 숨기기
+            lengthChange: false,
+            // 검색 기능 숨기기
+            searching: false,
+        });
+    });
+</script>

@@ -1,0 +1,192 @@
+{% load custom_filter %}
+{% load static %} 
+<div class="card-header py-3" style="display: flex; align-items: center;">
+        <h6 class="m-0 mr-auto font-weight-bold text-teiren">File Asset Management</h6>
+        <button class="btn btn-md btn-teiren" data-toggle="modal" data-target="#file_add"><i class="fa-solid fa-file-arrow-up mr-2"></i>File Upload</button>    
+</div>
+<div class="card-body" style="font-size:15px;">
+    <div class="table-responsive" style="overflow:hidden;">
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="text-align:center; font-size:15px;">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>File Comment</th>
+                    <th>Version</th>
+                    <th>PoC</th>
+                    <th>Upload Date</th>
+                    <th>Upload</th>
+                    <th>Download</th>
+                    <th>Modify</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                    {% if file.fileName is not null %}
+                    <tr>
+                        <td>{{file.fileName}}</td>
+                        <td>{{file.fileComment}}</td>
+                        <td>{{file.fileVersion}}</td>
+                        <td>{{file.filePoC}}</td>
+                        <td>{{file.uploadDate}}</td>
+                        <td>{{file.fileAuthor}}</td>
+                        <td>
+                            <form method="POST" action="/compliance/assets/file/download/" target="_blank">
+                                {% csrf_token %}
+                                <input type="hidden" name="name" value="{{file.fileName}}">
+                                <input type="hidden" name="comment" value="{{file.fileComment}}">
+                                <button type="submit" class="btn btn-md btn-outline-teiren"><i class="fa-solid fa-file-arrow-down mr-2"></i>Download</button>
+                            </form>
+                        </td>
+                        <td>
+                            <input type="hidden" name="fileName" id="fileName" value="{{file.fileName}}"/>
+                            <input type="hidden" name="fileComment" id="fileComment" value="{{file.fileComment}}"/>
+                            <input type="hidden" name="fileVersion" id="fileVersion" value="{{file.fileVersion}}"/>
+                            <input type="hidden" name="filePoC" id="filePoC" value="{{file.filePoC}}"/>
+                            <input type="hidden" name="fileAuthor" id="fileAuthor" value="{{file.fileAuthor}}"/>
+                            <button type="button" class="btn btn-md btn-teiren" data-toggle="modal" data-target="#file_modify" onclick="fileModifyModal(this)"><i class="fa-solid fa-pen-to-square mr-2"></i>Modify</button>
+                        </td>
+                        <td>
+                            <form>
+                                <input type="hidden" name="file_comment" id="file_comment" value="{{file.fileComment}}"/>
+                                <input type="hidden" name="file_name" id="file_name" value="{{file.fileName}}"/>
+                                <button type="button" class="btn btn-md btn-danger" onclick="deleteAssetFile(this)"><i class="fa-solid fa-trash mr-2"></i>Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- File Upload Modal -->
+<div class="modal hide fade card-body" id="file_add" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Upload Assets File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="asset_file_form" enctype="multipart/form-data">
+                <div>
+                    <p>File Comment: <input type="text" class="form-control" id='fileComment' name="fileComment" value='' placeholder="Enter a Comment of File"></p>
+                    <p>Version: <input type="text" class="form-control" id='version' name="version" value='' placeholder="ex. v_1.0"></p>
+                    <p>Author: <input type="text" class="form-control" id='author' name="author" value=''></p>
+                    <p>Poc: <input type="text" class="form-control" id='poc' name="poc" value=''></p>
+                    <input type="file" name="uploadedFile">
+                    {% csrf_token %}
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <button type='submit' id='upload' class="btn btn-md btn-outline-teiren" onclick="addAssetFile()" value="Upload">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- File Modify Modal -->
+<div class="modal hide fade card-body" id="file_modify" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Modify Assets File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="file_modify_form" enctype="multipart/form-data">
+                <div>
+                    <input type="hidden" class="form-control" id="og_fileName" name="og_fileName" value="">
+                    <p>File Name: <input class="form-control" id="fileName" name="fileName" value="" readonly></p>
+                    <p>File Comment: <input type="text" class="form-control" id='fileComment' name="fileComment" value=""></p>
+                    <p>Version: <input type="text" class="form-control" id='fileVersion' name="fileVersion" value=''></p>
+                    <p>Author: <input type="text" class="form-control" id='fileAuthor' name="fileAuthor" value=''></p>
+                    <p>Poc: <input type="text" class="form-control" id='filePoC' name="filePoC" value=''></p>
+                    <input type="hidden" id="og_comment" name="og_comment">
+                    {% csrf_token %}
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <button type='submit' id='upload' class="btn btn-md btn-outline-teiren" onclick="modifyAssetFile()">Modify</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function addAssetFile() {
+        var formData = new FormData($('#asset_file_form')[0]);
+        $.ajax({
+            url: '/compliance/assets/file/add/',
+            data: formData,
+            type: 'post',
+            processData: false,
+            contentType: false,
+        }).done(function (response) {
+            if(response === 'Successfully Added Asset File'){
+                $('#file_add').modal('hide')
+                alert(response);
+                assetChange('File')
+            } else {
+                alert(response);
+            }
+        });
+    }
+
+    function fileModifyModal(e){
+        var data = $(e.parentNode).find('input')
+        data.each(function(){
+            $(`#file_modify #${this.name}`).val(this.value)
+            console.log(this.name)
+            if (this.name === 'fileName'){
+                $('#file_modify #og_fileName').val(this.value)
+            } else if (this.name === 'fileComment'){
+                $('#file_modify #og_comment').val(this.value)
+            }
+        })
+    }
+
+    function modifyAssetFile(){
+        var data = $('#file_modify_form').serialize()
+        $.ajax({
+            url: '/compliance/assets/file/modify/',
+            data: data,
+            type: 'post'
+        }).done(function(response){
+            if(response === 'Successfully Modified Asset File'){
+                $('#file_modify').modal('hide')
+                alert(response)
+                assetChange('File')
+            } else {
+                alert(response)
+            }
+        })
+    }
+
+    function deleteAssetFile(e){
+        var data=$(e).parent().serialize()
+        $.ajax({
+            url:'/compliance/assets/file/delete/',
+            headers:{
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            data: data,
+            type: 'post'
+        }).done(function(response){
+            alert(response)
+            if(response === 'Successfully Deleted Asset File'){
+                assetChange('File')
+                return 0
+            }
+        })   
+    }
+
+</script>

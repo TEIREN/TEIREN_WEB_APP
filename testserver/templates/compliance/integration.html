@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Begin Page Content -->
+<div class="locationbar ml-2">
+    <span>Compliance &nbsp;&nbsp;>&nbsp;&nbsp;Compliance &nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">Integration <span>
+</div>
+
+
+<!-- Page Heading -->
+<h2 class="h2 font-weight-bold mb-2 text-gray-800 ml-2">Integration List</h2>
+<p class="h4 mb-4 ml-2">You can manage the entire Integration Product.</p>    
+
+<div class="card shadow mb-4">
+    <div class="card-body" style="font-size:15px;">
+        
+        <select id="add_integration" name="add_integration">
+            <option value="AWS">AWS</option>
+            <option value="Naver Cloud Platform">Naver Cloud Platform</option>
+            <option value="NHN Cloud">NHN Cloud</option>
+            <option value="Microsoft Azure">Microsoft Azure</option>
+            <option value="Google Cloud Platform">Google Cloud Platform</option>
+            <option value="Policy Manage">Policy Manage</option>
+            <option value="Asset Manage">Asset Manage</option>
+            <option value="Organization Manage">Organization Manage</option>
+        </select>
+
+        <button class="btn btn-md btn-outline-primary" onclick="add_integration()">Add</button>
+
+    </div>
+</div>
+
+<div class="card shadow mb-4" id="product_table">
+    <div class="card-header py-3">
+        <h4 class="m-0 font-weight-bold text-teiren">
+            Integration List
+        </h4>
+    </div>
+    
+    
+    <div class="card-body" style="font-size:15px;">
+        <div class="table-responsive" style="overflow:hidden;">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                style="table-layout:fixed;text-align:center;font-size:15px;">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Name</th>
+                    </tr>
+                    </thead>
+                
+                <tbody>
+                    {% for p in product_list%}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td>{{ p.name }}</td>
+
+                        </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function add_integration() {
+        var integration = document.getElementById("add_integration").value;
+        console.log(integration);
+
+        $.ajax({
+            url: '/compliance/integration_add/',
+            headers: {
+                'X-CSRFToken': "{{ csrf_token }}"
+            },
+            type: 'POST',
+            data: {
+                'product':integration
+            },
+            success: function(response){
+                if(response.startsWith('\n<meta')){
+                    location.reload()
+                }
+                if(response === 'success'){
+                    alert('Saved Successfully')
+                    window.location.href= '/compliance/integration/'
+                }else if(response === 'already exist'){
+                    alert('Integration is already exist. Try Again') //중복된거면 카테고리 comment라도 수정할 건지 물어볼 수 있어야 되는데,,,
+                }else if(response === 'NULL'){
+                    alert('Integration must be entered. Try Again')
+                }
+                else {
+                    alert('Failed To Add. Please Try Again')
+                }
+            },
+            error : function(xhr,errmsg,err) {
+                console.log(xhr.status + ": " + xhr.responseText); 
+            }
+        })
+    }
+</script>
+<script>$('#compliance_side').addClass('active');</script>
+{% endblock %}
+

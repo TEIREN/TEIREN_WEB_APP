@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static '/M_threatD/css/searchcard.css' %}">
+<link rel="stylesheet" href="{% static '/M_threatD/css/notification/dataTable.css' %}">
+{% endblock head %}
+
+{% block content %}
+<div class="locationbar ml-2">
+    <span>Threat Management &nbsp;&nbsp;>&nbsp;&nbsp; </span>
+    <span class="current">Threat Alert<span>
+</div>
+<div>
+    <!-- Page Heading -->
+    <h6 class="h3 mb-2 text-gray-800 ml-2 font-weight-bold">Threat Alert</h6>
+    <p class="h6 ml-2 mb-4">Notifications Of Detected Threats</p>
+    {% include "./searchcard.html" %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-teiren">Threat Alert List</h6>
+
+            <input type="hidden" name="order_key">
+            <input type="hidden" name="order_value">
+        </div>
+        <div class="card-body" style="font-size:15px;">
+            <div class="table-responsive" id="data" style="overflow:hidden;">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                    style="text-align:center;overflow:scroll;font-size:15px !important;">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="d-flex row justify-content-center">
+                                    Status
+                                    <div class="order-div">
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['alert','ASC'])">
+                                            <i class="fa-solid fa-sort-up"></i>
+                                        </button>
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['alert','DESC'])">
+                                            <i class="fa-solid fa-sort-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>
+                                <div class="d-flex row justify-content-center">
+                                    Resource
+                                    <div class="order-div">
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['resource','ASC'])">
+                                            <i class="fa-solid fa-sort-up"></i>
+                                        </button>
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['resource','DESC'])">
+                                            <i class="fa-solid fa-sort-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>
+                                <div class="d-flex row justify-content-center">
+                                    Event Time
+                                    <div class="order-div">
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['eventTime','ASC'])">
+                                            <i class="fa-solid fa-sort-up"></i>
+                                        </button>
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['eventTime','DESC'])">
+                                            <i class="fa-solid fa-sort-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>
+                                <div class="d-flex row justify-content-center">
+                                    Rule Comment
+                                    <div class="order-div">
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['ruleComment','ASC'])">
+                                            <i class="fa-solid fa-sort-up"></i>
+                                        </button>
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['ruleComment','DESC'])">
+                                            <i class="fa-solid fa-sort-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>
+                                <div class="d-flex row justify-content-center">
+                                    Detected Event
+                                    <div class="order-div">
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['eventName','ASC'])">
+                                            <i class="fa-solid fa-sort-up"></i>
+                                        </button>
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['eventName','DESC'])">
+                                            <i class="fa-solid fa-sort-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>
+                                <div class="d-flex row justify-content-center">
+                                    Severity
+                                    <div class="order-div">
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['severity','ASC'])">
+                                            <i class="fa-solid fa-sort-up"></i>
+                                        </button>
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['severity','DESC'])">
+                                            <i class="fa-solid fa-sort-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>
+                                <div class="d-flex row justify-content-center">
+                                    Source Ip
+                                    <div class="order-div">
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['ip','ASC'])">
+                                            <i class="fa-solid fa-sort-up"></i>
+                                        </button>
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['ip','DESC'])">
+                                            <i class="fa-solid fa-sort-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>
+                                <div class="d-flex row justify-content-center">
+                                    Detection No
+                                    <div class="order-div">
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['id','ASC'])">
+                                            <i class="fa-solid fa-sort-up"></i>
+                                        </button>
+                                        <button class="order-btn" type="button" onClick="searchFilter(1,['id','DESC'])">
+                                            <i class="fa-solid fa-sort-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Status</th>
+                            <th>Resource</th>
+                            <th>Event Time</th>
+                            <th>Rule Comment</th>
+                            <th>Detected Event</th>
+                            <th>Severity</th>
+                            <th>Source Ip</th>
+                            <th>Detection No</th>
+                            <th>Details</th>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        {% if data %}
+                            {% for result in data %}
+                                {% if result.alert == 0 %}
+                                <tr class="text-danger">
+                                    <td style="font-weight:900" width="8%"><i class="fa-solid fa-eye-slash fa-bounce"></i></td>
+                                {% else %}
+                                <tr>
+                                    <td class="text-teiren" style="font-weight:900" width="8%"><i class="fa-solid fa-circle-check"></i></td>
+                                {% endif %}
+                                    <td width="8%"> {{result.resource}}</td>
+                                    <td width="10%">{{result.eventTime_format}}</td>
+                                    <td align="left" width="30%">{{result.ruleComment}}</td>
+                                    <td width="10%">{{result.eventName}}</td>
+                                    <td width="10%">
+                                        <div class="color-box color-box-{{result.severity.1}}">{{result.severity.0}}</div>
+                                    </td>
+                                    <td width="10%">{{result.sourceIp}}</td>
+                                    <td width="15%">{{result.rule_name}}</td>
+                                    <td width="10%">
+                                        <form method="POST" action="/threat/notifications/details/">
+                                            {% csrf_token %}
+                                            {% for key, value in result.form.items %}
+                                                <input type="hidden" name="{{key}}" value="{{value}}">
+                                            {% endfor %}
+                                            {% if 'alert' in result %}
+                                                <button class="btn btn-md btn-danger ">Details</button>
+                                            {% else %}
+                                                <button class="btn btn-md btn-teiren ">Details</button>
+                                            {% endif %}
+                                        </form>
+                                    </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="9" style="font-size:35px">No Data</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                <!-- 페이지리스트 -->
+                <div class="d-flex justify-content-center">
+                    <ul style="display:flex; list-style: none;">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter(1)">Start</button>
+                        </li>
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.previous_page_number}})">Prev</button>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled" aria-current="page">
+                            <button class="page-link" onclick="searchFilter(1)" >Start</button>
+                        </li>
+                        <li class="page-item disabled" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.previous_page_number}})">Prev</button>
+                        </li>
+                        {% endif %}
+
+                        {% for page_number in page_obj.paginator.page_range %}
+                        {% if page_number == page_obj.cur_page %}
+                        <li class="page-item active" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.next_page_number}})">Next</button>
+                        </li>
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.paginator.num_pages}})">End</button>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.next_page_number}})">Next</button>
+                        </li>
+                        <li class="page-item disabled" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.paginator.num_pages}})">End</button>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script src="{% static '/M_threatD/js/notification/searchcard.js' %}"></script>
+<script type="text/javascript">
+    {% comment %} $.fn.dataTable.ext.type.order['threat-level-pre'] = function(data) {
+        switch(data) {
+            case '<div class="color-box color-box-danger">CRITICAL</div>':
+                return 1;
+            case '<div class="color-box color-box-caution">HIGH</div>':
+                return 2;
+            case '<div class="color-box color-box-warning">MID</div>':
+                return 3;
+            case '<div class="color-box color-box-success">LOW</div>':
+                return 4;
+            default:
+                return 5;
+        }
+    };
+
+    $.fn.dataTable.ext.type.order['alert-check-pre'] = function(data) {
+        switch(data) {
+            case '<i class="fa-solid fa-eye-slash fa-bounce"></i>':
+                return 1;
+            case '<i class="fa-solid fa-circle-check"></i>':
+                return 2;
+            default:
+                return 3;
+        }
+    };
+
+    $("#dataTable").DataTable({
+        //데이터 테이블 0번째 인덱스부터 거꾸로 정렬(최신순 정렬)
+        order: [
+            [0, 'asc']
+        ],
+        columnDefs: [{
+            targets: 5,
+            type: 'threat-level'
+        }],
+        ordering: true,
+        // 표시 건수기능 숨기기
+        lengthChange: false,
+        // 검색 기능 숨기기
+        searching: false,
+    });
+    $(function() {
+        $('#threat_side').addClass('active')
+        $(window).on("pageshow", function(event) {
+            if (event.originalEvent.persisted) {
+                location.reload();
+            }
+        });
+    }) {% endcomment %}
+</script>
+{% endblock %}

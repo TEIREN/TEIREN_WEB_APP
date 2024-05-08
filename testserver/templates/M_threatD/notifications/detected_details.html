@@ -1,0 +1,63 @@
+<div class="table-responsive" style="overflow:hidden;">
+    <table class="table table-bordered" id="dataTable2" width="100%" cellspacing="0" style="text-align:center;">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>EventTime</th>
+                <th>Event Name</th>
+                <th>Event Type</th>
+                <th>Event Result</th>
+                <th>Source IP</th>
+                <th>More Details</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>No</th>
+                <th>EventTime</th>
+                <th>Event Name</th>
+                <th>Event Type</th>
+                <th>Event Result</th>
+                <th>Source IP</th>
+                <th>More Details</th>
+            </tr>
+        </tfoot>
+        <tbody>
+            {% if details %}
+            {% for detail in details %}
+            {% if detail.type == 'normal' %}
+            <tr>
+                <td>{{detail.id}}</td>
+                <td>{{detail.eventTime}}</td>
+                <td>{{detail.eventName}}</td>
+                <td>{{detail.eventType}}</td>
+                <td>{{detail.eventResult}}</td>
+                <td>{{detail.sourceIP}}</td>
+                <td>
+                    <button class="btn btn-md btn-danger" data-toggle="modal" data-target="#detail-modal"
+                        data-id={{detail.id}} data-logtype={{detail.logType}} data-resourcetype={{detail.resourceType}}>
+                        Details
+                    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr class='text-danger'>
+                <td><i class="fas fa-fw fa-exclamation-triangle"></i>{{detail.id}}</td>
+                <td>{{detail.eventTime}}</td>
+                <td>{{detail.eventName}}</td>
+                <td>{{detail.eventType}}</td>
+                <td>{{detail.eventResult}}</td>
+                <td>{{detail.sourceIP}}</td>
+                <td>
+                    <button class="btn btn-md btn-danger" data-toggle="modal" data-target="#detail-modal"
+                        data-id={{detail.id}} data-logtype={{detail.logType}} data-resourcetype={{detail.resourceType}}>
+                        Details
+                    </button>
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+            {% endif %}                   
+        </tbody>
+    </table>
+</div>

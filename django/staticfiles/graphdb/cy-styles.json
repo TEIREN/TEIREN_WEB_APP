@@ -1,0 +1,239 @@
+[
+  {
+    "selector": "core",
+    "style": {
+      "selection-box-color": "#AAD8FF",
+      "selection-box-border-color": "#8BB0D0",
+      "selection-box-border-radius": "50px",
+      "selection-box-opacity": "0.1"
+    }
+  },
+  {
+    "selector": "node",
+    "style": {
+      "width": "mapData(score, 400, 800, 100, 200)",
+      "height": "mapData(score, 400, 800, 100, 200)",
+      "content": "data(name)",
+      "font-size": "14px",
+      "text-valign": "center",
+      "text-halign": "center",
+      "border-color": "#555",
+      "background-color": "#555",
+      "text-outline-color": "#555",
+      "text-outline-width": "0.7px",
+      "color": "#fff",
+      "overlay-padding": "6px",
+      "z-index": "10"
+    }
+  },
+  {
+    "selector": "node[label=\"Rule\"]",
+    "style": {
+      "background-color": "#d40e00",
+      "border-color": "#d40e00",
+      "border-opacity": "0.7",
+      "border-width": "7px"
+    }
+  },
+  {
+    "selector": "node[label=\"Log\"]",
+    "style": {
+      "background-color": "#1cc85e",
+      "border-color": "#1cc85e",
+      "border-opacity": "0.7",
+      "border-width": "7px"
+    }
+  },
+  {
+    "selector": "node[label=\"Account\"]",
+    "style": {
+      "background-color": "#f6c23e",      
+      "border-color": "#f6c23e",
+      "border-opacity": "0.7",
+      "border-width": "7px",
+      "font-size": "30px"
+    }
+  },
+  {
+    "selector": "node[label=\"Between\"]",
+    "style": {
+      "background-color": "#24b6d4",
+      "border-color": "#24b6d4",
+      "border-opacity": "0.7",
+      "border-width": "7px",
+      "font-size": "20px"
+    }
+  },
+  {
+    "selector": "node[label=\"Date\"]",
+    "style": {
+      "background-color": "#4e73df",
+      "border-color": "#4e73df",
+      "border-opacity": "0.7",
+      "border-width": "7px"      
+    }
+  },
+  {
+    "selector": "node[label=\"Flow\"]",
+    "style": {
+      "background-color": "#b5419f",
+      "border-color": "#b5419f",
+      "border-opacity": "0.7",
+      "border-width": "7px"  
+    }
+  },
+  {
+    "selector": "node[label=\"Role\"]",
+    "style": {
+      "background-color": "#f6c23e",
+      "border-color": "#f6c23e",
+      "border-opacity": "0.7",
+      "border-width": "7px",
+      "font-size": "30px"
+    }
+  },
+  {
+    "selector": "node[?attr]",
+    "style": {
+      "shape": "rectangle",
+      "background-color": "#aaa",
+      "text-outline-color": "#aaa",
+      "width": "16px",
+      "height": "16px",
+      "font-size": "6px",
+      "z-index": "1"
+    }
+  },
+  {
+    "selector": "node[?query]",
+    "style": {
+      "background-clip": "none",
+      "background-fit": "contain"
+    }
+  },
+  {
+    "selector": "node:selected",
+    "style": {
+      "border-width": "5px",
+      "background-opacity": "1",
+      "text-outline-color": "#77828C"
+    }
+  },
+  {
+    "selector": "edge",
+    "style": {
+      "curve-style": "bezier",
+      "haystack-radius": "1",
+      "opacity": "0.7",
+      "color": "#000",
+      "line-color": "#888",
+      "line-style": "solid",
+      "width": "2px",
+      "overlay-padding": "3px",
+      "label": "data(name)",
+      "font-size": "14px",
+      "target-arrow-color": "#888",
+      "target-arrow-shape": "triangle-backcurve"
+    }
+  },
+  {
+    "selector": "node.unhighlighted",
+    "style": {
+      "opacity": "0.2"
+    }
+  },
+  {
+    "selector": "edge.unhighlighted",
+    "style": {
+      "opacity": "1"
+    }
+  },
+  {
+    "selector": ".highlighted",
+    "style": {
+      "z-index": "1000"
+    }
+  },
+  {
+    "selector": "node.highlighted",
+    "style": {
+      "border-width": "6px",
+      "border-color": "#AAD8FF",
+      "border-opacity": "0.5",
+      "background-color": "#394855",
+      "text-outline-color": "#394855"
+    }
+  },
+  {
+    "selector": "edge.filtered",
+    "style": {
+      "opacity": "0"
+    }
+  },
+  {
+    "selector": "edge[group=\"coexp\"]",
+    "style": {
+      "line-color": "#ccc"
+    }
+  },
+  {
+    "selector": "edge[group=\"coloc\"]",
+    "style": {
+      "line-color": "#a0b3dc"
+    }
+  },
+  {
+    "selector": "edge[group=\"gi\"]",
+    "style": {
+      "line-color": "#90e190"
+    }
+  },
+  {
+    "selector": "edge[group=\"path\"]",
+    "style": {
+      "line-color": "#9bd8de"
+    }
+  },
+  {
+    "selector": "edge[group=\"pi\"]",
+    "style": {
+      "line-color": "#eaa2a2"
+    }
+  },
+  {
+    "selector": "edge[group=\"predict\"]",
+    "style": {
+      "line-color": "#f6c384"
+    }
+  },
+  {
+    "selector": "edge[group=\"spd\"]",
+    "style": {
+      "line-color": "#dad4a2"
+    }
+  },
+  {
+    "selector": "edge[group=\"spd_attr\"]",
+    "style": {
+      "line-color": "#D0D0D0"
+    }
+  },
+  {
+    "selector": "edge[group=\"reg\"]",
+    "style": {
+      "line-color": "#D0D0D0"
+    }
+  },
+  {
+    "selector": "edge[group=\"reg_attr\"]",
+    "style": {
+      "line-color": "#D0D0D0"
+    }
+  },
+  {
+    "selector": "edge[group=\"user\"]",
+    "style": {
+      "line-color": "#f0ec86"
+    }
+  }
+]

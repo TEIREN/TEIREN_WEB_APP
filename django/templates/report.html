@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        @font-face {
+            font-family: 'Pretendard-Regular';
+            src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+        }
+
+        body {
+            font-family: 'Pretendard-Regular', serif;
+            margin: 0;
+        }
+
+        .page {
+            width: 1000px;
+            height: 1415px;
+            color: black;
+            position: relative;
+        }
+
+        .header {
+            background-color: #24b6d4;
+            color: white;
+            width: 100%;
+            height: 5%;
+        }
+
+        .header .header-logo-text {
+            float: left;
+            margin-top: 15px;
+            font-size: 30px;
+            font-weight: 900;
+        }
+
+        .header .header-title {
+            float: right;
+            margin-top: 20px;
+            margin-right: 20px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .footer {
+            background-color: #24b6d4;
+            color: white;
+            width: 100%;
+            height: 5%;
+        }
+
+        .footer .footer-title {
+            float: left;
+            margin-top: 22px;
+            margin-left: 2px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .footer .page-number {
+            float: right;
+            margin-right: 20px;
+            margin-top: 22px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .content-box {
+            height: 87%;
+            width: 90%;
+            margin: 2.3% auto;
+        }
+
+        .content {
+            width: 100%;
+            margin: 2.3% auto;
+        }
+
+        .content-header {
+            font-size: 30px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            margin-right: auto;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #24b6d4;
+            color: white;
+            font-weight: 700;
+        }
+
+        td {
+            background-color: #f9f8f8;
+        }
+
+        td.head {
+            font-weight: 900;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="header">
+            <img src="./teiren-white-icon.png" alt="test" width="100px" style="float:left;">
+            <span class="header-logo-text">TEIREN</span>
+            <span class="header-title">1. Chapter 안녕하세요</span>
+        </div>
+        <div class="content-box">
+            <div class="content">
+                <div class="content-header">
+                    <span>| 1.1 Section if section else Chapter</span>
+                </div>
+                <table>
+                    <thead>
+                        <th width="20%">항목</th>
+                        <th>1.1.1 Article</th>
+                    </thead>
+                    <tr>
+                        <td class="head">인증기준</td>
+                        <td>
+                            <li>test</li>
+                            <li>test</li>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="head">주요 확인사항</td>
+                        <td>
+                            <li>test</li>
+                            <li>test</li>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="head">관련 법규</td>
+                        <td>
+                            <li>test</li>
+                            <li>test</li>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="content">
+                <div class="content-header">
+                    <span>| 증적 관리</span>
+                </div>
+                <table>
+                    <thead>
+                        <th width="20%">항목</th>
+                        <th>증거 자료</th>
+                        <th width="20%">운영 현황</th>
+                    </thead>
+                    <tr>
+                        <td>1.1.1 Article</td>
+                        <td> test </td>
+                        <td> test </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="footer">
+            <span class="footer-title">Teiren ISMS-P 준수 컴플라이언스 분석보고서</span>
+            <span class="page-number">01</span>
+        </div>
+    </div>
+    <div class="page">
+        page 2
+    </div>
+</body>
+
+</html>

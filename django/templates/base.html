@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+{% load static %}
+<head>
+{% include 'head.html' %}
+{% block head %}{% endblock head %}
+</head>
+<body>
+    {% include "topbar.html" %}
+    {% include "sidebar.html" %}
+    <div class="body-content"> 
+        {% block content %}
+        {% endblock %}
+        {% include 'footer.html' %}
+    </div>
+    {% block script %}{% endblock %}
+</body>

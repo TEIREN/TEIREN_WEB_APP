@@ -1,0 +1,80 @@
+{% load custom_filter %}
+<h4 class='m-0 mb-2 font-weight-bold text-teiren' style='text-align:center;'>{{details.eventName}}#{{id}} Details</h4>
+<div class='tabs'>
+    <input type='radio' id='modal-tab1' name='tab-control-modal' checked>
+    <input type='radio' id='modal-tab2' name='tab-control-modal'>
+    <ul>
+        <li title='TABLE FORMAT'>
+            <label for='modal-tab1' role='button'>
+                <span>Table Format</span>
+            </label>
+        </li>
+        <li title='JSON FORMAT'>
+            <label for='modal-tab2' role='button'>
+                <span>JSON Format</span>
+            </label>
+        </li>
+    </ul>
+
+    <div class='slider'>
+        <div class='indicator'></div>
+    </div>
+    <div class='content'>
+        <section>
+            <div class='container-fluid'>
+                <div class='card-body'>
+                    <div class='table-responsive'>
+                        <table class='table table-bordered' id='dataTable' width='100%' cellspacing='0' style='table-layout:fixed;text-align:center;overflow-wrap:break-word;white-space:normal;'>
+                            <thead>
+                                <tr>
+                                    <th>Log Id</th>
+                                    <td>{{id}}</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key, value in details.items %}
+                                {% if key != 'productData' and key != '_id' and key != 'historyId' %}
+                                <tr>
+                                    <th>{{ key }}</th>
+                                    <td>{{ value }}</td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                                {% if details.productData %}
+                                <tr bgcolor='#F0F0F0'>
+                                    <th colspan='2'>
+                                        <h4> Product Data </h4>
+                                    </th>
+                                </tr>
+                                {% for key, value in details.productData.items %}
+                                <tr bgcolor='#F0F0F0'>
+                                    <th>{{ key }}</th>
+                                    <td>{{ value }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class='container-fluid'>
+                <div class='card-body'>
+                    <div class='table-responsive'>
+                        <table class='table table-bordered' id='dataTable' width='100%' cellspacing='0' style='table-layout:fixed;text-align:left;'>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <pre>{{ details|pprint }}</pre>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>

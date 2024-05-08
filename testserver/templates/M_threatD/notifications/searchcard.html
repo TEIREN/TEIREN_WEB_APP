@@ -1,0 +1,216 @@
+<div class="searchcard shadow mb-4">
+    <form id="search">
+        <div class="searchcard-body py-3">
+            <select class="btn-select" name="main_search_key">
+                <option value="resource">Resource</option>
+                <option value="ruleComment">Detected Rule Comment</option>
+                <option value="eventName">Detected Event</option>
+                <option value="sourceIp">Source Ip</option>
+            </select>
+            <input class="search-input" name="main_search_value" placeholder="Search"/>
+            <button class="btn-search" type="button" onClick="searchFilter(1,[])">
+                <span class="material-symbols-outlined">
+                    search
+                </span>
+            </button>
+            <button class="btn-collapse" type="button">
+                <span class="material-symbols-outlined" style="font-size:30px">
+                    expand_more
+                </span>
+            </button>
+        </div>
+        <div class="collapsecard" style="display:none;">
+            <div class="searchcard-collapse pb-3" style="display:none;">
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Resource
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="Resource">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input resource" type="checkbox" name="resource" value="all" onclick="selectAll(this, 'resource')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input resource" type="checkbox" name="resource" value="regex" onclick="selectcheck(this, 'resource')">Regex
+                                    </label>
+                                </li>
+                                {%for resource in resource_list %}
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input resource" type="checkbox" name="resource" value="{{resource}}" onclick="selectcheck(this, 'resource')">{{resource}}
+                                    </label>
+                                </li>
+                                {%endfor%}
+                            </ul>
+                        </div>
+                    </div>
+                    <div id="resource_regex" class="regexbox" style="display: none;">
+                        <input name="resource_regex" class="regex-input" placeholder="Resource Regex">
+                    </div>
+                </div>
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Event Time
+                        </div>
+                        <div class="calandar">
+                            <input class="calandar-input" type="date" name="eventTime_date_start">
+                            <span style="font-size:14px;">~</span>
+                            <input class="calandar-input" type="date" name="eventTime_date_end">
+                        </div>
+                    </div>
+                </div>
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Rule Comment
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="Rule Comment">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input ruleComment" type="checkbox" name="ruleComment" value="all" onclick="selectAll(this, 'ruleComment')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input ruleComment" type="checkbox" name="ruleComment" value="regex" onclick="selectcheck(this, 'ruleComment')">Regex
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div id="ruleComment_regex" class="regexbox" style="display: none;">
+                        <input name="ruleComment_regex" class="regex-input" placeholder="Rule Comment Regex">
+                    </div>
+                </div>
+            </div>
+            <div class="searchcard-collapse pb-3" style="display:none;">
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Detected Event
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="Detected Event">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input eventName" type="checkbox" name="eventName" value="all" onclick="selectAll(this, 'eventName')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input eventName" type="checkbox" name="eventName" value="regex" onclick="selectcheck(this, 'eventName')">Regex
+                                    </label>
+                                </li>
+                                {%for eventName in eventName_list %}
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input eventName" type="checkbox" name="eventName" value="{{eventName}}" onclick="selectcheck(this, 'eventName')">{{eventName}}
+                                    </label>
+                                </li>
+                                {%endfor%}
+                            </ul>
+                        </div>
+                    </div>
+                    <div id="eventName_regex" class="regexbox" style="display: none;">
+                        <input name="eventName_regex" class="regex-input" placeholder="Detected Event Regex">
+                    </div>
+                </div>
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Severity
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="Severity">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="all" onclick="selectAll(this, 'severity')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['CRITICAL', 'danger']" onclick="selectcheck(this, 'severity')">CRITICAL
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['HIGH', 'caution']" onclick="selectcheck(this, 'severity')">HIGH
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['MID', 'warning']" onclick="selectcheck(this, 'severity')">MID
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['LOW', 'success']" onclick="selectcheck(this, 'severity')">LOW
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Source IP
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="Severity">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="all" onclick="selectAll(this, 'severity')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['CRITICAL', 'danger']" onclick="selectcheck(this, 'severity')">CRITICAL
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['HIGH', 'caution']" onclick="selectcheck(this, 'severity')">HIGH
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['MID', 'warning']" onclick="selectcheck(this, 'severity')">MID
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['LOW', 'success']" onclick="selectcheck(this, 'severity')">LOW
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-reset" type="button" onClick="searchFilter('reset', [])">
+                    <span class="material-symbols-outlined">
+                        restart_alt
+                    </span>
+                    Reset
+                </button>
+                <button class="btn-info disabled" type="button" onClick="searchFilter('reset', [])">
+                    <span class="material-symbols-outlined">
+                        info
+                    </span>
+                    Info
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

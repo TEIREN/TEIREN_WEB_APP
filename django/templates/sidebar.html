@@ -1,0 +1,275 @@
+{% load static %}
+<div class="sidebar shadow">
+    <div id="sidebar-top">
+        <ul class="navbar-icon">
+            <li>
+                <a id="dashboard_side" class="nav-link" href="/">
+                    <span class="material-symbols-outlined">
+                        space_dashboard
+                    </span>
+                </a>
+            </li>
+            <li>
+                <a id="log_side" class="nav-link">
+                    <span class="material-symbols-outlined">
+                        list_alt
+                    </span>
+                </a>
+                <div class="collapse shadow">
+                    <button class="collapse-hide-btn">
+                        <span class="material-symbols-outlined">
+                            arrow_back_ios_new
+                        </span>
+                    </button>
+                    <span class="header">
+                        Log Management
+                    </span>
+                    <div class="collapse-item box">
+                        <input class="sidebar-search" placeholder="Search">
+                        <button class="btn fa-solid fa-magnifying-glass" style="margin-left:auto" onclick="sidebarSearch($(this).parent())"></button>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="item-toggle">
+                        <button class="item-header">
+                            Cloud Logs
+                            <span class="material-symbols-outlined">
+                                expand_more
+                            </span>
+                        </button>
+                        <a class="collapse-item" href="/logs/cloud/aws" style="display:none;">
+                            AWS Logs
+                        </a>
+                        <a class="collapse-item dark disabled" href="/logs/cloud/ncp" style="display:none;">
+                            NCP Logs
+                        </a>
+                        <a class="collapse-item dark disabled" href="/logs/cloud/nhn" style="display:none;">
+                            NHN Logs
+                        </a>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="item-toggle">
+                        <button class="item-header">
+                            Solution Logs
+                            <span class="material-symbols-outlined">
+                                expand_more
+                            </span>
+                        </button>
+                        <a class="collapse-item" href="/logs/solution/teiren_cloud" style="display:none;">
+                            Teiren Cloud Logs
+                        </a>
+                        <a class="collapse-item dark disabled" href="/logs/solution/ofk" style="display:none;">
+                            Office Keeper Logs
+                        </a>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="item-toggle">
+                        <button class="item-header">
+                            System Logs
+                            <span class="material-symbols-outlined">
+                                expand_more
+                            </span>
+                        </button>
+                        <a class="collapse-item dark disabled" href="/logs/solution/winsec" style="display:none;">
+                            Window Security Logs
+                        </a>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <a id="integration_side" class="nav-link">
+                    <span class="material-symbols-outlined">
+                        library_add
+                    </span>
+                </a>
+                <div class="collapse shadow">
+                    <button class="collapse-hide-btn">
+                        <span class="material-symbols-outlined">
+                            arrow_back_ios_new
+                        </span>
+                    </button>
+                    <span class="header">
+                        Resource Management
+                    </span>
+                    <div class="collapse-item box">
+                        <input class="sidebar-search" placeholder="Search">
+                        <button class="btn fa-solid fa-magnifying-glass" style="margin-left:auto" onclick="sidebarSearch($(this).parent())"></button>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="item-toggle">
+                        <button class="item-header">
+                            Integration
+                            <span class="material-symbols-outlined">
+                                expand_more
+                            </span>
+                        </button>
+                        <a class="collapse-item" href="/integration/registration" style="display:none;">
+                            Registration
+                        </a>
+                        <a class="collapse-item" href="/integration/configuration" style="display:none;">
+                            Configuration
+                        </a>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <a id="threat_side" class="nav-link">
+                    <span class="material-symbols-outlined">
+                        notification_important
+                    </span>
+                </a>
+                <div class="collapse shadow">
+                    <button class="collapse-hide-btn">
+                        <span class="material-symbols-outlined">
+                            arrow_back_ios_new
+                        </span>
+                    </button>
+                    <span class="header">
+                        Threat Management
+                    </span>
+                    <div class="collapse-item box">
+                        <input class="sidebar-search" placeholder="Search">
+                        <button class="btn fa-solid fa-magnifying-glass" style="margin-left:auto" onclick="sidebarSearch($(this).parent())"></button>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="item-header">
+                        Threat Alerts
+                    </div>
+                    <a class="collapse-item" href="/threat/notifications/logs">
+                        Threat Alerts
+                        <div id="sidebar_alert" class="fa-bounce" hidden></div>
+                    </a>
+                    <div class="divider"></div>
+                    <div class="item-toggle">
+                        <button class="item-header">
+                            Rule Configuration
+                            <span class="material-symbols-outlined">
+                                expand_more
+                            </span>
+                        </button>
+                        <a class="collapse-item" href="/threat/rules/cloud/aws" style="display:none;">
+                            AWS Rules
+                        </a>
+                        <a class="collapse-item" href="/threat/rules/solution/teiren_cloud" style="display:none;">
+                            Teiren Cloud Rules
+                        </a>
+                        <a class="collapse-item dark disabled" href="/threat/rules/cloud/ncp" style="display:none;">
+                            NCP Rules
+                        </a>
+                        <a class="collapse-item dark disabled" href="/threat/rules/cloud/nhn" style="display:none;">
+                            NHN Rules
+                        </a>
+                        <a class="collapse-item dark disabled" href="/threat/rules/solution/ofk" style="display:none;">
+                            Office Keeper Rules
+                        </a>
+                        <a class="collapse-item dark disabled" href="/threat/rules/cloud/nhn" style="display:none;">
+                            NHN Rules
+                        </a>
+                    </div>                    
+                    <div class="divider"></div>
+                    <div class="item-toggle">
+                        <button class="item-header">
+                            Graph Analysis
+                            <span class="material-symbols-outlined">
+                                expand_more
+                            </span>
+                        </button>
+                        <a class="collapse-item" href="/threat/visuals/user" style="display:none;">
+                            User Analysis
+                        </a>
+                        <a class="collapse-item dark disabled" href="/threat/rules/aws" style="display:none;">
+                            IP Analysis
+                        </a>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <a class="nav-link">
+                    <span class="material-symbols-outlined">
+                        assured_workload
+                    </span>
+                </a>
+                <div class="collapse shadow">
+                    <button class="collapse-hide-btn">
+                        <span class="material-symbols-outlined">
+                            arrow_back_ios_new
+                        </span>
+                    </button>
+                    <span class="header">
+                        Compliance Management
+                    </span>
+                    <div class="collapse-item box">
+                        <input class="sidebar-search" placeholder="Search">
+                        <button class="btn fa-solid fa-magnifying-glass" style="margin-left:auto" onclick="sidebarSearch($(this).parent())"></button>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="item-toggle">
+                        <button class="item-header">
+                            Compliance
+                            <span class="material-symbols-outlined">
+                                expand_more
+                            </span>
+                        </button>
+                        <a class="collapse-item" href="/compliance/lists/" style="display:none;">
+                            Compliance List
+                        </a>
+                        <a class="collapse-item" href="/compliance/evidence/" style="display:none;">
+                            Evidence Management
+                        </a>
+                        <a class="collapse-item dark disabled" href="/compliance/evidence/organization/" style="display:none;">
+                            Organization Management
+                        </a>
+                        <a class="collapse-item" href="/compliance/assets" style="display:none;">
+                            Asset Management
+                        </a>
+                        <a class="collapse-item" href="/compliance/policy/" style="display:none;">
+                            Policy Management
+                        </a>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div id="sidebar-bottom">
+        <ul class="navbar-icon">
+            <li>
+                <a class="nav-link">
+                    <span class="material-symbols-outlined">
+                        settings
+                    </span>
+                </a>
+                <div class="collapse shadow">
+                    <button class="collapse-hide-btn">
+                        <span class="material-symbols-outlined">
+                            arrow_back_ios_new
+                        </span>
+                    </button>
+                    <span class="header">
+                        Configurations
+                    </span>
+                    <div class="collapse-item box">
+                        <input class="sidebar-search" placeholder="Search">
+                        <button class="btn fa-solid fa-magnifying-glass" style="margin-left:auto" onclick="sidebarSearch($(this).parent())"></button>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="item-header">
+                        Configurations
+                    </div>
+                    <a class="collapse-item" href="/configurations/account">
+                        Account Configuration
+                    </a>
+                    <a class="collapse-item" href="/configurations/dashboard">
+                        Dashboard Configuration
+                    </a>
+                </div>
+            </li>
+            <li >
+                <a class="nav-link" href="#">
+                    <div class="h6 mr-2 d-flex align-items-center font-weight-bold">
+                        <i class="h3 fa-solid fa-circle-user ml-2"></i>
+                    </div>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+<script src="{% static '/js/navbar.js' %}"></script>

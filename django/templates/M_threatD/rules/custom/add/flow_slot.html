@@ -1,0 +1,231 @@
+{% load static %}
+{% load custom_filter %}
+<link rel="stylesheet" href="{% static '/M_threatD/css/dynamic.css' %}">
+{% if wheres %}
+{% for where in wheres %}
+<div class="flow" id="flow_{{forloop.counter}}">
+    {% if forloop.counter == 1 %}
+        <div class="dynamic_detection">
+            <table id="dataTable" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th colspan="3">Name</th>
+                        <th colspan="4">Comment</th>
+                        <th colspan="12">Property : Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for num, flow in flows.items %}
+                        <tr>
+                            <td>{{num}}</td>
+                            <td colspan="3">{{flow.name}}</td>
+                            <td colspan="4">{{flow.comment}}</td>
+                            <td colspan="12">
+                                <table class="property-table">
+                                    {% for item in flow.item %}
+                                    <tr>
+                                        <td>
+                                            <p class="text-teiren font-weight-bold">{{item.0}}: </p>
+                                            <span class="font-weight-bold">{{item.1}}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            </td>
+                        <tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="form-group row text-center">
+            <div class="col-10 text-teiren">
+                <select id="flow_logical_{{forloop.counter0}}" name="flow_logical_{{forloop.counter0}}" class="btn btn-md mt-3" style="background-color:#e7faff; border-color:#E5E5E5; width:15%;">
+                    {% with forloop.counter0|add:"-1" as flow_num %}
+                    {% make_list 'AND' 'OR' as logical_list %}
+                    {% for logical in logical_list %}
+                        {% with wheres|list_item:flow_num as logical_where %}
+                        {% if logical != logical_where.logical %}
+                            <option>{{logical}}</option>
+                        {% else %}
+                            <option selected>{{logical}}</option>
+                        {% endif %}
+                        {% endwith %}
+                    {% endfor %}
+                    {% endwith %}
+                </select>
+            </div>
+        </div>
+    {% endif %}
+    <div class="form-group row text-center">
+        <div class="col-10 text-teiren">
+            <h6>Dynamic Detection {{forloop.counter}}</h6>
+        </div>
+    </div>
+    <div class="form-group row text-center">
+        <div class="col-2">
+            <span>Flow Detection</span>
+            <select type="text-area" class="form-control form-control-user" name="flow_srcNum_{{forloop.counter}}">
+                {% for num in flows %}
+                    {% if num == where.srcNum.3 %}
+                    <option value="log{{num}}" selected>{{num}}</option>
+                    {% else %}
+                    <option value="log{{num}}">{{num}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-3">
+            <span>Detection Property</span>
+            <input type="text-area" class="form-control form-control-user" list="flow_src_property_list_{{forloop.counter}}" name="flow_srcProperty_{{forloop.counter}}" value="{{where.srcProperty}}">
+            <datalist id="flow_src_property_list_{{forloop.counter}}">
+                {% for property in log_properties %}
+                    <option value="{{property}}">{{property}}</option>
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="col-1 px-0">
+            <select name="flow_op_{{forloop.counter}}" class="btn btn-md mt-3 pl-0" style="background-color:#FFFFFF; border-color:#E5E5E5; width:100%;">
+                {% make_list '=' '<>' 'CONTAINS' as op_list %}
+                {% for op in op_list %}
+                    {% if op != where.op %}
+                        <option>{{op}}</option>
+                    {% else %}
+                        <option selected >{{op}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-2">
+            <span>Flow Detection</span>
+            <select type="text-area" class="form-control form-control-user" name="flow_dstNum_{{forloop.counter}}">
+                {% for num in flows %}
+                    {% if num == where.dstNum.3 %}
+                    <option value="log{{num}}" selected>{{num}}</option>
+                    {% else %}
+                    <option value="log{{num}}">{{num}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-3">
+            <span>Detection Property</span>
+            <input type="text-area" class="form-control form-control-user" list="flow_dst_property_list_{{forloop.counter}}" name="flow_dstProperty_{{forloop.counter}}" value="{{where.dstProperty}}">
+            <datalist id="flow_dst_property_list_{{forloop.counter}}">
+                {% for property in log_properties %}
+                    <option value="{{property}}">{{property}}</option>
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="col-1 d-flex align-items-center px-0">
+            <button type="button" class="btn btn-teiren btn-sm ml-auto mr-auto" style="border-radius:40px" onclick="addFlow()">+</button>
+            {% if forloop.counter != 1 %}
+                <button type="button" class="btn btn-danger btn-sm ml-auto" style="border-radius:40px" onclick="deleteFlow(this)">-</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="flow" id="flow_{{flow_count}}">
+    {% if flow_count == '1' %}
+        <div class="dynamic_detection">
+            <table id="dataTable" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th colspan="3">Name</th>
+                        <th colspan="4">Comment</th>
+                        <th colspan="12">Property : Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for num, flow in flows.items %}
+                        <tr>
+                            <td>{{num}}</td>
+                            <td colspan="3">{{flow.name}}</td>
+                            <td colspan="4">{{flow.comment}}</td>
+                            <td colspan="12">
+                                <table class="property-table">
+                                    {% for item in flow.item %}
+                                    <tr>
+                                        <td>
+                                            <p class="text-teiren font-weight-bold">{{item.0}}: </p>
+                                            <span class="font-weight-bold">{{item.1}}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            </td>
+                        <tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="form-group row text-center">
+            <div class="col-10 text-teiren">
+                <select id="flow_logical_{{flow_count | add:"-1"}}" name="flow_logical_{{flow_count | add:"-1"}}" class="btn btn-md mt-3" style="background-color:#e7faff; border-color:#E5E5E5; width:15%;">
+                    <option>AND</option>
+                    <option>OR</option>
+                </select>
+            </div>
+        </div>
+    {% endif %}
+    <div class="form-group row text-center">
+        <div class="col-10 text-teiren">
+            <h6>Dynamic Detection {{flow_count}}</h6>
+        </div>
+    </div>
+    <div class="form-group row text-center">
+        <div class="col-2">
+            <span>Flow Detection</span>
+            <select type="text-area" class="form-control form-control-user" name="flow_srcNum_{{flow_count}}">
+                {% for num in flows %}
+                    <option value="log{{num}}">{{num}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-3">
+            <span>Detection Property</span>
+            <input type="text-area" class="form-control form-control-user" list="flow_src_property_list_{{flow_count}}" name="flow_srcProperty_{{flow_count}}">
+            <datalist id="flow_src_property_list_{{flow_count}}">
+                {% for property in log_properties %}
+                    <option value="{{property}}">{{property}}</option>
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="col-1 px-0">
+            <select name="flow_op_{{flow_count}}" class="btn btn-md mt-3 pl-0" style="background-color:#FFFFFF; border-color:#E5E5E5; width:100%;">
+                <option>=</option>
+                <option><></option>
+                <option>CONTAINS</option>
+            </select>
+        </div>
+        <div class="col-2">
+            <span>Flow Detection</span>
+            <select type="text-area" class="form-control form-control-user" name="flow_dstNum_{{flow_count}}">
+                {% for num in flows %}
+                    <option value="log{{num}}">{{num}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-3">
+            <span>Detection Property</span>
+            <input type="text-area" class="form-control form-control-user" list="flow_dst_property_list_{{flow_count}}" name="flow_dstProperty_{{flow_count}}">
+            <datalist id="flow_dst_property_list_{{flow_count}}">
+                {% for property in log_properties %}
+                    <option value="{{property}}">{{property}}</option>
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="col-1 d-flex align-items-center px-0">
+            <button type="button" class="btn btn-teiren btn-sm ml-auto mr-auto" style="border-radius:40px" onclick="addFlow()">+</button>
+            {% if flow_count != '1' %}
+                <button type="button" class="btn btn-danger btn-sm ml-auto" style="border-radius:40px" onclick="deleteFlow(this)">-</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}

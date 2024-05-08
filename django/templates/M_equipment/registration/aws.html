@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="locationbar ml-2">
+    <span>Resource Management &nbsp;&nbsp;>&nbsp;&nbsp;Integreation &nbsp;&nbsp;>&nbsp;&nbsp;Registration &nbsp;&nbsp;>&nbsp;&nbsp;AWS &nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">{{logType|title}}<span>
+</div>
+<div>
+    <!-- Page Heading -->
+    <h6 class="h3 mb-2 ml-2 font-weight-bold text-gray-800">Integrate AWS {{logType|title}} Logs</h6>
+    <p class="h6 mb-4 ml-2">Integrate AWS {{logType|title}} Logs To Teiren Cloud</p>
+    <!-- Begin Page Content -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <div style="float: left">
+                <h6 class="m-0 font-weight-bold text-amazon">
+                    Verify AWS Account
+                </h6>
+            </div>
+        </div>
+        <div class="card-body" style="font-size:12px">
+            <form method="POST" id='account_form'>
+                <div class="form-group text-amazon">ACCESS KEY
+                    <div class="form-group text-dark">
+                        <input type='text' class="form-control" id="access_key" name="access_key" placeholder="ACCESS KEY">
+                    </div>
+                </div>
+                <div class="form-group text-amazon">SECRET KEY
+                    <input type="password" class="form-control" id='secret_key' name="secret_key" placeholder="SECRET KEY">
+                    <input type="checkbox" class="text-dark" onclick="secretkey()">Show Secret Key
+                </div>
+                {% if logType == 'dns' %}
+                    <input type='hidden' class="form-control" name="region_name" value="us-east-1">
+                {% else %}
+                <div class="form-group text-amazon">REGION NAME
+                    <div class="form-group text-dark">
+                        <input type='text' class="form-control" name="region_name" placeholder="REGION NAME">
+                    </div>
+                </div>                            
+                {% endif %}
+                {% if logType != 'cloudtrail' and logType != 'elb' %}
+                    <div class="form-group text-amazon">LOG GROUP NAME
+                        <div class="form-group text-dark">
+                            <input type='text' class="form-control" name="group_name" placeholder="LOG GROUP NAME">
+                        </div>
+                    </div>
+                {% else %}
+                    <input type='hidden' class="form-control" name="group_name" value="{{logType}}">
+                {% endif %}
+                <input type="button" class="btn btn-outline-primary" id='form-check' value="Confirm AWS Account Information"/>
+            </form>
+            <p><input type='hidden' class='mt-3 btn btn btn-primary' id='insert' value='Register'/>
+            </div>
+        </div>
+    </div>
+    <!-- End Page Content -->
+</div>
+<!-- Modal -->
+<div class="modal fade card-body" id="modal" role="dialog" style='overflow-y:auto' aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p-1" style='width:1000px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-primary" id='modal_title'>Integrate AWS Logs</h5>
+                <button type="button" class=close data-dismiss="modal" aria-label="Close">x</button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <h5>AWS Authentication</h5>
+                <form method="POST" class="mt-3" id='insertform'>
+                    <input type="text" class="form-control" id='modal_integration_type' name="modal_integration_type" value='Aws' hidden readonly>
+                    <input type="text" class="form-control" id='modal_log_type' name="modal_log_type" value='{{logType}}' hidden readonly>
+                    <p>ACCESS KEY: <input type="text" class="form-control" id='modal_access_key' name="modal_access_key" value='' readonly></p>
+                    <p>SECRET KEY: <input type="text" class="form-control" id='modal_secret_key' name="modal_secret_key" value='' readonly></p>
+                    <p>REGION NAME: <input type="text" class="form-control" id='modal_region_name' name="modal_region_name" value='' readonly></p>
+                    {% if logType != 'cloudtrail' and logType != 'elb' %}
+                        <p>LOG GROUP NAME: <input type="text" class="form-control" id='modal_group_name' name="modal_group_name" value='' readonly></p>
+                    {% else %}
+                        <input type="hidden" class="form-control" id='modal_group_name' name="modal_group_name" value='' readonly>
+                    {% endif %}
+                    <div id='modal_body'>
+                        <h5 class='text-danger'>Will You Integrate AWS Logs?</h5>
+                    </div>
+                </form>
+            </div>
+            <div>
+                <h5 id='message' class="my-5"></h5>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <div id='insert_check'>
+                    <input type='button' id='insert_deny' class="btn btn-md btn-outline-danger mr-2" data-dismiss='modal'value="Cancel (No)">
+                    <input type='button' id='insert_accept' class="btn btn-md btn-outline-teiren" value="Registrate (Yes)">
+                </div>
+                <input type='hidden' id='insert_complete' class="btn btn-md btn-outline-teiren" value="Confirm">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    var logType = "{{logType|title}}"
+</script>
+<script src="{% static '/M_equipment/js/resource/aws.js' %}"></script>
+{% endblock %}

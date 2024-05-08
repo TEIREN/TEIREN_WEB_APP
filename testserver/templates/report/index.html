@@ -1,0 +1,223 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        @font-face {
+            font-family: 'Pretendard-Regular';
+            src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+        }
+
+        body {
+            font-family: 'Pretendard-Regular', serif;
+            margin: 0;
+        }
+
+        .image {
+            width: 200px; /* 이미지 너비 설정 */
+            height: auto; /* 이미지 높이 자동 조정 */
+            margin-bottom: 10px; /* 이미지 사이 여백 설정 */
+        }
+
+        .page {
+            margin: auto;
+            color: black;
+            position: relative;
+            page-break-after: always;
+            page-break-inside: avoid !important;
+        }
+
+        @media print {
+            .page {
+                width: 100%;
+                height: 1453.5px;
+                {% comment %} page-break-after: always; /* 페이지 나누기 */ {% endcomment %}
+            }
+            page-break-after: always;
+        }
+
+        .header {
+            background-color: #24b6d4;
+            color: white;
+            width: 100%;
+        }
+
+        .header .header-logo-text {
+            margin-top: 0px;
+            font-size: 45px;
+            font-weight: 900;
+        }
+
+        .header .header-title {
+            float: right;
+            margin-top: 40px;
+            margin-right: 20px;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .footer {
+            background-color: #24b6d4;
+            color: white;
+            width: 100%;
+            height: 5%;
+            page-break-inside: avoid !important;
+        }
+
+        .footer .footer-title {
+            float: left;
+            margin-top: 40px;
+            margin-left: 2px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .footer .page-number {
+            float: right;
+            margin-top: 40px;
+            margin-right: 20px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .content-box {
+            height: 87%;
+            width: 90%;
+            margin: 2.3% auto;
+        }
+
+        .content {
+            width: 100%;
+            margin: 2.3% auto;
+        }
+
+        .content-header {
+            font-size: 30px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            margin-right: auto;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            
+            padding: 15px;
+            text-align: left;
+        }
+        th {
+            border: 0.4px solid white;
+            background-color: #24b6d4;
+            color: white;
+            font-weight: 880;
+            page-break-inside: avoid !important;
+        }
+        td {
+            border: 0.4px solid #24b6d4;
+            background-color: #f9f8f8;
+            page-break-inside: avoid !important;
+        }
+
+        td.head {
+            font-weight: 1200;
+        }
+
+        .page-break {
+            page-break-after: always;
+            page-break-inside: avoid !important;
+        }
+    </style>
+</head>
+
+<body>
+    {% for data in results %}
+        <div class="page">
+            <div class="header">
+                <span class="header-logo-img"><img src="{% static '/img/teiren-white-icon.png' %}" alt="Teiren Icon" width="100px"></span>
+                <span class="header-logo-text">TEIREN</span>
+                <span class="header-title">{{data.chapterNo}}. {{data.chapterName}}</span>
+            </div>
+            <div class="content-box">
+                <div class="content">
+                    <div class="content-header">
+                        <span>| {{data.sectionNo}} {{data.sectionName}}</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <th width="20%">항목</th>
+                            <th>{{data.articleNo}} {{data.articleName}}</th>
+                        </thead>
+                        <tr>
+                            <td class="head">인증기준</td>
+                            <td>
+                                {{data.articleComment}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="head">주요 확인사항</td>
+                            <td>
+                                {% for prop in data.articleChecklist %}
+                                    <li>{{prop}}</li>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% if data.law and data.law.0.lawSectionName %}
+                            <tr>
+                                <td class="head">관련 법규</td>
+                                <td>
+                                    {% for law_dict in data.law %}
+                                        <li>{{ law_dict }}</li>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </table>
+                </div>
+                <div class="content">
+                    <div class="content-header">
+                        <span>| 증적 관리</span>
+                    </div>
+                    {% if data.evidence_list.0.evidenceFileAuthor %}
+                        <table>
+                            <thead>
+                                <th width="20%">ISMS-P 항목</th>
+                                <th>증거 자료</th>
+                                <th width="20%">준수 여부</th>
+                            </thead>
+                            {% for evidence_file in data.evidence_list %}
+                                <tr>
+                                    <td>{{data.articleNo}} {{data.articleName}}</td>
+                                    {% if evidence_file.fileType == "pdf" %}
+                                        <td style="text-align: center; max-width: 100%; max-height: 100%;">
+                                            <img src="/home/yoonan/DATABASE/{{ uuid }}/compliance_report/file-image/convert-image-{{ evidence_file.evidenceFileName }}.png" alt="이미지" class="image">
+                                            <p style="color: gray">{{ evidence_file.evidenceFileName }}</p>
+                                        </td>
+                                    {% else %}
+                                        <td style="text-align: center; max-width: 100%; max-height: 100%;">
+                                            <img src="/home/yoonan/DATABASE/{{ uuid }}/Evidence/aws/{{ evidence_file.evidenceFileName }}" alt="이미지" class="image">
+                                            <p style="color: gray">{{ evidence_file.evidenceFileName }}</p>
+                                        </td>
+                                    {% endif %}
+                                    <td>{{ evidence_file.evidenceFileComment }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% else %}
+                        <p>해당페이지에는 현재 등록된 증적이 없습니다.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="footer">
+                <span class="footer-title">Teiren ISMS-P 준수 컴플라이언스 분석보고서</span>
+                <span class="page-number">{{forloop.counter}}</span>
+            </div>
+        </div>
+    {% endfor %}
+</body>
+
+</html>

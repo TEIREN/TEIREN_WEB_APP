@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<!-- Page Essential -->
+<link rel="stylesheet" href="{% static '/css/tab.css' %}">
+<link rel="stylesheet" href="{% static '/M_logs/css/searchcard.css' %}">
+{% endblock %}
+{% block content %}
+<!-- Begin Page Content -->
+<div class="locationbar ml-2">
+    <span>Log Management &nbsp;&nbsp;>&nbsp;&nbsp;{{resource|title}} Logs &nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">{{logType}} <span>
+</div>
+<div>
+    <!-- Page Heading -->
+    <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{logType}} Log</h6>
+    <p class="h6 mb-4 ml-2">{{logType}} Integrated Logs</p>    
+    {% include "./searchcard.html" %}
+    <div class="card shadow mb-4" id="log_table">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-teiren">Log List 
+                {% if current_log %}
+                    ( {{current_log.0}}~{{current_log.1}} out of {{total_log}} )
+                {% else %}
+                    ( 0 out of 0 )
+                {% endif %}
+                
+            </h6>
+        </div>
+
+        <div class="card-body" style="font-size:15px;">
+            <div class="table-responsive" style="overflow:hidden;">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                       style="table-layout:fixed;text-align:center;font-size:15px;">
+                    <thead>
+                    <tr>
+                        <th>LogType</th>
+                        <th>EventTime</th>
+                        <th>EventType</th>
+                        <th>Source</th>
+                        <th>Destination</th>
+                        <th>EventResult</th>
+                        <th>Src IP</th>
+                        <th>Dst IP</th>
+                        <th>Details</th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <th>LogType</th>
+                        <th>EventTime</th>
+                        <th>EventType</th>
+                        <th>Source</th>
+                        <th>Destination</th>
+                        <th>EventResult</th>
+                        <th>Src IP</th>
+                        <th>Dst IP</th>
+                        <th>Details</th>
+                    </tr>
+                    </tfoot>
+                    <tbody>
+                    {% if page_obj.log_list %}
+                        {%for log in page_obj.log_list%}
+                        <tr>
+                            {% for key, value in log.items %}
+                                {% if key != 'id' and key != 'logType' %}
+                                    {% if value is None %}
+                                        <td>-</td>
+                                    {% else %}
+                                        <td>{{value}}</td>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            <td>
+                                <button class="btn btn-md btn-teiren" data-toggle="modal" data-target="#detail-modal"
+                                    data-id={{log.id}} data-logtype={{log.logType}}>
+                                    Details
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="9" style="font-size:30px">No Data</td>
+                    </tr>
+                    {% endif %}
+                    
+                    </tbody>
+                </table>
+
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                    </ul>
+                </nav>
+
+                <!-- 페이지리스트 -->
+                <div class="d-flex justify-content-center">
+                    <ul style="display:flex; list-style: none;">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter(1)">Start</button>
+                        </li>
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.previous_page_number}})">Prev</button>
+                        </li>
+                        {% endif %}
+
+                        {% for page_number in page_obj.paginator.page_range %}
+                        {% if page_number == page_obj.now_page %}
+                        <li class="page-item active" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.next_page_number}})">Next</button>
+                        </li>
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.paginator.num_pages}})">End</button>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Help Modal-->
+<div class="modal fade card-body" id="help" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:1000px; height:auto'>
+            <button type="button" class="close" style="margin-top:30px; margin-left:900px" data-dismiss="modal"
+                    aria-label="Close">
+                <span aria-hidden="true">x</span>
+            </button>
+            <div class="modal-body card-body" id='help-body'></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-teiren" type="button" data-dismiss="modal">확인</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Detail Modal -->
+<div class="modal fade card-body" id="detail-modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p-1" style='width:1000px; height:auto'>
+            <div class='d-flex justify-content-end p-3'>
+                <button type="button" class=close data-dismiss="modal" aria-label="Close">x</button>
+            </div>
+            <img src="{% static '/img/teiren-side-logo.png' %}" style="margin:0 auto; margin-bottom:0; width:300px; height: 100px;">
+            <div class="modal-body justify-content-center" id='detail'>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-md btn-teiren" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    var logType = '{{logType}}'
+    var resourceType = '{{resource}}'
+</script>
+<script src="{% static '/M_logs/js/filter_select.js' %}"></script>
+<script src="{% static '/M_logs/js/log.js' %}"></script>
+{% endblock %}
+

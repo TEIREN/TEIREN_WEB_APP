@@ -1,0 +1,193 @@
+<div class="searchcard shadow mb-4">
+    <form id="search">
+        <div class="searchcard-body py-3">
+            <select class="btn-select" name="main_search_key">
+                <option value="ruleType">Rule Type</option>
+                <option value="ruleName">Rule Name</option>
+                <option value="comment">Comment</option>
+            </select>
+            <input class="search-input" name="main_search_value" placeholder="Search"/>
+            <button class="btn-search" type="button" onClick="searchFilter(1)">
+                <span class="material-symbols-outlined">
+                    search
+                </span>
+            </button>
+            <button class="btn-collapse" type="button">
+                <span class="material-symbols-outlined" style="font-size:30px">
+                    expand_more
+                </span>
+            </button>
+        </div>
+        <div class="collapsecard" style="display:none;">
+            <div class="searchcard-collapse pb-3" style="display:none;">
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Rule Type
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="Rule Type">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input ruleType" type="checkbox" name="ruleType" value="all" onclick="selectAll(this, 'ruleType')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input ruleType" type="checkbox" name="ruleType" value="regex" onclick="selectcheck(this, 'ruleType')">Regex
+                                    </label>
+                                </li>
+                                {%for ruleType in ruleType_list %}
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input ruleType" type="checkbox" name="ruleType" value="{{ruleType}}" onclick="selectcheck(this, 'ruleType')">{{ruleType}}
+                                    </label>
+                                </li>
+                                {%endfor%}
+                            </ul>
+                        </div>
+                    </div>
+                    <div id="ruleType_regex" class="regexbox" style="display: none;">
+                        <input name="ruleType_regex" class="regex-input" placeholder="Rule Type Regex">
+                    </div>
+                </div>
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Rule Name
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="Rule Name">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input ruleName" type="checkbox" name="ruleName" value="all" onclick="selectAll(this, 'ruleName')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input ruleName" type="checkbox" name="ruleName" value="regex" onclick="selectcheck(this, 'ruleName')">Regex
+                                    </label>
+                                </li>
+                                {%for ruleName in ruleName_list %}
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input ruleName" type="checkbox" name="ruleName" value="{{ruleName}}" onclick="selectcheck(this, 'ruleName')">{{ruleName}}
+                                    </label>
+                                </li>
+                                {%endfor%}
+                            </ul>
+                        </div>
+                    </div>
+                    <div id="ruleName_regex" class="regexbox" style="display: none;">
+                        <input name="ruleName_regex" class="regex-input" placeholder="Rule Name Regex">
+                    </div>
+                </div>
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Comment
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="Comment">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input comment" type="checkbox" name="comment" value="all" onclick="selectAll(this, 'comment')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input comment" type="checkbox" name="comment" value="regex" onclick="selectcheck(this, 'comment')">Regex
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div id="comment_regex" class="regexbox" style="display: none;">
+                        <input name="comment_regex" class="regex-input" placeholder="Comment Regex">
+                    </div>
+                </div>
+            </div>
+            <div class="searchcard-collapse pb-3" style="display:none;">
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            Severity
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="Severity">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="all" onclick="selectAll(this, 'severity')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['CRITICAL', 'danger']" onclick="selectcheck(this, 'severity')">CRITICAL
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['HIGH', 'caution']" onclick="selectcheck(this, 'severity')">HIGH
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['MID', 'warning']" onclick="selectcheck(this, 'severity')">MID
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input severity" type="checkbox" name="severity" value="['LOW', 'success']" onclick="selectcheck(this, 'severity')">LOW
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="collapsebox">
+                    <div class="searchbox">
+                        <div class="searchbox-header">
+                            On/Off
+                        </div>
+                        <div class="w-75">
+                            <input class="searchbox-input dropdown-toggle" placeholder="On/Off">
+                            <ul class="search-dropdown-menu shadow" style="overflow:hidden scroll;">
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input on_off" type="checkbox" name="on_off" value="all" onclick="selectAll(this, 'on_off')">All
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input on_off" type="checkbox" name="on_off" value="1" onclick="selectcheck(this, 'on_off')">On
+                                    </label>
+                                </li>
+                                <li class="dropdown-item">
+                                    <label>
+                                        <input class="form-check-input on_off" type="checkbox" name="on_off" value="0" onclick="selectcheck(this, 'on_off')">Off
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-reset" type="button" onClick="searchFilter('reset')">
+                    <span class="material-symbols-outlined">
+                        restart_alt
+                    </span>
+                    Reset
+                </button>
+                <button class="btn-info disabled" type="button" onClick="searchFilter('reset')">
+                    <span class="material-symbols-outlined">
+                        info
+                    </span>
+                    Info
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

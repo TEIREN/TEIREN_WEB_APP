@@ -1,0 +1,53 @@
+<div id='rule_{{count}}' class="rule card-body shadow mt-4" style= "border-radius:20px; display:none;">
+    <div class='row'>
+        <h5 class='text-teiren font-weight-bold ml-3 mt-2'>Flow Detection {{count}}</h5>
+        <div class="ml-auto">
+            <button type="button" class="btn btn-teiren btn-md slotbtn" style="border-radius:40px" onclick="addDynamicSlot()">+</button>
+            <button type="button" class="btn btn-danger btn-md slotbtn" style="border-radius:40px" onclick="deleteDynamicSlot(this)">-</button>
+        </div>
+    </div>
+    <div class="dynamic_content">
+        <div class="form-group row text-center">
+            <div class="col-6 mb-sm-1">
+                <span>Name</span>
+                <input type="text-area" class="form-control form-control-user" name="flow_name_{{count}}_1" placeholder="Name">
+            </div>
+            <div class="col-6">
+                <span>Comment</span>
+                <input type="text-area" class="form-control form-control-user" name="flow_comment_{{count}}_1" placeholder="Comment">
+            </div>
+        </div>
+        <div class="properties">
+            <div id="flow{{count}}_1" class="form-group row text-center prop">
+                <div class="text-center col-6 mb-1">
+                    <span >Property</span>
+                    <br>
+                    <input type="text-area" class="form-control form-control-user" list="flow_list_{{count}}_1" name="flow_key_{{count}}_1" onchange="newPropertyKey(this)" placeholder="Property">
+                    <datalist id="flow_list_{{count}}_1">
+                        <option value='Property'></option>
+                        <option value='New Property'></option>
+                        {% for property in log_properties %}
+                        {% if property == "eventSource" %}
+                        {% else %}
+                        <option value={{property}}></option>
+                        {% endif %}
+                        {% endfor%}
+                    </datalist>
+                </div>
+                <div class="col-5">
+                    <span>Value</span>
+                    <input type="text-area" class="form-control form-control-user" name="flow_val_{{count}}_1" placeholder="Value">
+                </div>
+                <div class="col-1 d-flex align-items-center ml-auto">
+                    <button type="button" class="btn btn-teiren btn-sm ml-auto mr-auto" style="border-radius:40px" onclick="addDynamicProperty({{count}})">+</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 d-flex justify-content-center text-center mt-3">
+            <div class="col-6">
+                <span>Detection Count</span>
+                <input type="text-area" class="form-control form-control-user" name="flow_count_{{count}}_1" placeholder="Detection Count (Detected after certain amount)">
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filter %}
+{% block head %}
+<!-- Page Essential -->
+<link rel="stylesheet" href="{% static '/M_threatD/css/dynamic.css' %}">
+<!-- Page Essential -->
+<link rel="stylesheet" href="{% static '/css/tab.css' %}">
+<link rel="stylesheet" href="{% static '/M_logs/css/searchcard.css' %}">
+{% endblock %}
+{% block content %}
+<div class="locationbar ml-2">
+    <span>Log Management &nbsp;&nbsp;>&nbsp;&nbsp; Logs &nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">{{system}} <span>
+</div>
+<div>
+    <!-- Page Heading -->
+    <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{system}} Log</h6>
+    <p class="h6 mb-4 ml-2">{{system}} Integrated Logs</p>
+    {% include "./search_filter.html" %}
+    <div class="card shadow mb-4" id="log_table">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-teiren">Log Total: {{total_count}} | Page: {{page}}</div>
+        <div class="card-body" style="font-size:15px;">
+            <div class="table-responsive" style="overflow:hidden;">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                       style="table-layout:fixed;text-align:center;font-size:15px;">
+                    <thead>
+                        <th width='5%'>No.</th>
+                        <th>Log (Json)</th>
+                    </thead>
+                    <tbody>
+                        {% for log in log_list%}
+                        <tr>
+                            <td style="vertical-align: middle;">{{forloop.counter}}</td>
+                            <td style="text-align:left;">
+                                {% if 'detected_rules' in log %}
+                                    {% with log.detected_rules as detected_rules %}
+                                    {% with log|pop:'detected_rules' as log %}
+                                        <pre>{{log|pprint}}</pre>
+                                    {% endwith %}
+                                    {% for rule, props in detected_rules.items %}
+                                        <form action="/test/log/{{system.lower}}/" method="GET" style="margin-bottom:10px">
+                                            <input type="hidden" name="should" value="{{props.query.query.bool.should}}" />
+                                            <input type="hidden" name="must" value="{{props.query.query.bool.must}}" />
+                                            <input type="hidden" name="must_not" value="{{props.query.query.bool.must_not}}" />
+                                            <input type="hidden" name="page" value="{{page}}" />
+                                            <input type="submit" value="{{rule}}" class="btn btn-md btn-{{props.severity|rule_color}}"/>
+                                        </form>
+                                    {% endfor %}
+                                    {% endwith %}
+                                {% else %}
+                                    <pre>{{log|pprint}}</pre>
+                                    No rules detected
+                                {% endif %}
+                            </td>
+                        <tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
