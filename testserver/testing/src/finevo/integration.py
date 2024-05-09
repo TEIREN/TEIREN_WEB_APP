@@ -16,7 +16,7 @@ def integration_genian(request):
 
 
 def integration_action_fortigate(request):
-    url = f"http://44.204.132.232:8088/?api_key={request.POST['access_key']}"
+    url = f"http://44.204.132.232:8088/fortigate_api_send?api_key={request.POST['access_key']}"
     response = requests.get(url)
     return response.text
 
@@ -26,3 +26,4 @@ def integration_fortigate(request):
         return HttpResponse(integration_action_fortigate(request))
     else:
         return render(request, 'testing/finevo/integration_fortigate.html')
+
