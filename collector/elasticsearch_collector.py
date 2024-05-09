@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request, BackgroundTasks
 from elasticsearch import Elasticsearch
 from datetime import datetime
 from genian_deployment import get_logs, parse_log, send_genian_logs
+from fortigate_deployment import send_fortigate_logs, parse_fortigate_log
 import time
 
 es = Elasticsearch("http://44.204.132.232:9200/")
@@ -99,5 +100,17 @@ async def resume_genian_api_send():
     return {"message": "Genian API 전송이 재개되었습니다."}
 # 전송 재개 후 조금 기다리면 다시 전송 됨
 
-if __name__ == "__main__":
-    run(app, host="0.0.0.0", port=8088)
+
+@app.get("/fortigate_api_send")
+async def get_fortigate_log(api_key: str = None, background_tasks: BackgroundTasks = None):
+    if not api_key:
+        return {"error": "API 키가 필요합니다."}
+
+    global log_collection_started
+    log_collection_started = True
+
+    background_tasks.add_task(send_fortigate_logs, api_key)
+
+    return {"message": "FortiGate 로그 수집이 진행 중입니다."}
+
+# 얘도 상태 확인 멈춤 재개 만들면 됨
