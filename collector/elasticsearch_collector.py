@@ -1,50 +1,41 @@
-from uvicorn import run  # port 열어주는 plugin
-from fastapi import FastAPI, Request, BackgroundTasks #API 사용가능하게 해주는 plugin
+from uvicorn import run
+from fastapi import FastAPI, Request, BackgroundTasks
 from elasticsearch import Elasticsearch
 from datetime import datetime
 from genian_deployment import get_logs, parse_log, send_genian_logs
+from fortigate_deployment import send_fortigate_logs, parse_fortigate_log
 import time
-import requests
-import urllib3
 
-# Connect to local Elasticsearch instance
-es = Elasticsearch("http://44.204.132.232:9200/") # Elasticsearch 연결
-# es = Elasticsearch("http://10.0.3.81:9200/") # 호스트 IP 주소와 포트로 Elasticsearch 연결
-
+es = Elasticsearch("http://44.204.132.232:9200/")
 should_stop = False
+log_collection_started = False
 
 app = FastAPI()
 
-# elasticsearch에 로그 저장하는 함수
 async def elasticsearch_input(log, system):
-    response = es.index(index=f"test_{system}_syslog", document=log) # 해당하는 index에 로그 저장
+    response = es.index(index=f"test_{system}_syslog", document=log)
     print(f"{system}_log: {response['result']}")
-
     print(log)
     print('*'*50)
     return 0
 
-
-# 리눅스 로그 수집 (<ip>:8088/linux_log 로 post보내서 실행)
 @app.post("/linux_log")
 async def receive_log(request: Request):
-    log_request = await request.json() # request받은 로그를 json 형식으로 변경
+    log_request = await request.json()
     for log in log_request:
         log['teiren_request_ip'] = request.client.host
-        await elasticsearch_input(log, 'linux') # elasticsearch에 로그 저장하는 함수 실행
+        await elasticsearch_input(log, 'linux')
     return {"message": "Log received successfully"}
 
-# 윈도우 로그 수집
 @app.post('/win_log')
 async def win_log(request: Request):
     log_request = await request.json()
-    # print(log_request)
     for log in log_request:
         log['teiren_request_ip'] = request.client.host
         await elasticsearch_input(log, 'window')
     return {"message": "Log received successfully"}
 
-@app.post('/genian_log') # Genian 로그 수집
+@app.post('/genian_log')
 async def genian_log(request: Request):
     log_request = await request.json()
     for log in log_request:
@@ -54,7 +45,7 @@ async def genian_log(request: Request):
 
     return {"message": "Log received successfully"}
 
-@app.post('/fortigate_log') # Genian 로그 수집
+@app.post('/fortigate_log')
 async def fortigate_log(request: Request):
     log_request = await request.json()
     for log in log_request:
@@ -64,8 +55,10 @@ async def fortigate_log(request: Request):
 
 @app.get("/genian_api_send")
 async def get_genian_logs(api_key: str = None, page: int = 1, page_size: int = 30, background_tasks: BackgroundTasks = None):
-    if not api_key:
+    if not api_key: 
         return {"error": "API 키가 필요합니다."}
+    global log_collection_started
+    log_collection_started = True
     logs = []
     while True:
         new_logs = get_logs(api_key, page, page_size)
@@ -78,15 +71,46 @@ async def get_genian_logs(api_key: str = None, page: int = 1, page_size: int = 3
     return {"message": "로그 수집이 진행 중입니다."}
 
 def continue_log_collection(api_key):
-    while True:
+    while not should_stop:
         send_genian_logs(api_key)
-        time.sleep(60)
+        time.sleep(5)
+        # time.sleep(60) n 초당 한번 씩
 
+# 전체적으로 조금 기다려야 함 
+# api_key: b17eeffd-f8ca-4443-baf4-c4376ed48a9e
+# curl -X GET http://44.204.132.232:8088/stop_genian_api_send 
 @app.get("/stop_genian_api_send")
-async def stop_genian_logs():
+async def stop_genian_api_send():
     global should_stop
     should_stop = True
-    return {"message": "로그 수집을 중지하겠습니다."}
+    return {"message": "Genian API 전송 중지 요청이 접수되었습니다."}
 
-if __name__ == "__main__":
-    run(app, host="0.0.0.0", port=8088) # listen하는 ip랑 포트 열어줘서 FastAPI 실행하기
+# curl http://44.204.132.232:8088/log_collection_status
+@app.get("/log_collection_status")
+async def get_log_collection_status():
+    return {"log_collection_started": log_collection_started, "log_collection_stopped": should_stop} 
+# started가 TRUE면 수집중 FALSE면 수집 안되는중 
+# STOPPED가 TRUE면 수집중지 FALSE면 수잡 재개
+
+# curl -X GET http://44.204.132.232:8088/resume_genian_api_send
+@app.get("/resume_genian_api_send")
+async def resume_genian_api_send():
+    global should_stop
+    should_stop = False
+    return {"message": "Genian API 전송이 재개되었습니다."}
+# 전송 재개 후 조금 기다리면 다시 전송 됨
+
+
+@app.get("/fortigate_api_send")
+async def get_fortigate_log(api_key: str = None, background_tasks: BackgroundTasks = None):
+    if not api_key:
+        return {"error": "API 키가 필요합니다."}
+
+    global log_collection_started
+    log_collection_started = True
+
+    background_tasks.add_task(send_fortigate_logs, api_key)
+
+    return {"message": "FortiGate 로그 수집이 진행 중입니다."}
+
+# 얘도 상태 확인 멈춤 재개 만들면 됨
