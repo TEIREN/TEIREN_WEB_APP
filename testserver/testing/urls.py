@@ -15,5 +15,6 @@ urlpatterns = [
     path('log/<system>/', log.list_logs),
     path('integration/genian/', integration.integration_genian),
     path('integration/fortigate/', integration.integration_fortigate),
-    path('finevo/', integration.integration_genian)
+    path('integration/linux/', integration.integration_linux),
+    path('integration/mssql/', integration.integration_mssql),    
 ]
