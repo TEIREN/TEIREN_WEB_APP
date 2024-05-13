@@ -1,9 +1,12 @@
 from uvicorn import run
 from fastapi import FastAPI, Request, BackgroundTasks
+from fastapi import FastAPI, Form
+
 from elasticsearch import Elasticsearch
 from datetime import datetime
 from genian_deployment import get_logs, parse_log, send_genian_logs
 from fortigate_deployment import send_fortigate_logs, parse_fortigate_log
+from mssql_deployment import send_mssql_logs
 import time
 
 es = Elasticsearch("http://44.204.132.232:9200/")
@@ -43,14 +46,6 @@ async def genian_log(request: Request):
         log['teiren_stamp'] = datetime.now()
         await elasticsearch_input(log, 'genian')
 
-    return {"message": "Log received successfully"}
-
-@app.post('/fortigate_log')
-async def fortigate_log(request: Request):
-    log_request = await request.json()
-    for log in log_request:
-        log['teiren_request_ip'] = request.client.host
-        await elasticsearch_input(log, 'fortigate')
     return {"message": "Log received successfully"}
 
 @app.get("/genian_api_send")
@@ -100,6 +95,15 @@ async def resume_genian_api_send():
     return {"message": "Genian API 전송이 재개되었습니다."}
 # 전송 재개 후 조금 기다리면 다시 전송 됨
 
+# 얘도 상태 확인 멈춤 재개 만들면 됨
+
+@app.post('/fortigate_log')
+async def fortigate_log(request: Request):
+    log_request = await request.json()
+    for log in log_request:
+        log['teiren_request_ip'] = request.client.host
+        await elasticsearch_input(log, 'fortigate')
+    return {"message": "Log received successfully"}
 
 @app.get("/fortigate_api_send")
 async def get_fortigate_log(api_key: str = None, background_tasks: BackgroundTasks = None):
@@ -113,4 +117,28 @@ async def get_fortigate_log(api_key: str = None, background_tasks: BackgroundTas
 
     return {"message": "FortiGate 로그 수집이 진행 중입니다."}
 
-# 얘도 상태 확인 멈춤 재개 만들면 됨
+
+# ========================================= mssql ==================================================
+
+@app.post('/mssql_log') 
+async def mssql_log(request: Request):
+    log = await request.form()
+    log_dict = {key: log[key] for key in log.keys()}  # 폼 데이터를 딕셔너리로 변환
+    log_dict['teiren_request_ip'] = request.client.host
+    print(log_dict)
+    await elasticsearch_input(log_dict, 'mssql')
+    return {"message": "Log received successfully"}
+
+@app.post("/start_mssql_collection")
+async def start_mssql_collection(
+    server: str = Form(...),
+    database: str = Form(...),
+    username: str = Form(...),
+    password: str = Form(...),
+    table_name: str = Form(...),  # 테이블명 추가
+    background_tasks: BackgroundTasks = None
+):
+    # 이 부분에서 백그라운드 태스크를 시작하고 사용자 정보를 넘김
+    background_tasks.add_task(send_mssql_logs, server, database, username, password, table_name)
+
+    return {"message": "MSSQL 로그 수집이 시작되었습니다."}
