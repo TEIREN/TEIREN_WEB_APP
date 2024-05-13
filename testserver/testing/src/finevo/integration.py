@@ -43,11 +43,38 @@ def integration_linux(request):
     else:
         return render(request, 'testing/finevo/integration_linux.html')
 
+# Form 데이터 형식 사용
+
 def integration_action_mssql(request):
-    # url = f"http://44.204.132.232:8088/fortigate_api_send?api_key={request.POST['access_key']}"
-    # response = requests.get(url)
-    # return response.text
-    return str(request.POST.dict())
+    if request.method == 'POST':
+        server = request.POST.get('db_server')
+        database = request.POST.get('db_name')
+        username = request.POST.get('db_uid')
+        password = request.POST.get('db_password')
+        table_name = request.POST.get('db_table')
+
+        if not all([server, database, username, password, table_name]):
+            return JsonResponse({"error": "모든 필드를 입력하세요."}, status=400)
+
+        # 백그라운드 태스크 시작을 위한 요청을 보냄
+        url = "http://44.204.132.232:8088/start_mssql_collection"
+        data = {
+            'server': server,
+            'database': database,
+            'username': username,
+            'password': password,
+            'table_name': table_name
+        }
+        response = requests.post(url, data=data)
+
+        if response.status_code == 200:
+            return JsonResponse({"message": "MSSQL 로그 수집이 시작되었습니다."}, status=200)
+        else:
+            return JsonResponse({"error": "서버 요청 실패"}, status=500)
+
+    else:
+        return JsonResponse({"error": "잘못된 요청"}, status=405)
+
 
 def integration_mssql(request):
     if request.method == 'POST':
