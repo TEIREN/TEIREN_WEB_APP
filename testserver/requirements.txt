@@ -34,3 +34,4 @@ pdfkit
 pdf2image
 elastic-transport==8.13.0
 elasticsearch==8.13.0
+python-multipart
