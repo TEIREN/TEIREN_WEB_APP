@@ -142,3 +142,14 @@ async def start_mssql_collection(
     background_tasks.add_task(send_mssql_logs, server, database, username, password, table_name)
 
     return {"message": "MSSQL 로그 수집이 시작되었습니다."}
+
+
+# ========================================= snmp ==================================================
+
+@app.post('/snmp_log') # SNMP 로그 수집
+async def snmp_log(request: Request):
+    log_request = await request.json()
+    for log in log_request:
+        log['teiren_request_ip'] = request.client.host
+        await elasticsearch_input(log, 'snmp')
+    return {"message": "Log received successfully"}

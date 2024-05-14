@@ -1,5 +1,6 @@
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseBadRequest, FileResponse
+from django.views.decorators.csrf import csrf_exempt
 import requests
 import tempfile
 
@@ -82,12 +83,32 @@ def integration_mssql(request):
     else:
         return render(request, 'testing/finevo/integration_mssql.html')
 
-def integration_action_snmp(request):
-    print(request.POST.dict())
-    return str(request.POST.dict())
+# def integration_action_snmp(request):
+#     print(request.POST.dict())
+#     return str(request.POST.dict())
 
+# def integration_snmp(request):
+#     if request.method == 'POST':
+#         return HttpResponse(integration_action_snmp(request))
+#     else:
+#         return render(request, 'testing/finevo/integration_snmp.html')
+
+# integration.py 파일 내에 있는 integration_snmp 함수 수정
+@csrf_exempt
 def integration_snmp(request):
     if request.method == 'POST':
-        return HttpResponse(integration_action_snmp(request))
+        client_ip = get_client_ip(request)  # 클라이언트 IP 얻기
+        request_data = request.POST.dict()
+        request_data['teiren_request_ip'] = client_ip  # 클라이언트 IP 로그 데이터에 추가
+        return HttpResponse(str(request_data))
     else:
         return render(request, 'testing/finevo/integration_snmp.html')
+
+# 클라이언트의 IP 주소를 얻는 함수
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
