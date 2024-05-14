@@ -81,3 +81,13 @@ def integration_mssql(request):
         return HttpResponse(integration_action_mssql(request))
     else:
         return render(request, 'testing/finevo/integration_mssql.html')
+
+def integration_action_snmp(request):
+    print(request.POST.dict())
+    return str(request.POST.dict())
+
+def integration_snmp(request):
+    if request.method == 'POST':
+        return HttpResponse(integration_action_snmp(request))
+    else:
+        return render(request, 'testing/finevo/integration_snmp.html')
