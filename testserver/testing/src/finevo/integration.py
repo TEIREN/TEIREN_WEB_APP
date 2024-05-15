@@ -54,7 +54,7 @@ def integration_action_mssql(request):
         table_name = request.POST.get('db_table')
 
         if not all([server, database, username, password, table_name]):
-            return JsonResponse({"error": "모든 필드를 입력하세요."}, status=400)
+            return JsonResponse({"error": "모든 필드를 입력하세요."}, safe=False, json_dumps_params={'ensure_ascii':False}, status=400)
 
         # 백그라운드 태스크 시작을 위한 요청을 보냄
         url = "http://44.204.132.232:8088/start_mssql_collection"
@@ -68,12 +68,12 @@ def integration_action_mssql(request):
         response = requests.post(url, data=data)
 
         if response.status_code == 200:
-            return JsonResponse({"message": "MSSQL 로그 수집이 시작되었습니다."}, status=200)
+            return JsonResponse({"message": "MSSQL 로그 수집이 시작되었습니다."}, safe=False, json_dumps_params={'ensure_ascii':False}, status=200)
         else:
-            return JsonResponse({"error": "서버 요청 실패"}, status=500)
+            return JsonResponse({"error": "서버 요청 실패"}, safe=False, json_dumps_params={'ensure_ascii':False}, status=500)
 
     else:
-        return JsonResponse({"error": "잘못된 요청"}, status=405)
+        return JsonResponse({"error": "잘못된 요청"}, safe=False, json_dumps_params={'ensure_ascii':False}, status=405)
 
 
 def integration_mssql(request):
