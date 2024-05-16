@@ -18,4 +18,5 @@ urlpatterns = [
     path('integration/linux/', integration.integration_linux),
     path('integration/mssql/', integration.integration_mssql),
     path('integration/snmp/', integration.integration_snmp),
+    path('integration/transmission/', integration.integration_transmission),
 ]
