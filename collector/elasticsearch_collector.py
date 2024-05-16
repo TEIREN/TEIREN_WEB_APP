@@ -146,10 +146,16 @@ async def start_mssql_collection(
 
 # ========================================= snmp ==================================================
 
+
 @app.post('/snmp_log') # SNMP 로그 수집
 async def snmp_log(request: Request):
-    log_request = await request.json()
-    for log in log_request:
-        log['teiren_request_ip'] = request.client.host
-        await elasticsearch_input(log, 'snmp')
+    log_request = await request.body()
+    print(log_request)
+    print('-'*50)
+    log_request = [json.loads(obj) for obj in log_request.decode('utf-8').split('\n') if obj]
+    print(log_request)
+    print('*'*50)
+    # for log in log_request:
+    #     log['teiren_request_ip'] = request.client.host
+    #     await elasticsearch_input(log, 'snmp')
     return {"message": "Log received successfully"}
