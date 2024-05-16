@@ -112,3 +112,13 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+def integration_action_transmission(request):
+    pass
+
+def integration_transmission(request):
+    if request.method == 'POST':
+        return HttpResponse(integration_action_transmission(request))
+    else:
+        return render(request, 'testing/finevo/integration_transmission.html')
