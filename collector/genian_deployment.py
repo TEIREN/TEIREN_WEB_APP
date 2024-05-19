@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 
 NAC_URL = 'https://teiren.my.genians.co.kr/mc2/rest/logs'
-POST_URL = "http://44.204.132.232:8088/genian_log"
+POST_URL = "http://3.35.81.217:8088/genian_log"
 
 def get_logs(api_key, page=1, page_size=30):
     """Genian NAC 감사로그 조회"""

@@ -1,19 +1,25 @@
 from uvicorn import run
-from fastapi import FastAPI, Request, BackgroundTasks
-from fastapi import FastAPI, Form
-
+from fastapi import FastAPI, Request, BackgroundTasks, Form, HTTPException
+from pydantic import BaseModel
 from elasticsearch import Elasticsearch
 from datetime import datetime
 from genian_deployment import get_logs, parse_log, send_genian_logs
 from fortigate_deployment import send_fortigate_logs, parse_fortigate_log
 from mssql_deployment import send_mssql_logs
+import subprocess
+import logging
+import re
+import os
 import time
+import json
 
-es = Elasticsearch("http://44.204.132.232:9200/")
+es = Elasticsearch("http://3.35.81.217:9200/")
 should_stop = False
 log_collection_started = False
 
 app = FastAPI()
+
+conf_file_path = '/etc/fluent/fluentd.conf'
 
 async def elasticsearch_input(log, system):
     response = es.index(index=f"test_{system}_syslog", document=log)
@@ -117,9 +123,6 @@ async def get_fortigate_log(api_key: str = None, background_tasks: BackgroundTas
 
     return {"message": "FortiGate 로그 수집이 진행 중입니다."}
 
-
-# ========================================= mssql ==================================================
-
 @app.post('/mssql_log') 
 async def mssql_log(request: Request):
     log = await request.form()
@@ -143,19 +146,144 @@ async def start_mssql_collection(
 
     return {"message": "MSSQL 로그 수집이 시작되었습니다."}
 
-
-# ========================================= snmp ==================================================
-
-
 @app.post('/snmp_log') # SNMP 로그 수집
 async def snmp_log(request: Request):
-    log_request = await request.body()
-    print(log_request)
-    print('-'*50)
-    log_request = [json.loads(obj) for obj in log_request.decode('utf-8').split('\n') if obj]
-    print(log_request)
-    print('*'*50)
-    # for log in log_request:
-    #     log['teiren_request_ip'] = request.client.host
-    #     await elasticsearch_input(log, 'snmp')
-    return {"message": "Log received successfully"}
+    pass
+#     log_request = await request.body()
+#     print(log_request)
+#     print('-'*50)
+#     log_request = [json.loads(obj) for obj in log_request.decode('utf-8').split('\n') if obj]
+#     print(log_request)
+#     print('*'*50)
+#     # for log in log_request:
+#     #     log['teiren_request_ip'] = request.client.host
+#     #     await elasticsearch_input(log, 'snmp')
+#     return {"message": "Log received successfully"}
+
+# Fluentd Configuration Management
+
+
+class FluentdConfig(BaseModel):
+    new_protocol: str
+    new_source_ip: str
+    new_dst_port: str
+    new_log_tag: str
+
+@app.post("/add_config/")
+def add_config(config: FluentdConfig):
+    new_endpoint = f"http://3.35.81.217:8088/{config.new_log_tag}"
+    
+    new_conf_text = f"""
+<source>
+  @type {config.new_protocol}
+  port {config.new_dst_port}
+  bind {config.new_source_ip}
+  tag {config.new_log_tag}
+  <parse>
+    @type json
+  </parse>
+</source>
+
+<match {config.new_log_tag}>
+  @type http
+  endpoint {new_endpoint}
+  json_array true
+  <format>
+    @type json
+  </format>
+  <buffer>
+    flush_interval 10s
+  </buffer>
+</match>
+"""
+        
+    try:
+        with open(conf_file_path, 'a') as file:
+            file.write(new_conf_text)
+    except Exception as e:
+        logging.error(f"Failed to write to the configuration file: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
+    
+    try:
+    # SSH를 통해 호스트에서 Fluentd 서비스 재시작
+        subprocess.run([
+            'ssh', '-i', '/app/teiren-test.pem', # 수정된 키 파일 경로
+            '-o', 'StrictHostKeyChecking=no', # 호스트 키 검증을 건너뛰기
+            'ubuntu@3.35.81.217',
+            'sudo systemctl restart fluentd'
+        ], check=True)
+        return {"status": "success", "message": "Fluentd service restarted successfully"}
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to restart Fluentd service: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
+    
+
+
+class DeleteTag(BaseModel):
+    tag: str
+
+@app.post("/delete_tag/")
+def delete_tag(request: DeleteTag):
+    tag_to_delete = request.tag
+    
+    if not os.path.isfile(conf_file_path):
+        raise HTTPException(status_code=404, detail=f"File not found: {conf_file_path}")
+    
+    section_start_pattern = re.compile(r'<(source|match)[^>]*>')
+    section_end_pattern = re.compile(r'</(source|match)>')
+    tag_pattern = re.compile(r'\b{}\b'.format(re.escape(tag_to_delete)))
+    
+    try:
+        with open(conf_file_path, 'r') as file:
+            lines = file.readlines()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read the configuration file: {e}")
+    
+    new_lines = []
+    section_lines = []
+    in_section = False
+    delete_section = False
+    
+    for line in lines:
+        if section_start_pattern.match(line):
+            in_section = True
+            section_lines = [line]
+            delete_section = False
+            continue
+        
+        if in_section:
+            section_lines.append(line)
+            if tag_pattern.search(line):
+                delete_section = True
+            
+            if section_end_pattern.match(line):
+                in_section = False
+                if not delete_section:
+                    new_lines.extend(section_lines)
+                section_lines = []
+        else:
+            new_lines.append(line)
+    
+    try:
+        with open(conf_file_path, 'w') as file:
+            file.writelines(new_lines)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
+    
+    try:
+    # SSH를 통해 호스트에서 Fluentd 서비스 재시작
+        subprocess.run([
+            'ssh', '-i', '/app/teiren-test.pem', # 수정된 키 파일 경로
+            '-o', 'StrictHostKeyChecking=no', # 호스트 키 검증을 건너뛰기
+            'ubuntu@3.35.81.217',
+            'sudo systemctl restart fluentd'
+        ], check=True)
+        return {"status": "success", "message": "Fluentd service restarted successfully"}
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to restart Fluentd service: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
+    
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

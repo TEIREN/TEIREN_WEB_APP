@@ -2,10 +2,11 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseBadRequest, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 import requests
+import json
 import tempfile
 
 def integration_action_genian(request):
-    url = f"http://44.204.132.232:8088/genian_api_send?api_key={request.POST['access_key']}"
+    url = f"http://3.35.81.217:8088/genian_api_send?api_key={request.POST['access_key']}"
     response = requests.get(url)
     return response.text
 
@@ -17,7 +18,7 @@ def integration_genian(request):
 
 
 def integration_action_fortigate(request):
-    url = f"http://44.204.132.232:8088/fortigate_api_send?api_key={request.POST['access_key']}"
+    url = f"http://3.35.81.217:8088/fortigate_api_send?api_key={request.POST['access_key']}"
     response = requests.get(url)
     return response.text
 
@@ -58,7 +59,7 @@ def integration_action_mssql(request):
             return JsonResponse({"error": "모든 필드를 입력하세요."}, safe=False, json_dumps_params={'ensure_ascii':False}, status=400)
 
         # 백그라운드 태스크 시작을 위한 요청을 보냄
-        url = "http://44.204.132.232:8088/start_mssql_collection"
+        url = "http://3.35.81.217:8088/start_mssql_collection"
         data = {
             'server': server,
             'database': database,
@@ -114,11 +115,48 @@ def get_client_ip(request):
     return ip
 
 
+# def integration_action_transmission(request):
+#     pass
+
+# def integration_transmission(request):
+#     if request.method == 'POST':
+#         return HttpResponse(integration_action_transmission(request))
+#     else:
+#         return render(request, 'testing/finevo/integration_transmission.html')
+
+
+@csrf_exempt
 def integration_action_transmission(request):
-    pass
+    if request.method == 'POST':
+        protocol = request.POST.get('protocol')
+        source_ip = request.POST.get('source_ip')
+        dst_port = request.POST.get('dst_port')
+        log_tag = request.POST.get('log_tag')
+        
+        data = {
+            "new_protocol": protocol,
+            "new_source_ip": source_ip,
+            "new_dst_port": dst_port,
+            "new_log_tag": log_tag
+        }
+        
+        try:
+            response = requests.post(
+                'http://3.35.81.217:8088/add_config/',
+                headers={'Content-Type': 'application/json'},
+                data=json.dumps(data)
+            )
+            if response.status_code == 200:
+                return JsonResponse({"message": "Configuration added and Fluentd service restarted successfully."}, status=200)
+            else:
+                return JsonResponse({"error": "Failed to add configuration."}, status=response.status_code)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    else:
+        return HttpResponse(status=405)
 
 def integration_transmission(request):
     if request.method == 'POST':
-        return HttpResponse(integration_action_transmission(request))
+        return integration_action_transmission(request)
     else:
         return render(request, 'testing/finevo/integration_transmission.html')

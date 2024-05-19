@@ -9,8 +9,7 @@ from elasticsearch import Elasticsearch
 
 class LogManagement():
     def __init__(self, system:str):
-        # self.es = Elasticsearch("http://3.35.81.217:9200/")
-        self.es = Elasticsearch("http://44.204.132.232:9200/")
+        self.es = Elasticsearch("http://3.35.81.217:9200/")
         self.system = system
         self.query = {"match_all":{}}
         # self.query = {"exists":{"field": "detected_rules"}}
