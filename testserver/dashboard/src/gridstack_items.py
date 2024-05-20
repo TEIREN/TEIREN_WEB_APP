@@ -577,8 +577,8 @@ def logTotal(request):
     RETURN COUNT(n) AS total
     """
     user_db = request.GET.get('uuid')
-    with neo4j_handler as neohandler:
-        log_total = neohandler.run(database.user_db, query=query)
+    with Neo4jHandler as neohandler:
+        log_total = neohandler.run(GraphDatabase.user_db, query=query)
     
     context = {"total": format(log_total, ",")}
     if isinstance(request, dict):

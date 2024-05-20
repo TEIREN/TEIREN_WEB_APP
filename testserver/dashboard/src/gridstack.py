@@ -9,13 +9,13 @@ from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
 
 def save_layout(request):
     if request.method == 'POST':
         data = request.POST
-        user = get_user_model().objects.get(username=request.session.get('user_id'))
-        user_layout = user.user_layout
+        # user = get_user_model().objects.get(username=request.session.get('user_id'))
+        # user_layout = user.user_layout
         for check in GridLayout.objects.filter(name=request.POST['name']):
             check.delete()
         GridLayout(name=request.POST['name'], data=request.POST['data'], isDefault=request.POST['isDefault']).save()
@@ -23,7 +23,7 @@ def save_layout(request):
             for check in GridLayout.objects.filter(name='default'):
                 check.delete()
             GridLayout(name='default', 
-                       user_uuid=user.uuid,
+                    #    user_uuid=user.uuid,
                        data=request.POST['data'], 
                        isDefault=request.POST['isDefault']).save()
         layouts = GridLayout.objects.filter(name=request.POST['name'])
@@ -60,7 +60,8 @@ def load_layout(request):
         layouts = GridLayout.objects.filter(name=request.POST['name'])
         for layout in layouts:
             items = json.loads(layout.data)
-        items:list = json.loads(layouts[0]) # ==> unique data
+            break
+        # items:list = json.loads(layouts[0]) # ==> unique data
         
         for item in items:
             if item['id'] == 'logTotal':
