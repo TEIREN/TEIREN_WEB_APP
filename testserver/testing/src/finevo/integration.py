@@ -47,7 +47,7 @@ def integration_linux(request):
 
 # Form 데이터 형식 사용
 
-def integration_action_mssql(request):
+def integration_action_mssql(request): # alert가 잘 안됨
     if request.method == 'POST':
         server = request.POST.get('db_server')
         database = request.POST.get('db_name')
@@ -125,7 +125,7 @@ def get_client_ip(request):
 #         return render(request, 'testing/finevo/integration_transmission.html')
 
 
-@csrf_exempt
+@csrf_exempt # alert가 잘 안됨
 def integration_action_transmission(request):
     if request.method == 'POST':
         protocol = request.POST.get('protocol')

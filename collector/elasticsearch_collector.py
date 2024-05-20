@@ -21,12 +21,24 @@ app = FastAPI()
 
 conf_file_path = '/etc/fluent/fluentd.conf'
 
+# async def elasticsearch_input(log, system):
+#     response = es.index(index=f"test_{system}_syslog", document=log)
+#     print(f"{system}_log: {response['result']}")
+#     print(log)
+#     print('*'*50)
+#     return 0
+
 async def elasticsearch_input(log, system):
-    response = es.index(index=f"test_{system}_syslog", document=log)
+    index_name = f"test_{system}_syslog"  # 인덱스 이름 설정
+    # 인덱스가 존재하지 않으면 생성
+    # if not es.indices.exists(index=index_name):
+    #     es.indices.create(index=index_name)
+    response = es.index(index=index_name, document=log)
     print(f"{system}_log: {response['result']}")
-    print(log)
-    print('*'*50)
+    # print(log)
+    # print('*'*50)
     return 0
+
 
 @app.post("/linux_log")
 async def receive_log(request: Request):
@@ -54,6 +66,7 @@ async def genian_log(request: Request):
 
     return {"message": "Log received successfully"}
 
+#curl -X GET "http://localhost:8088/genian_api_send?api_key=b17eeffd-f8ca-4443-baf4-c4376ed48a9e"
 @app.get("/genian_api_send")
 async def get_genian_logs(api_key: str = None, page: int = 1, page_size: int = 30, background_tasks: BackgroundTasks = None):
     if not api_key: 
@@ -67,7 +80,7 @@ async def get_genian_logs(api_key: str = None, page: int = 1, page_size: int = 3
             break
         logs.extend(new_logs)
         page += 1
-    parsed_logs = [parse_log(log) for log in logs]
+    # parsed_logs = [parse_log(log) for log in logs]
     background_tasks.add_task(continue_log_collection, api_key)
     return {"message": "로그 수집이 진행 중입니다."}
 
@@ -79,21 +92,21 @@ def continue_log_collection(api_key):
 
 # 전체적으로 조금 기다려야 함 
 # api_key: b17eeffd-f8ca-4443-baf4-c4376ed48a9e
-# curl -X GET http://44.204.132.232:8088/stop_genian_api_send 
+# curl -X GET http://localhost:8088/stop_genian_api_send 
 @app.get("/stop_genian_api_send")
 async def stop_genian_api_send():
     global should_stop
     should_stop = True
     return {"message": "Genian API 전송 중지 요청이 접수되었습니다."}
 
-# curl http://44.204.132.232:8088/log_collection_status
+# curl http://localhost:8088/log_collection_status
 @app.get("/log_collection_status")
 async def get_log_collection_status():
     return {"log_collection_started": log_collection_started, "log_collection_stopped": should_stop} 
 # started가 TRUE면 수집중 FALSE면 수집 안되는중 
 # STOPPED가 TRUE면 수집중지 FALSE면 수잡 재개
 
-# curl -X GET http://44.204.132.232:8088/resume_genian_api_send
+# curl -X GET http://localhost:8088/resume_genian_api_send
 @app.get("/resume_genian_api_send")
 async def resume_genian_api_send():
     global should_stop
@@ -148,17 +161,16 @@ async def start_mssql_collection(
 
 @app.post('/snmp_log') # SNMP 로그 수집
 async def snmp_log(request: Request):
-    pass
-#     log_request = await request.body()
-#     print(log_request)
-#     print('-'*50)
-#     log_request = [json.loads(obj) for obj in log_request.decode('utf-8').split('\n') if obj]
-#     print(log_request)
-#     print('*'*50)
-#     # for log in log_request:
-#     #     log['teiren_request_ip'] = request.client.host
-#     #     await elasticsearch_input(log, 'snmp')
-#     return {"message": "Log received successfully"}
+    log_request = await request.body()
+    print(log_request)
+    print('-'*50)
+    log_request = [json.loads(obj) for obj in log_request.decode('utf-8').split('\n') if obj]
+    print(log_request)
+    print('*'*50)
+    # for log in log_request:
+    #     log['teiren_request_ip'] = request.client.host
+    #     await elasticsearch_input(log, 'snmp')
+    return {"message": "Log received successfully"}
 
 # Fluentd Configuration Management
 
@@ -171,7 +183,7 @@ class FluentdConfig(BaseModel):
 
 @app.post("/add_config/")
 def add_config(config: FluentdConfig):
-    new_endpoint = f"http://3.35.81.217:8088/{config.new_log_tag}"
+    new_endpoint = f"http://localhost:8088/{config.new_log_tag}"
     
     new_conf_text = f"""
 <source>

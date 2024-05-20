@@ -1,0 +1,112 @@
+from elasticsearch import Elasticsearch
+import json
+from datetime import datetime
+
+# Elasticsearch 서버 URL 설정
+ELASTICSEARCH_URL = 'http://localhost:9200'
+# Elasticsearch 인스턴스 생성
+es = Elasticsearch(ELASTICSEARCH_URL)
+
+def search_logs(start_time, end_time):
+    # 로그 검색을 위한 쿼리 생성
+    # "@timestamp"를 기준으로 시작 시간(start_time)과 종료 시간(end_time) 사이의 로그를 검색
+    query = {
+        "query": {
+            "range": {
+                "@timestamp": {
+                    "gte": start_time,
+                    "lte": end_time,
+                    "format": "yyyy-MM-dd'T'HH:mm:ss.SSSSSS" # 시간 형식 지정
+                }
+            }
+        }
+    }
+    
+    # Elasticsearch에서 쿼리 실행
+    result = es.search(index='test_genian_syslog', body=query, size=100)  
+    
+    # 위험 수준별 로그 리스트 초기화
+    high_risk_logs = []
+    medium_risk_logs = []
+    low_risk_logs = []
+
+    # 다양한 필터링 조건별 로그 딕셔너리 초기화
+    event_type_logs = {}
+    log_id_logs = {}
+    ip_address_logs = {}
+    mac_address_logs = {}
+
+    # 검색 결과에서 각 로그를 처리
+    for hit in result['hits']['hits']:
+        log = hit['_source']
+        # 로그 정보를 JSON 형식으로 출력 (한글 포함 가능하도록 ensure_ascii=False 설정)
+        print(json.dumps(log, indent=4, ensure_ascii=False))
+
+        # 위험 수준별 필터링
+        risk_level = log.get('risk_level')
+        if risk_level == 'High':
+            high_risk_logs.append(log)
+        elif risk_level == 'Medium':
+            medium_risk_logs.append(log)
+        elif risk_level == 'Low':
+            low_risk_logs.append(log)
+
+        # 이벤트 유형별 필터링
+        event_type = log.get('event_type')
+        if event_type:
+            if event_type not in event_type_logs:
+                event_type_logs[event_type] = []
+            event_type_logs[event_type].append(log)
+
+        # 로그 ID별 필터링
+        log_id = log.get('log_id')
+        if log_id:
+            if log_id not in log_id_logs:
+                log_id_logs[log_id] = []
+            log_id_logs[log_id].append(log)
+
+        # IP 주소별 필터링
+        ip_address = log.get('ip_address')
+        if ip_address:
+            if ip_address not in ip_address_logs:
+                ip_address_logs[ip_address] = []
+            ip_address_logs[ip_address].append(log)
+
+        # MAC 주소별 필터링
+        mac_address = log.get('mac_address')
+        if mac_address:
+            if mac_address not in mac_address_logs:
+                mac_address_logs[mac_address] = []
+            mac_address_logs[mac_address].append(log)
+
+    # 위험 수준별 로그 수 출력
+    print(f"High: {len(high_risk_logs)}개")
+    print(f"Middle: {len(medium_risk_logs)}개")
+    print(f"Low: {len(low_risk_logs)}개")
+
+    # 각 필터링 조건별 로그 수 출력
+    print("\n이벤트 유형별 로그 수:")
+    for key, value in event_type_logs.items():
+        print(f"{key}: {len(value)}개")
+    
+    print("\n로그 ID별 로그 수:")
+    for key, value in log_id_logs.items():
+        print(f"{key}: {len(value)}개")
+    
+    print("\nIP 주소별 로그 수:")
+    for key, value in ip_address_logs.items():
+        print(f"{key}: {len(value)}개")
+    
+    print("\nMAC 주소별 로그 수:")
+    for key, value in mac_address_logs.items():
+        print(f"{key}: {len(value)}개")
+
+def main():
+    # 사용자로부터 시작 시간과 종료 시간 입력 받기
+    start_time = input("시작 시간을 입력하세요 (예: YYYY-MM-DDT00:00:00.000000): ")
+    end_time = input("종료 시간을 입력하세요 (예: YYYY-MM-DDT23:59:59.999999): ")
+    # 입력 받은 시간으로 로그 검색 실행
+    search_logs(start_time, end_time)
+
+if __name__ == '__main__':
+    main()

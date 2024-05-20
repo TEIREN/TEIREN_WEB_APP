@@ -5,7 +5,7 @@ import json
 requests.packages.urllib3.disable_warnings()
 
 fortigate_ip = '3.25.48.75'
-post_url = "http://3.35.81.217:8088/fortigate_log"
+post_url = "http://localhost:8088/fortigate_log"
 
 base_url = f"https://{fortigate_ip}"
 
