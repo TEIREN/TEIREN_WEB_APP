@@ -7,21 +7,27 @@ ELASTICSEARCH_URL = 'http://localhost:9200'
 # Elasticsearch 인스턴스 생성
 es = Elasticsearch(ELASTICSEARCH_URL)
 
-def search_logs(start_time, end_time):
-    # 로그 검색을 위한 쿼리 생성
-    # "@timestamp"를 기준으로 시작 시간(start_time)과 종료 시간(end_time) 사이의 로그를 검색
-    query = {
-        "query": {
-            "range": {
-                "@timestamp": {
-                    "gte": start_time,
-                    "lte": end_time,
-                    "format": "yyyy-MM-dd'T'HH:mm:ss.SSSSSS" # 시간 형식 지정
+def search_logs(start_time=None, end_time=None):
+    if start_time and end_time:
+        # 시간 범위가 주어진 경우의 쿼리 생성
+        query = {
+            "query": {
+                "range": {
+                    "@timestamp": {
+                        "gte": start_time,
+                        "lte": end_time,
+                        "format": "yyyy-MM-dd'T'HH:mm:ss.SSSSSS" # 시간 형식 지정
+                    }
                 }
             }
         }
-    }
-    
+    else:
+        # 시간 범위가 주어지지 않은 경우의 쿼리 생성
+        query = {
+            "query": {
+                "match_all": {}
+            }
+        }
     # Elasticsearch에서 쿼리 실행
     result = es.search(index='test_genian_syslog', body=query, size=100)  
     
@@ -102,11 +108,13 @@ def search_logs(start_time, end_time):
         print(f"{key}: {len(value)}개")
 
 def main():
-    # 사용자로부터 시작 시간과 종료 시간 입력 받기
-    start_time = input("시작 시간을 입력하세요 (예: YYYY-MM-DDT00:00:00.000000): ")
-    end_time = input("종료 시간을 입력하세요 (예: YYYY-MM-DDT23:59:59.999999): ")
-    # 입력 받은 시간으로 로그 검색 실행
-    search_logs(start_time, end_time)
+    choice = input("전체 시간을 검색하시겠습니까? (y/n): ").strip().lower()
+    if choice == 'y':
+        search_logs()
+    else:
+        start_time = input("시작 시간을 입력하세요 (예: YYYY-MM-DDT00:00:00.000000): ")
+        end_time = input("종료 시간을 입력하세요 (예: YYYY-MM-DDT23:59:59.999999): ")
+        search_logs(start_time, end_time)
 
 if __name__ == '__main__':
     main()
