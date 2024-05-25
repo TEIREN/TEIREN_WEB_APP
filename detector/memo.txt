@@ -21,7 +21,7 @@ Detector를 위한 추가적인 fluetnd.conf 수정
 
 룰셋추가
 curl -X POST "http://localhost:8888/ruleset/" -H "Content-Type: application/json" -d '{
-    "name": "Detect systemd failure",
+    "name": "Detect systemd info messages",
     "system": "linux",
     "query": {
         "query": {
@@ -29,7 +29,7 @@ curl -X POST "http://localhost:8888/ruleset/" -H "Content-Type: application/json
                 "must": [
                     {
                         "match": {
-                            "message": "fail"
+                            "message": "system activity accounting tool"
                         }
                     },
                     {
@@ -43,6 +43,7 @@ curl -X POST "http://localhost:8888/ruleset/" -H "Content-Type: application/json
     },
     "severity": 4
 }'
+
 
 확인
 curl -X GET "localhost:9200/detected_logs/_search?pretty"
