@@ -1,65 +1,33 @@
 import time
 from elasticsearch import Elasticsearch, NotFoundError, ConnectionError
 
+"""
+프로토타입
+"""
+
 # Elasticsearch 클라이언트를 설정합니다.
 es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
 
-# 룰셋 인덱스 이름 매핑
-ruleset_mapping = {
-    1: "linux_ruleset",
-    2: "window_ruleset",
-    3: "genian_ruleset",
-    4: "fortigate_ruleset"
-}
-
-# detected log 인덱스 이름 매핑
-detected_log_mapping = {
-    1: "linux_detected_log",
-    2: "window_detected_log",
-    3: "genian_detected_log",
-    4: "fortigate_detected_log"
-}
-
-# 사용자로부터 인덱스 선택을 입력받습니다.
-def get_user_choice():
-    print("Select the index to use:")
-    print("1. Linux")
-    print("2. Windows")
-    print("3. Genian")
-    print("4. Fortigate")
-    choice = int(input("Enter your choice (1-4): "))
-    if choice not in [1, 2, 3, 4]:
-        raise ValueError("Invalid choice, please select a number between 1 and 4.")
-    return choice
-
-# 인덱스 선택
-user_choice = get_user_choice()
-log_index_name = detected_log_mapping[user_choice]  # 수정된 부분
-
-# 매핑된 룰셋 인덱스와 디텍티드 로그 인덱스를 설정합니다.
-ruleset_index = ruleset_mapping[user_choice]
-detected_log_index = detected_log_mapping[user_choice]
+# 사용할 인덱스 이름들을 정의합니다.
+log_index_name = "test_linux_syslog"
+ruleset_index = "linux_ruleset"
+detected_log_index = "linux_detected_log"
 
 def check_logs():
     try:
         # 모든 룰셋을 Elasticsearch에서 가져옵니다.
-        res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
+        res = es.search(index=ruleset_index, body={"query": {"match_all": {}}})
         rulesets = res['hits']['hits']
-        print(f"Total rules found: {len(rulesets)}")
 
         for rule in rulesets:
             rule_query = rule["_source"]["query"]
             severity = rule["_source"]["severity"]
             rule_name = rule["_source"]["name"]
             
-            print(f"Checking rule: {rule_name} with severity {severity}")
-            
             # 룰셋을 사용하여 로그를 탐지합니다.
-            log_res = es.search(index=log_index_name, body={**rule_query, "size": 10000})
-            logs_found = log_res['hits']['total']['value']
-            print(f"Logs found for rule {rule_name}: {logs_found}")
-                    
-            if logs_found > 0:
+            log_res = es.search(index=log_index_name, body=rule_query)
+            
+            if log_res['hits']['total']['value'] > 0:
                 for log in log_res['hits']['hits']:
                     log_doc = log["_source"]
                     log_doc["detected_by_rule"] = rule_name
