@@ -1,4 +1,6 @@
 # 리눅스 버전
+1. prototype_main.py
+2. linux_version.py
 ### 룰셋추가
 ```sh
 curl -X POST "http://localhost:8888/ruleset/" -H "Content-Type: application/json" -d '{
@@ -26,6 +28,7 @@ curl -X POST "http://localhost:8888/ruleset/" -H "Content-Type: application/json
 }'
 ```
 ### 룰셋 확인 (리눅스)
+1. 
 ```sh
 curl -X GET "localhost:9200/linux_ruleset/_search?pretty"
 ```
