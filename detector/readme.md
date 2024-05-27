@@ -70,7 +70,8 @@ curl -X POST "http://localhost:8888/ruleset/?index_choice=1" -H "Content-Type: a
 - 생성 된지 확인하려면 curl -X GET "localhost:9200/_cat/indices?v"
 2. input_ruleset.py
 - 룰셋정보를 직접 입력
-3. 현재 룰셋이 생성이 되어도 window rule set 생성 후 탐지를 못함 룰셋 형식이나 처리 구문 잘못인듯
+3. window rule set 생성 후 탐지를 못함 룰셋 형식이나 처리 구문 잘못인듯
+리눅스랑 윈도우랑 로그, 룰셋 분석 후 수정 필요
 
 ```sh
 curl -X POST "http://3.35.81.217:9200/window_ruleset/_doc" -H 'Content-Type: application/json' -d '{
