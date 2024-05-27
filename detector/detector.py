@@ -4,6 +4,14 @@ from elasticsearch import Elasticsearch, NotFoundError, ConnectionError
 # Elasticsearch 클라이언트를 설정합니다.
 es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
 
+# 탐지 대상 로그 인덱스
+log_index = {
+    1 : "test_linux_syslog",
+    2 : "test_window_syslog",
+    3 : "test_genian_syslog",
+    4 : "test_fortigate_syslog"
+}
+
 # 룰셋 인덱스 이름 매핑
 ruleset_mapping = {
     1: "linux_ruleset",
@@ -34,7 +42,7 @@ def get_user_choice():
 
 # 인덱스 선택
 user_choice = get_user_choice()
-log_index_name = detected_log_mapping[user_choice]  # 수정된 부분
+log_index_name = log_index[user_choice]  # 수정된 부분
 
 # 매핑된 룰셋 인덱스와 디텍티드 로그 인덱스를 설정합니다.
 ruleset_index = ruleset_mapping[user_choice]
