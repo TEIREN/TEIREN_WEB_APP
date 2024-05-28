@@ -6,10 +6,10 @@ es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
 
 # 탐지 대상 로그 인덱스
 log_index = {
-    1 : "test_linux_syslog",
-    2 : "test_window_syslog",
-    3 : "test_genian_syslog",
-    4 : "test_fortigate_syslog"
+    1: "test_linux_syslog",
+    2: "test_window_syslog",
+    3: "test_genian_syslog",
+    4: "test_fortigate_syslog"
 }
 
 # 룰셋 인덱스 이름 매핑
@@ -42,13 +42,13 @@ def get_user_choice():
 
 # 인덱스 선택
 user_choice = get_user_choice()
-log_index_name = log_index[user_choice]  # 수정된 부분
+log_index_name = log_index[user_choice]
 
 # 매핑된 룰셋 인덱스와 디텍티드 로그 인덱스를 설정합니다.
 ruleset_index = ruleset_mapping[user_choice]
 detected_log_index = detected_log_mapping[user_choice]
 
-def check_logs():
+def check_logs_linux():
     try:
         # 모든 룰셋을 Elasticsearch에서 가져옵니다.
         res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
@@ -89,7 +89,51 @@ def check_logs():
     except Exception as e:
         print(f"An error occurred: {e}")
 
+def check_logs_windows():
+    try:
+        # 모든 룰셋을 Elasticsearch에서 가져옵니다.
+        res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
+        rulesets = res['hits']['hits']
+        print(f"Total rules found: {len(rulesets)}")
+
+        for rule in rulesets:
+            rule_query = rule["_source"]["query"]["query"]
+            severity = rule["_source"]["severity"]
+            rule_name = rule["_source"]["name"]
+            
+            print(f"Checking rule: {rule_name} with severity {severity}")
+            
+            # 룰셋을 사용하여 로그를 탐지합니다.
+            log_res = es.search(index=log_index_name, body={"query": rule_query, "size": 10000})
+            logs_found = log_res['hits']['total']['value']
+            print(f"Logs found for rule {rule_name}: {logs_found}")
+                    
+            if logs_found > 0:
+                for log in log_res['hits']['hits']:
+                    log_doc = log["_source"]
+                    log_doc["detected_by_rule"] = rule_name
+                    log_doc["severity"] = severity
+                    
+                    # 탐지된 로그를 저장합니다 (중복 방지)
+                    log_id = f"{rule_name}_{log['_id']}"
+                    try:
+                        # 이미 저장된 로그인지 확인합니다.
+                        es.get(index=detected_log_index, id=log_id)
+                    except NotFoundError:
+                        # 저장되지 않은 로그인 경우에만 저장합니다.
+                        es.index(index=detected_log_index, id=log_id, body=log_doc)
+                        print(f"Rule '{rule_name}' triggered and log stored with severity {severity}")
+                    except Exception as e:
+                        print(f"Error checking log existence: {e}")
+    except ConnectionError as e:
+        print(f"Connection error: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 # 주기적으로 로그를 체크합니다.
 while True:
-    check_logs()
-    time.sleep(5)
+    if user_choice == 1:
+        check_logs_linux()
+    elif user_choice == 2:
+        check_logs_windows()
+    time.sleep(2)
