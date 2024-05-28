@@ -5,37 +5,59 @@ def get_user_input(index_choice):
     name = input("Enter the name of the ruleset: ")
     severity = int(input("Enter the severity (e.g., 1, 2, 3, 4): "))
 
-    must_clauses = []
+    query = {}
 
-    while True:
-        # 사용자로부터 프러퍼티와 벨류를 입력받습니다.
-        property_name = input("Enter the property name (e.g., message, programname): ")
-        property_value = input(f"Enter the value for {property_name}: ")
-
-        # 입력받은 프러퍼티와 벨류를 쿼리에 추가합니다.
-        must_clauses.append({
-            "match": {
-                property_name: property_value
-            }
-        })
-
-        # 추가 프러퍼티 입력 여부를 확인합니다.
-        add_more = input("Do you want to add more properties? (y/n): ").strip().lower()
-        if add_more != 'y':
-            break
-
-    query = {
-        "query": {
-            "bool": {
-                "must": must_clauses
+    if index_choice == 1:
+        # Linux 쿼리 입력
+        message_value = input("Enter the message value: ")
+        programname_value = input("Enter the programname value: ")
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "message": message_value
+                            }
+                        },
+                        {
+                            "match": {
+                                "programname": programname_value
+                            }
+                        }
+                    ]
+                }
             }
         }
-    }
+    elif index_choice == 2:
+        # Windows 쿼리 입력
+        event_id = int(input("Enter the EventID value: "))
+        source_name = input("Enter the SourceName value: ")
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "EventID": event_id
+                            }
+                        },
+                        {
+                            "match": {
+                                "SourceName": source_name
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    elif index_choice in [3, 4]:
+        # Genian 및 Fortigate의 경우, 아직 쿼리를 개발 중이므로 pass 처리
+        pass
 
-    system = "windows" if index_choice == 2 else "linux"
     return {
         "name": name,
-        "system": system,
+        "system": "windows" if index_choice == 2 else "linux",
         "query": query,
         "severity": severity
     }

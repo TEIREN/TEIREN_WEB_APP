@@ -1,108 +1,29 @@
-# 리눅스 버전
-1. prototype_main.py
-2. linux_version.py
-### 룰셋추가
-```sh
-curl -X POST "http://localhost:8888/ruleset/" -H "Content-Type: application/json" -d '{
-    "name": "Detect systemd info messages",
-    "system": "linux",
-    "query": {
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "match": {
-                            "message": "system activity accounting tool"
-                        }
-                    },
-                    {
-                        "match": {
-                            "programname": "systemd"
-                        }
-                    }
-                ]
-            }
-        }
-    },
-    "severity": 4
-}'
-```
-### 룰셋 확인 (리눅스)
-1. 
-```sh
-curl -X GET "localhost:9200/linux_ruleset/_search?pretty"
-```
-
-### 탐지된 결과 확인 (리눅스)
-```sh
-curl -X GET "localhost:9200/linux_detected_log/_search?pretty"
-```
-
-# 개발중
-```sh
-curl -X POST "http://localhost:8888/ruleset/?index_choice=1" -H "Content-Type: application/json" -d '{
-    "name": "Detect systemd info messages",
-    "system": "linux",
-    "query": {
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "match": {
-                            "message": "system activity accounting tool"
-                        }
-                    },
-                    {
-                        "match": {
-                            "programname": "systemd"
-                        }
-                    }
-                ]
-            }
-        }
-    },
-    "severity": 4
-}'
-```
-
-1. index.py
--  index 생성
-- 생성 된지 확인하려면 curl -X GET "localhost:9200/_cat/indices?v"
-2. input_ruleset.py
-- 룰셋정보를 직접 입력
-
-```sh
-curl -X POST "http://3.35.81.217:9200/window_ruleset/_doc" -H 'Content-Type: application/json' -d'
-{
-    "name": "Detect VSS events",
-    "system": "windows",
-    "query": {
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "match": {
-                            "EventID": 8224
-                        }
-                    },
-                    {
-                        "match": {
-                            "SourceName": "VSS"
-                        }
-                    }
-                ]
-            }
-        }
-    },
-    "severity": 3
+### 1. index.py
+필요한 index 생성
+```py
+# 룰셋 인덱스 이름 매핑
+ruleset_mapping = {
+    1: "linux_ruleset",
+    2: "window_ruleset",
+    3: "genian_ruleset",
+    4: "fortigate_ruleset"
 }
-'
+
+# detected log 인덱스 이름 매핑
+detected_log_mapping = {
+    1: "linux_detected_log",
+    2: "window_detected_log",
+    3: "genian_detected_log",
+    4: "fortigate_detected_log"
+}
 ```
 
-
-++ 유연성을 확장시키여함 
-추가할 기능 : 프러퍼티, 벨류, 추가 
-
+### 2. input_ruleset.py
+사용자로부터 룰셋을 입력받음
 1. 프러퍼티 ex : massage, programname
 2. 벨류 ex : Starting sysstat-collect.service - system activity accounting tool..., systemd
 3. 추가 : 프러퍼티를 추가하겠습니까? y -> 1번으로 다시 가 쿼리 추가 n -> 디텍터 생성
+
+### 3. detector.py
+지속적으로 룰셋 기반 로그를 탐지함
+linux + window + genian + fortigate 하나로 통합된 버전 추후 생성
