@@ -27,3 +27,107 @@ detected_log_mapping = {
 ### 3. detector.py
 지속적으로 룰셋 기반 로그를 탐지함
 linux + window + genian + fortigate 하나로 통합된 버전 추후 생성
+
+---
+### test rule-set curl
+```sh
+curl -X POST "http://3.35.81.217:9200/ruleset/_doc1" -H "Content-Type: application/json" -d '{
+    "name": "Detect systemd info messages",
+    "system": "linux",
+    "query": {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "message": "system activity accounting tool"
+                        }
+                    },
+                    {
+                        "match": {
+                            "programname": "systemd"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "severity": 4
+}'
+
+
+curl -X POST "http://3.35.81.217:9200/window_ruleset/_doc" -H 'Content-Type: application/json' -d'
+{
+    "name": "Detect VSS events",
+    "system": "windows",
+    "query": {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "EventID": 8224
+                        }
+                    },
+                    {
+                        "match": {
+                            "SourceName": "VSS"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "severity": 3
+}'
+
+curl -X POST "http://3.35.81.217:9200/genian_ruleset/_doc" -H "Content-Type: application/json" -d '{
+  "name": "Detect Report Auto Generation",
+  "system": "linux",
+  "query": {
+    "query": {
+      "bool": {
+        "must": [
+          {
+            "match_phrase": {
+              "msg": "리포트 자동생성됨."
+            }
+          }
+        ]
+      }
+    }
+  },
+  "severity": 2
+}'
+
+'
+
+curl -X POST "http://3.35.81.217:9200/fortigate_ruleset/_doc" -H "Content-Type: application/json" -d '{
+    "name": "Detect Fortigate Traffic Close Notice",
+    "system": "fortigate",
+    "query": {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "match": {
+                            "type": "traffic"
+                        }
+                    },
+                    {
+                        "match": {
+                            "level": "notice"
+                        }
+                    },
+                    {
+                        "match": {
+                            "action": "close"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "severity": 2
+}'
+```
