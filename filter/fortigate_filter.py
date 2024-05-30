@@ -1,5 +1,7 @@
 from elasticsearch import Elasticsearch
 import json
+from collections import defaultdict, Counter
+from datetime import datetime
 
 # Elasticsearch 서버 URL 설정
 ELASTICSEARCH_URL = 'http://localhost:9200'
@@ -28,42 +30,32 @@ def search_logs(start_time=None, end_time=None):
             }
         }
     # Elasticsearch에서 쿼리 실행
-    result = es.search(index='test_fortigate_syslog', body=query, size=300)  
+    result = es.search(index='test_fortigate_syslog', body=query, params={"size": 300})  
     
     # 위험 수준별 로그 리스트 초기화
     high_risk_logs = []
     medium_risk_logs = []
     low_risk_logs = []
 
-    # 이벤트 유형별 필터링을 위한 딕셔너리 초기화
-    event_type_logs = {}
+    # 다양한 필터링 조건별 로그 딕셔너리 초기화
+    event_type_logs = defaultdict(list)
+    ip_address_logs = defaultdict(list)
+    app_category_logs = defaultdict(list)
+    traffic_type_logs = defaultdict(list)
+    protocol_logs = defaultdict(list)
+    session_id_logs = defaultdict(list)
+    service_logs = defaultdict(list)
+    trandisp_logs = defaultdict(list)
 
-    # IP 주소별 필터링을 위한 딕셔너리 초기화
-    ip_address_logs = {}
+    # Top Source IP와 Destination IP를 위한 Counter 초기화
+    src_ip_counter = Counter()
+    dst_ip_counter = Counter()
 
-    # 애플리케이션 카테고리별 필터링을 위한 딕셔너리 초기화
-    app_category_logs = {}
-
-    # 트래픽 유형별 필터링을 위한 딕셔너리 초기화
-    traffic_type_logs = {}
-
-    # 프로토콜별 필터링을 위한 딕셔너리 초기화
-    protocol_logs = {}
-
-    # 세션 ID별 필터링을 위한 딕셔너리 초기화
-    session_id_logs = {}
-
-    # 서비스별 필터링을 위한 딕셔너리 초기화
-    service_logs = {}
-
-    # 전송 및 수신 바이트, 패킷 수에 따른 필터링을 위한 변수 초기화
-    sent_byte_threshold = 1000
-    rcvd_byte_threshold = 1000
-    sent_pkt_threshold = 3
-    rcvd_pkt_threshold = 3
-
-    # 트랜잭션 처리 방식에 따른 필터링을 위한 딕셔너리 초기화
-    trandisp_logs = {}
+    # Traffic by Device, User, Application, Interface를 위한 defaultdict 초기화
+    traffic_by_device = defaultdict(lambda: {'sent': 0, 'received': 0})
+    traffic_by_user = defaultdict(lambda: {'sent': 0, 'received': 0})
+    traffic_by_application = defaultdict(lambda: {'sent': 0, 'received': 0})
+    traffic_by_interface = defaultdict(lambda: {'sent': 0, 'received': 0})
 
     # 검색 결과에서 각 로그를 처리
     for hit in result['hits']['hits']:
@@ -82,55 +74,41 @@ def search_logs(start_time=None, end_time=None):
         # 이벤트 유형별 필터링
         event_type = log.get('subtype')
         if event_type:
-            if event_type not in event_type_logs:
-                event_type_logs[event_type] = []
             event_type_logs[event_type].append(log)
 
-        # IP 주소별 필터링
-        src_ip = log.get('srcip')
-        dst_ip = log.get('dstip')
-        if src_ip:
-            if src_ip not in ip_address_logs:
-                ip_address_logs[src_ip] = []
+        # IP 주소별 필터링 및 카운팅
+        src_ip = log.get('srcip', 'Unknown')
+        dst_ip = log.get('dstip', 'Unknown')
+        if src_ip != 'Unknown':
+            src_ip_counter[src_ip] += 1
             ip_address_logs[src_ip].append(log)
-        if dst_ip:
-            if dst_ip not in ip_address_logs:
-                ip_address_logs[dst_ip] = []
+        if dst_ip != 'Unknown':
+            dst_ip_counter[dst_ip] += 1
             ip_address_logs[dst_ip].append(log)
 
         # 애플리케이션 카테고리별 필터링
-        app_category = log.get('appcat')
-        if app_category:
-            if app_category not in app_category_logs:
-                app_category_logs[app_category] = []
+        app_category = log.get('appcat', 'Unknown')
+        if app_category != 'Unknown':
             app_category_logs[app_category].append(log)
 
         # 트래픽 유형별 필터링
         traffic_type = log.get('type')
         if traffic_type:
-            if traffic_type not in traffic_type_logs:
-                traffic_type_logs[traffic_type] = []
             traffic_type_logs[traffic_type].append(log)
 
         # 프로토콜별 필터링
         protocol = log.get('proto')
         if protocol:
-            if protocol not in protocol_logs:
-                protocol_logs[protocol] = []
             protocol_logs[protocol].append(log)
 
         # 세션 ID별 필터링
         session_id = log.get('sessionid')
         if session_id:
-            if session_id not in session_id_logs:
-                session_id_logs[session_id] = []
             session_id_logs[session_id].append(log)
 
         # 서비스별 필터링
-        service = log.get('service')
-        if service:
-            if service not in service_logs:
-                service_logs[service] = []
+        service = log.get('service', 'Unknown')
+        if service != 'Unknown':
             service_logs[service].append(log)
 
         # 전송 및 수신 바이트, 패킷 수에 따른 필터링
@@ -138,17 +116,34 @@ def search_logs(start_time=None, end_time=None):
         rcvd_byte = int(log.get('rcvdbyte', 0))
         sent_pkt = int(log.get('sentpkt', 0))
         rcvd_pkt = int(log.get('rcvdpkt', 0))
-        if sent_byte > sent_byte_threshold or rcvd_byte > rcvd_byte_threshold or \
-           sent_pkt > sent_pkt_threshold or rcvd_pkt > rcvd_pkt_threshold:
+        if sent_byte > 1000 or rcvd_byte > 1000 or sent_pkt > 3 or rcvd_pkt > 3:
             # 이런 로그들은 큰 로그 데이터를 가집니다. 이 로그들을 별도로 관리합니다.
-            print("Big Log:", json.dumps(log, indent=4))
+            print("Big Log:", json.dumps(log, indent=4, ensure_ascii=False))
 
-        # 트랜잭션 처리 방식에 따른 필터링
+        # 트랜잭션 처리 방식별 필터링
         trandisp = log.get('trandisp')
         if trandisp:
-            if trandisp not in trandisp_logs:
-                trandisp_logs[trandisp] = []
             trandisp_logs[trandisp].append(log)
+
+        # Traffic by Device
+        traffic_by_device[src_ip]['sent'] += sent_byte
+        traffic_by_device[dst_ip]['received'] += rcvd_byte
+
+        # Traffic by User
+        user = log.get('user', 'Unknown')
+        traffic_by_user[user]['sent'] += sent_byte
+        traffic_by_user[user]['received'] += rcvd_byte
+
+        # Traffic by Application
+        application = log.get('app', 'Unknown')
+        traffic_by_application[application]['sent'] += sent_byte
+        traffic_by_application[application]['received'] += rcvd_byte
+
+        # Traffic by Interface
+        src_intf = log.get('srcintf', 'Unknown')
+        dst_intf = log.get('dstintf', 'Unknown')
+        traffic_by_interface[src_intf]['sent'] += sent_byte
+        traffic_by_interface[dst_intf]['received'] += rcvd_byte
 
     # 필터링된 로그 수 출력
     print(f"High Risk Logs: {len(high_risk_logs)}개")
@@ -186,6 +181,36 @@ def search_logs(start_time=None, end_time=None):
     print("\n트랜잭션 처리 방식별 로그 수:")
     for key, value in trandisp_logs.items():
         print(f"{key}: {len(value)}개")
+
+    # # Top Source IP 출력
+    # print("\nTop Source IP:")
+    # for ip, count in src_ip_counter.most_common(10):
+    #     print(f"{ip}: {count}개")
+
+    # # Top Destination IP 출력
+    # print("\nTop Destination IP:")
+    # for ip, count in dst_ip_counter.most_common(10):
+    #     print(f"{ip}: {count}개")
+
+    # # Traffic by Device 출력
+    # print("\nTraffic by Device:")
+    # for device, traffic in traffic_by_device.items():
+    #     print(f"{device} - Sent: {traffic['sent']} bytes, Received: {traffic['received']} bytes")
+
+    # # Traffic by User 출력
+    # print("\nTraffic by User:")
+    # for user, traffic in traffic_by_user.items():
+    #     print(f"{user} - Sent: {traffic['sent']} bytes, Received: {traffic['received']} bytes")
+
+    # # Traffic by Application 출력
+    # print("\nTraffic by Application:")
+    # for application, traffic in traffic_by_application.items():
+    #     print(f"{application} - Sent: {traffic['sent']} bytes, Received: {traffic['received']} bytes")
+
+    # # Traffic by Interface 출력
+    # print("\nTraffic by Interface:")
+    # for interface, traffic in traffic_by_interface.items():
+    #     print(f"{interface} - Sent: {traffic['sent']} bytes, Received: {traffic['received']} bytes")
 
 def main():
     choice = input("전체 시간을 검색하시겠습니까? (y/n): ").strip().lower()
