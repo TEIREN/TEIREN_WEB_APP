@@ -1,32 +1,51 @@
-from elasticsearch import Elasticsearch
+"""
+ElasticSearch에 새  Index를 만들어 저장을 하는 방법
+"""
+
+"""
+# Genian Filter Index 조회
+curl -X GET "http://localhost:9200/genian_filtered_logs/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "match_all": {}
+  },
+  "size": 10
+}
+'
+
+# Fortigate Filter Index 조회
+curl -X GET "http://localhost:9200/fortigate_filtered_logs/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+  "query": {
+    "match_all": {}
+  },
+  "size": 10
+}
+'
+"""
+
+
+from elasticsearch import Elasticsearch, helpers
 import json
 from collections import defaultdict, Counter
 from datetime import datetime, timedelta, timezone
 import time
-
-"""
-### genian
-1. Session Over Time
-2. Traffic Over time
-
-### Fortigate
-1. Top Source IP
-2. Top Destination IP
-3. Traffic by Device
-4. Traffic by User 
-5. Traffic by Application
-6. Traffic by Interface
-7. EVENT
-"""
 
 # Elasticsearch 서버 URL 설정
 ELASTICSEARCH_URL = 'http://localhost:9200'
 # Elasticsearch 인스턴스 생성
 es = Elasticsearch(ELASTICSEARCH_URL)
 
-""""
-genian log
-"""
+def save_to_elasticsearch(index, data):
+    actions = [
+        {
+            "_index": index,
+            "_source": item
+        }
+        for item in data
+    ]
+    helpers.bulk(es, actions)
+
 def search_genian_logs(start_time=None, end_time=None):
     if start_time and end_time:
         query = {
@@ -53,6 +72,8 @@ def search_genian_logs(start_time=None, end_time=None):
     session_overtime = defaultdict(int)
     traffic_overtime = defaultdict(lambda: {'sent': 0, 'received': 0})
 
+    filtered_logs = []
+
     for hit in result['hits']['hits']:
         log = hit['_source']
         timestamp = datetime.strptime(log.get('@timestamp'), "%Y-%m-%dT%H:%M:%S.%f")
@@ -65,7 +86,16 @@ def search_genian_logs(start_time=None, end_time=None):
         traffic_overtime[time_key]['sent'] += sent_byte
         traffic_overtime[time_key]['received'] += rcvd_byte
 
-    print("\nSession Overtime:") 
+        filtered_logs.append({
+            "timestamp": timestamp.isoformat(),
+            "time_key": time_key,
+            "sent_byte": sent_byte,
+            "received_byte": rcvd_byte
+        })
+
+    save_to_elasticsearch("genian_filtered_logs", filtered_logs)
+
+    print("\nSession Overtime:")
     for time_key, count in sorted(session_overtime.items()):
         print(f"{time_key}: {count} 세션")
 
@@ -73,11 +103,6 @@ def search_genian_logs(start_time=None, end_time=None):
     for time_key, traffic in sorted(traffic_overtime.items()):
         print(f"{time_key} - Sent: {traffic['sent']} bytes, Received: {traffic['received']} bytes")
 
-
-
-"""
-fortigate log
-"""
 def search_fortigate_logs(start_time=None, end_time=None):
     if start_time and end_time:
         query = {
@@ -112,6 +137,8 @@ def search_fortigate_logs(start_time=None, end_time=None):
     notable_events = Counter()
     latest_events = []
 
+    filtered_logs = []
+
     for hit in result['hits']['hits']:
         log = hit['_source']
         src_ip = log.get('srcip', 'Unknown')
@@ -139,7 +166,7 @@ def search_fortigate_logs(start_time=None, end_time=None):
         traffic_by_interface[dstintf]['received'] += rcvd_byte
 
         # 이벤트 관련 처리
-        timestamp = log.get('@timestamp', 'Unknown') # 로그 타임 스템프가 없는 경우 Unknown으로 임시 처리 해두었습니다.
+        timestamp = log.get('@timestamp', 'Unknown')
         if timestamp and timestamp != 'Unknown':
             try:
                 event_time = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
@@ -163,6 +190,23 @@ def search_fortigate_logs(start_time=None, end_time=None):
             "Action": action,
             "Message": log.get('msg', 'Unknown')
         })
+
+        filtered_logs.append({
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "dst_ip": dst_ip,
+            "srcintf": srcintf,
+            "dstintf": dstintf,
+            "app": app,
+            "user": user,
+            "sent_byte": sent_byte,
+            "rcvd_byte": rcvd_byte,
+            "event_time": event_time.isoformat() if 'event_time' in locals() else 'Unknown',
+            "time_key": time_key,
+            "action": action
+        })
+
+    save_to_elasticsearch("fortigate_filtered_logs", filtered_logs)
 
     print("\nTop Source IP:")
     for ip, count in src_ip_counter.most_common(10):
@@ -228,14 +272,7 @@ def main():
             display_event_results(event_counts, notable_events, latest_events)
         
         print("\n--- Waiting for next cycle ---\n")
-        time.sleep(30)  # 조정 필요 지속적으로 수집하고 싶으면 삭제하는게 나음
+        time.sleep(30)  # 조정 필요 
 
 if __name__ == '__main__':
     main()
-
-
-"""
-필터링된 값들 저장 하는 방법 
-1. 필터링된 결과를 리스트로 저장
-2. 필터링된 결과를 Elastic Search 인덱스에 저장
-"""
