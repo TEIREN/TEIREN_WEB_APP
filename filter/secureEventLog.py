@@ -4,7 +4,6 @@ from collections import defaultdict, Counter
 from datetime import datetime, timedelta, timezone
 import time
 
-
 """
 ### genian
 1. Session Over Time
@@ -17,6 +16,7 @@ import time
 4. Traffic by User 
 5. Traffic by Application
 6. Traffic by Interface
+7. EVENT
 """
 
 # Elasticsearch 서버 URL 설정
@@ -35,15 +35,17 @@ def search_genian_logs(start_time=None, end_time=None):
                         "format": "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
                     }
                 }
-            }
+            },
+            "size": 300
         }
     else:
         query = {
             "query": {
                 "match_all": {}
-            }
+            },
+            "size": 300
         }
-    result = es.search(index='test_genian_syslog', body=query, size=300)
+    result = es.search(index='test_genian_syslog', body=query)
 
     session_overtime = defaultdict(int)
     traffic_overtime = defaultdict(lambda: {'sent': 0, 'received': 0})
@@ -79,15 +81,17 @@ def search_fortigate_logs(start_time=None, end_time=None):
                         "format": "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
                     }
                 }
-            }
+            },
+            "size": 300
         }
     else:
         query = {
             "query": {
                 "match_all": {}
-            }
+            },
+            "size": 300
         }
-    result = es.search(index='test_fortigate_syslog', body=query, size=300)
+    result = es.search(index='test_fortigate_syslog', body=query)
 
     src_ip_counter = Counter()
     dst_ip_counter = Counter()
@@ -95,6 +99,10 @@ def search_fortigate_logs(start_time=None, end_time=None):
     traffic_by_user = defaultdict(lambda: {'sent': 0, 'received': 0})
     traffic_by_application = defaultdict(lambda: {'sent': 0, 'received': 0})
     traffic_by_interface = defaultdict(lambda: {'sent': 0, 'received': 0})
+
+    event_counts = Counter()
+    notable_events = Counter()
+    latest_events = []
 
     for hit in result['hits']['hits']:
         log = hit['_source']
@@ -122,6 +130,32 @@ def search_fortigate_logs(start_time=None, end_time=None):
         traffic_by_interface[srcintf]['sent'] += sent_byte
         traffic_by_interface[dstintf]['received'] += rcvd_byte
 
+        # 이벤트 관련 처리
+        timestamp = log.get('@timestamp', 'Unknown')
+        if timestamp and timestamp != 'Unknown':
+            try:
+                event_time = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
+                time_key = event_time.strftime('%Y-%m-%d %H:%M')
+            except ValueError:
+                print(f"Skipping log with invalid timestamp: {timestamp}")
+                time_key = 'Unknown'
+        else:
+            time_key = 'Unknown'
+        
+        event_counts[time_key] += 1
+        action = log.get('action', 'Unknown')
+        notable_events[action] += 1
+
+        latest_events.append({
+            "Time": timestamp,
+            "Device": log.get('device', 'Unknown'),
+            "Virtual_Domain": log.get('vd', 'Unknown'),
+            "Subtype": log.get('subtype', 'Unknown'),
+            "Level": log.get('level', 'Unknown'),
+            "Action": action,
+            "Message": log.get('msg', 'Unknown')
+        })
+
     print("\nTop Source IP:")
     for ip, count in src_ip_counter.most_common(10):
         print(f"{ip}: {count}개")
@@ -146,6 +180,22 @@ def search_fortigate_logs(start_time=None, end_time=None):
     for interface, traffic in traffic_by_interface.items():
         print(f"{interface} - Sent: {traffic['sent']} bytes, Received: {traffic['received']} bytes")
 
+    return event_counts, notable_events, latest_events
+
+def display_event_results(event_counts, notable_events, latest_events):
+    print("\nSystem Events Count:")
+    for time_key, count in sorted(event_counts.items()):
+        print(f"{time_key}: {count} events")
+    
+    print("\nNotable Events:")
+    for event, count in notable_events.items():
+        print(f"{event}: {count} events")
+    
+    print("\nLatest Events:")
+    print(f"{'Time':<20} {'Device':<15} {'Virtual_Domain':<15} {'Subtype':<10} {'Level':<10} {'Action':<10} {'Message':<50}")
+    for event in latest_events[:10]:
+        print(f"{(event['Time'] or 'Unknown'):<20} {(event['Device'] or 'Unknown'):<15} {(event['Virtual_Domain'] or 'Unknown'):<15} {(event['Subtype'] or 'Unknown'):<10} {(event['Level'] or 'Unknown'):<10} {(event['Action'] or 'Unknown'):<10} {(event['Message'] or 'Unknown'):<50}")
+
 def main():
     initial_run = True
     while True:
@@ -154,7 +204,8 @@ def main():
             search_genian_logs()
             
             print("\n--- Initial Fortigate Logs ---")
-            search_fortigate_logs()
+            event_counts, notable_events, latest_events = search_fortigate_logs()
+            display_event_results(event_counts, notable_events, latest_events)
             
             initial_run = False
         else:
@@ -165,7 +216,8 @@ def main():
             search_genian_logs(start_time, end_time)
             
             print("\n--- Fortigate Logs ---")
-            search_fortigate_logs(start_time, end_time)
+            event_counts, notable_events, latest_events = search_fortigate_logs(start_time, end_time)
+            display_event_results(event_counts, notable_events, latest_events)
         
         print("\n--- Waiting for next cycle ---\n")
         time.sleep(30)  # 조정 필요 
