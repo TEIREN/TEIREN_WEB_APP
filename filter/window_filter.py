@@ -1,3 +1,24 @@
+"""
+----
+High Risk (높은 위험도)
+4625: 계정 로그인 실패
+4672: 특수 권한 할당
+4688: 새로운 프로세스 생성
+4647: 계정 로그오프
+4697: 새로운 서비스 설치
+----
+Medium Risk (중간 위험도)
+4624: 계정 로그인 성공
+4648: 명시적 자격 증명을 사용하는 로그인 시도
+4663: 개체 액세스 시도
+4670: 권한 있는 개체 수정
+Low Risk (낮은 위험도)
+4634: 계정 로그오프
+4907: 감사 정책 변경
+4912: 변경된 보안 감사 설정
+----
+"""
+
 from elasticsearch import Elasticsearch
 import json
 from datetime import datetime
@@ -6,6 +27,20 @@ from datetime import datetime
 ELASTICSEARCH_URL = 'http://localhost:9200'
 # Elasticsearch 인스턴스 생성
 es = Elasticsearch(ELASTICSEARCH_URL)
+
+def evaluate_risk(log):
+    """로그의 위험도를 평가하는 함수"""
+    # 위험도를 평가하기 위한 기본 점수
+    high_risk_event_ids = {4625, 4672, 4688, 4647, 4697}  # 높은 위험도의 이벤트 ID
+    medium_risk_event_ids = {4624, 4648, 4663, 4670}  # 중간 위험도의 이벤트 ID
+
+    event_id = log.get('EventID')
+    if event_id in high_risk_event_ids:
+        return 'High'
+    elif event_id in medium_risk_event_ids:
+        return 'Middle'
+    else:
+        return 'Low'
 
 def search_logs(start_time=None, end_time=None):
     if start_time and end_time:
@@ -37,12 +72,20 @@ def search_logs(start_time=None, end_time=None):
     channel_logs = {}
     source_name_logs = {}
     event_type_logs = {}
-    text_content_logs = {}
     ip_address_logs = {}
+    risk_logs = {
+        'High': [],
+        'Middle': [],
+        'Low': []
+    }
 
     # 검색 결과에서 각 로그를 처리
     for hit in result['hits']['hits']:
         log = hit['_source']
+
+        # 로그의 위험도 평가
+        risk_level = evaluate_risk(log)
+        risk_logs[risk_level].append(log)
 
         # JSON 형식으로 로그 출력
         print(json.dumps(log, indent=4, ensure_ascii=False))
@@ -75,11 +118,6 @@ def search_logs(start_time=None, end_time=None):
                 event_type_logs[event_type] = []
             event_type_logs[event_type].append(log)
 
-        # 텍스트 내용에 따른 필터링 (예: '위험', '심각' 등의 키워드)
-        # message = log.get('Message', '')
-        # if '위험' in message or '심각' in message:
-        #     text_content_logs.setdefault('위험 및 심각', []).append(log)
-
         # IP 주소에 따른 필터링
         ip_address = log.get('teiren_request_ip')
         if ip_address:
@@ -104,13 +142,13 @@ def search_logs(start_time=None, end_time=None):
     for key, value in event_type_logs.items():
         print(f"{key}: {len(value)}개")
 
-    # print("\n위험 및 심각한 내용이 포함된 로그 수:")
-    # print(f"위험 및 심각: {len(text_content_logs.get('위험 및 심각', []))}개")
+    print("\n위험도별 로그 수:")
+    for key, value in risk_logs.items():
+        print(f"{key}: {len(value)}개")
 
     print("\nIP 주소별 로그 수:")
     for key, value in ip_address_logs.items():
         print(f"{key}: {len(value)}개")
-
 
 def main():
     choice = input("전체 시간을 검색하시겠습니까? (y/n): ").strip().lower()
