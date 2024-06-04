@@ -162,7 +162,7 @@ def main():
                 "traffic_by_interface": traffic_by_interface,
                 "event_counts": event_counts,
                 "notable_events": notable_events,
-                "latest_events": latest_events
+                "latest_events": latest_events[:10]
             }, ensure_ascii=False, indent=4))
             
             initial_run = False
@@ -185,7 +185,7 @@ def main():
                 "traffic_by_interface": traffic_by_interface,
                 "event_counts": event_counts,
                 "notable_events": notable_events,
-                "latest_events": latest_events
+                "latest_events": latest_events[:10]
             }, ensure_ascii=False, indent=4))
         
         print("\n--- Waiting for next cycle ---\n")
