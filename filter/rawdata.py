@@ -1,3 +1,7 @@
+"""
+대쉬보드 필터링된 결과 원시로그
+"""
+
 from elasticsearch import Elasticsearch
 import json
 from collections import defaultdict, Counter

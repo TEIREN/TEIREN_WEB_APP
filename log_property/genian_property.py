@@ -29,7 +29,7 @@ def fetch_log_properties(index, exclude_keys):
     return properties_list
 
 index = "test_genian_syslog"
-exclude_keys = {'@timestamp', 'teiren_stamp', 'message', 'timegenerated'} # 제외할 로그 프라퍼티
+exclude_keys = {'@timestamp', 'teiren_stamp', 'message', 'timegenerated', 'msg'} # 제외할 로그 프라퍼티
 
 log_properties = fetch_log_properties(index, exclude_keys)
 
