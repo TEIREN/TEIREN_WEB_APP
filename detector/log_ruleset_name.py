@@ -39,7 +39,7 @@ log_index_name = log_index[user_choice]
 # 매핑된 룰셋 인덱스를 설정합니다.
 ruleset_index = ruleset_mapping[user_choice]
 
-def check_logs(log_index_name, ruleset_index):
+def check_logs():
     try:
         # 모든 룰셋을 Elasticsearch에서 가져옵니다.
         res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
@@ -68,9 +68,10 @@ def check_logs(log_index_name, ruleset_index):
                     if log_id not in logs_detected:
                         logs_detected[log_id] = log_doc
                         logs_detected[log_id]["detected_by_rules"] = []
-                        logs_detected[log_id]["severity"] = severity
+                        logs_detected[log_id]["severities"] = []
 
                     logs_detected[log_id]["detected_by_rules"].append(rule_name)
+                    logs_detected[log_id]["severities"].append(severity)
 
         for log_id, log_doc in logs_detected.items():
             print(log_doc)
@@ -82,5 +83,5 @@ def check_logs(log_index_name, ruleset_index):
 
 # 주기적으로 로그를 체크합니다.
 while True:
-    check_logs(log_index_name, ruleset_index)
+    check_logs()
     time.sleep(2)
