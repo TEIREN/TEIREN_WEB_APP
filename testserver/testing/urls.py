@@ -19,6 +19,4 @@ urlpatterns = [
     path('integration/mssql/', integration.integration_mssql),
     path('integration/snmp/', integration.integration_snmp),
     path('integration/transmission/', integration.integration_transmission),
-    path('integration/detect_logs/', integration.get_ruleset_and_detect_logs, name='detect_logs'), 
-
 ]
