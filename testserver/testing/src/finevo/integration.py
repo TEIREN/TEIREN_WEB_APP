@@ -1,9 +1,74 @@
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseBadRequest, FileResponse
 from django.views.decorators.csrf import csrf_exempt
+from elasticsearch import Elasticsearch, ConnectionError
 import requests
 import json
 import tempfile
+
+es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
+
+log_index = {
+    1: "test_linux_syslog",
+    2: "test_window_syslog",
+    3: "test_genian_syslog",
+    4: "test_fortigate_syslog"
+}
+
+# 룰셋 인덱스 이름 매핑
+ruleset_mapping = {
+    1: "linux_ruleset",
+    2: "window_ruleset",
+    3: "genian_ruleset",
+    4: "fortigate_ruleset"
+}
+
+def get_ruleset_and_detect_logs(request):
+    index_choice = int(request.GET.get('index_choice', 1))
+    ruleset_name = request.GET.get('ruleset_name', '')
+
+    if index_choice not in [1, 2, 3, 4]:
+        return JsonResponse({"error": "Invalid index choice, please select a number between 1 and 4."}, status=400)
+
+    log_index_name = log_index[index_choice]
+    ruleset_index = ruleset_mapping[index_choice]
+
+    try:
+        # 룰셋을 Elasticsearch에서 가져옵니다.
+        res = es.search(index=ruleset_index, body={"query": {"match": {"name": ruleset_name}}})
+        if res['hits']['total']['value'] == 0:
+            return JsonResponse({"error": f"No ruleset found with the name: {ruleset_name}"}, status=404)
+        
+        rule = res['hits']['hits'][0]['_source']
+        
+        rule_query = rule["query"]["query"]
+        rule_name = rule["name"]
+        severity = rule["severity"]
+
+        # 룰셋을 사용하여 로그를 탐지합니다.
+        log_res = es.search(index=log_index_name, body={"query": rule_query, "size": 10000})
+        logs_found = log_res['hits']['total']['value']
+
+        logs_detected = []
+        if logs_found > 0:
+            for log in log_res['hits']['hits']:
+                log_doc = log["_source"]
+                log_doc["detected_by_rule"] = rule_name
+                log_doc["severity"] = severity
+                logs_detected.append(log_doc)
+
+        response_data = {
+            "ruleset": rule,
+            "logs_found": logs_found,
+            "logs": logs_detected
+        }
+
+        return JsonResponse(response_data, json_dumps_params={'indent': 4}, safe=False)
+
+    except ConnectionError as e:
+        return JsonResponse({"error": f"Connection error: {e}"}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
 
 def integration_action_genian(request):
     url = f"http://3.35.81.217:8088/genian_api_send?api_key={request.POST['access_key']}"
