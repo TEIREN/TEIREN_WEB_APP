@@ -19,4 +19,5 @@ urlpatterns = [
     path('integration/mssql/', integration.integration_mssql),
     path('integration/snmp/', integration.integration_snmp),
     path('integration/transmission/', integration.integration_transmission),
+    path('integration/check_logs/', integration.check_logs, name='check_logs'),  # 임시 경로 
 ]
