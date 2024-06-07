@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filter %}
+
+{% block head %}
+<!-- 페이지 필수 스타일 -->
+<link rel="stylesheet" href="{% static '/M_threatD/css/dynamic.css' %}">
+<link rel="stylesheet" href="{% static '/css/tab.css' %}">
+<link rel="stylesheet" href="{% static '/M_logs/css/searchcard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="locationbar ml-2">
+    <span>Log Management &nbsp;&nbsp;>&nbsp;&nbsp; Logs &nbsp;&nbsp;>&nbsp;&nbsp; {{ruleset_name}}</span>
+</div>
+<div>
+    <!-- 페이지 헤딩 -->
+    <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{ruleset_name}} Log</h6>
+    <p class="h6 mb-4 ml-2">{{ruleset_name}} Integrated Logs</p>
+    {% include "./search_filter.html" %}
+    <div class="card shadow mb-4" id="log_table">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-teiren">Log Total: {{total_count}} | Page: {{page}}</h6>
+        </div>
+        <div class="card-body" style="font-size:15px;">
+            <div class="table-responsive" style="overflow:hidden;">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                       style="table-layout:fixed;text-align:center;font-size:15px;">
+                    <thead>
+                        <tr>
+                            <th width='5%'>No.</th>
+                            <th>Log (Json)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in log_list %}
+                        <tr>
+                            <td style="vertical-align: middle;">{{forloop.counter}}</td>
+                            <td style="text-align:left;">
+                                <pre>{{log|pprint}}</pre>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

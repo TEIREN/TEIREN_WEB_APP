@@ -4,77 +4,77 @@ from django.views.decorators.csrf import csrf_exempt
 import requests
 import json
 import tempfile
-from elasticsearch import Elasticsearch, ConnectionError
+# from elasticsearch import Elasticsearch, ConnectionError
 
 """
 임시적으로 추가한 check logs 함수
 """
-# Elasticsearch 클라이언트를 설정합니다.
-es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
+# # Elasticsearch 클라이언트를 설정합니다.
+# es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
 
-# 탐지 대상 로그 인덱스
-log_index = {
-    1: "test_linux_syslog",
-    2: "test_window_syslog",
-    3: "test_genian_syslog",
-    4: "test_fortigate_syslog"
-}
+# # 탐지 대상 로그 인덱스
+# log_index = {
+#     1: "test_linux_syslog",
+#     2: "test_window_syslog",
+#     3: "test_genian_syslog",
+#     4: "test_fortigate_syslog"
+# }
 
-# 룰셋 인덱스 이름 매핑
-ruleset_mapping = {
-    1: "linux_ruleset",
-    2: "window_ruleset",
-    3: "genian_ruleset",
-    4: "fortigate_ruleset"
-}
+# # 룰셋 인덱스 이름 매핑
+# ruleset_mapping = {
+#     1: "linux_ruleset",
+#     2: "window_ruleset",
+#     3: "genian_ruleset",
+#     4: "fortigate_ruleset"
+# }
 
-def check_logs(request): # http://3.35.81.217/test/integration/check_logs/?index_choice=1
-    index_choice = int(request.GET.get('index_choice', 1))
-    if index_choice not in [1, 2, 3, 4]:
-        return JsonResponse({"error": "Invalid index choice, please select a number between 1 and 4."}, status=400)
+# def check_logs(request): # http://3.35.81.217/test/integration/check_logs/?index_choice=1
+#     index_choice = int(request.GET.get('index_choice', 1))
+#     if index_choice not in [1, 2, 3, 4]:
+#         return JsonResponse({"error": "Invalid index choice, please select a number between 1 and 4."}, status=400)
     
-    log_index_name = log_index[index_choice]
-    ruleset_index = ruleset_mapping[index_choice]
+#     log_index_name = log_index[index_choice]
+#     ruleset_index = ruleset_mapping[index_choice]
 
-    try:
-        # 모든 룰셋을 Elasticsearch에서 가져옵니다.
-        res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
-        rulesets = res['hits']['hits']
-        logs_detected = {}
+#     try:
+#         # 모든 룰셋을 Elasticsearch에서 가져옵니다.
+#         res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
+#         rulesets = res['hits']['hits']
+#         logs_detected = {}
 
-        for rule in rulesets:
-            rule_query = rule["_source"]["query"]["query"]
-            rule_name = rule["_source"]["name"]
-            severity = rule["_source"]["severity"]
+#         for rule in rulesets:
+#             rule_query = rule["_source"]["query"]["query"]
+#             rule_name = rule["_source"]["name"]
+#             severity = rule["_source"]["severity"]
 
-            # 룰셋을 사용하여 로그를 탐지합니다.
-            log_res = es.search(index=log_index_name, body={"query": rule_query, "size": 10000})
-            logs_found = log_res['hits']['total']['value']
+#             # 룰셋을 사용하여 로그를 탐지합니다.
+#             log_res = es.search(index=log_index_name, body={"query": rule_query, "size": 10000})
+#             logs_found = log_res['hits']['total']['value']
 
-            if logs_found > 0:
-                for log in log_res['hits']['hits']:
-                    log_id = log["_id"]
-                    log_doc = log["_source"]
+#             if logs_found > 0:
+#                 for log in log_res['hits']['hits']:
+#                     log_id = log["_id"]
+#                     log_doc = log["_source"]
 
-                    if log_id not in logs_detected:
-                        logs_detected[log_id] = log_doc
-                        logs_detected[log_id]["detected_by_rules"] = []
-                        logs_detected[log_id]["severities"] = []
+#                     if log_id not in logs_detected:
+#                         logs_detected[log_id] = log_doc
+#                         logs_detected[log_id]["detected_by_rules"] = []
+#                         logs_detected[log_id]["severities"] = []
 
-                    logs_detected[log_id]["detected_by_rules"].append(rule_name)
-                    logs_detected[log_id]["severities"].append(severity)
+#                     logs_detected[log_id]["detected_by_rules"].append(rule_name)
+#                     logs_detected[log_id]["severities"].append(severity)
 
-        response_data = {
-            "total_rules": len(rulesets),
-            "logs_detected": logs_detected
-        }
+#         response_data = {
+#             "total_rules": len(rulesets),
+#             "logs_detected": logs_detected
+#         }
 
-        return JsonResponse(response_data, json_dumps_params={'indent': 4}, safe=False)
+#         return JsonResponse(response_data, json_dumps_params={'indent': 4}, safe=False)
 
-    except ConnectionError as e:
-        return JsonResponse({"error": f"Connection error: {e}"}, status=500)
-    except Exception as e:
-        return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
+#     except ConnectionError as e:
+#         return JsonResponse({"error": f"Connection error: {e}"}, status=500)
+#     except Exception as e:
+#         return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
 
 
 

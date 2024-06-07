@@ -12,12 +12,13 @@ urlpatterns = [
     path('createIamPolicy/', tests.create_iam_policy, name='createIamPolicy'),
     path('login/', tests.login_, name='login'),
     path('register/', tests.register_, name='register'),
-    path('log/<system>/', log.list_logs),
+    path('log/<system>/', log.list_logs, name='list_logs'),  # log.py list_logs()
+    path('log/check_logs/', log.check_logs, name='check_logs'),  # check_logs
+    path('log/<system>/ruleset/<ruleset_name>/', log.logs_by_ruleset, name='logs_by_ruleset'),  # logs_by_ruleset
     path('integration/genian/', integration.integration_genian),
     path('integration/fortigate/', integration.integration_fortigate),
     path('integration/linux/', integration.integration_linux),
     path('integration/mssql/', integration.integration_mssql),
     path('integration/snmp/', integration.integration_snmp),
     path('integration/transmission/', integration.integration_transmission),
-    path('integration/check_logs/', integration.check_logs, name='check_logs'),  # 임시 경로 
 ]
