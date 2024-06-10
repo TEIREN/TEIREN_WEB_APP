@@ -7,6 +7,22 @@
 <link rel="stylesheet" href="{% static '/M_threatD/css/dynamic.css' %}">
 <link rel="stylesheet" href="{% static '/css/tab.css' %}">
 <link rel="stylesheet" href="{% static '/M_logs/css/searchcard.css' %}">
+<style>
+    .log-entry pre {
+        font-size: 1.0em;
+    }
+    .detected-button {
+        font-size: 1.0em;
+        background-color: #79d4e7; 
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        margin: 5px 0;
+    }
+    .detected-button:hover {
+        background-color: #79d4e7; 
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -37,8 +53,19 @@
                         {% for log in log_list %}
                         <tr>
                             <td style="vertical-align: middle;">{{forloop.counter}}</td>
-                            <td style="text-align:left;">
+                            <td style="text-align:left;" class="log-entry">
                                 <pre>{{log|pprint}}</pre>
+                                {% if 'detected_by_rules' in log %}
+                                    {% with log.detected_by_rules as detected_by_rules %}
+                                    <div>
+                                    {% for rule in detected_by_rules %}
+                                        <form action="{% url 'logs_by_ruleset' system.lower rule %}" method="GET" style="display:inline;">
+                                            <input type="submit" value="{{rule}}" class="detected-button btn btn-sm mb-1"/>
+                                        </form>
+                                    {% endfor %}
+                                    </div>
+                                    {% endwith %}
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
