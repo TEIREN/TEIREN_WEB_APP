@@ -56,30 +56,6 @@
                             </td>
                         </tr>
                         {% endfor %}
-                        {% if detected_logs %}
-                            {% for log in detected_logs %}
-                            <tr>
-                                <td style="vertical-align: middle;">{{forloop.counter}}</td>
-                                <td style="text-align:left;">
-                                    {% if 'detected_by_rules' in log %}
-                                        {% with log.detected_by_rules as detected_by_rules %}
-                                        {% with log|pop:'detected_by_rules' as log %}
-                                            <pre>{{log|pprint}}</pre>
-                                        {% endwith %}
-                                        {% for rule in detected_by_rules %}
-                                            <form action="{% url 'logs_by_ruleset' system.lower rule %}" method="GET" style="margin-bottom:10px">
-                                                <input type="submit" value="{{rule}}" class="btn btn-md btn-primary"/>
-                                            </form>
-                                        {% endfor %}
-                                        {% endwith %}
-                                    {% else %}
-                                        <pre>{{log|pprint}}</pre>
-                                        No rules detected
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        {% endif %}
                     </tbody>
                 </table>
             </div>

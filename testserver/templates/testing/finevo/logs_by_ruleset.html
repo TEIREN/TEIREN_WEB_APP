@@ -11,12 +11,13 @@
 
 {% block content %}
 <div class="locationbar ml-2">
-    <span>Log Management &nbsp;&nbsp;>&nbsp;&nbsp; Logs &nbsp;&nbsp;>&nbsp;&nbsp; {{ruleset_name}}</span>
+    <span>Log Management &nbsp;&nbsp;>&nbsp;&nbsp; Logs &nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">{{system}} <span>
 </div>
 <div>
     <!-- 페이지 헤딩 -->
-    <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{ruleset_name}} Log</h6>
-    <p class="h6 mb-4 ml-2">{{ruleset_name}} Integrated Logs</p>
+    <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{system}} Log - {{ruleset_name}}</h6>
+    <p class="h6 mb-4 ml-2">{{system}} Integrated Logs filtered by {{ruleset_name}}</p>
     {% include "./search_filter.html" %}
     <div class="card shadow mb-4" id="log_table">
         <div class="card-header py-3">
