@@ -35,66 +35,222 @@
     <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{system}} Log</h6>
     <p class="h6 mb-4 ml-2">{{system}} Integrated Logs</p>
     {% include "./search_filter.html" %}
-    <div class="card shadow mb-4" id="log_table">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-teiren">Log Total: {{total_count}} | Page: {{page}}</h6>
+    <div class="row justify-content-between">
+        <div class="card shadow mb-4 mr-1" style="width:15%; height:100vh;">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-teiren">Log Property Filtering</h6>
+            </div>
+            <div class="card-body" style="font-size:15px; overflow:scroll;">
+                <form id="filter_form" onchange="filterChange(this)" onsubmit="return false;">
+                    {% for property in log_properties %}
+                        {% for key, values in property.items %}
+                            <div class="row">
+                                <h4 class="text-teiren">
+                                    {{key|title}}
+                                </h4>
+                                <button id="toggle_{{key}}" class="btn ml-auto p-0" onclick="filterToggle(this)">
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div id="filter_{{key}}" style="display:none;">
+                                {% for value in values %}
+                                <div>
+                                    <input id="{{value}}" name="{{key}}" value="{{value}}" type="checkbox">
+                                    <label for="{{value}}">{{value}}</lable>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                </form>
+            </div>
         </div>
-        <div class="card-body" style="font-size:15px;">
-            <div class="table-responsive" style="overflow:hidden;">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
-                       style="table-layout:fixed;text-align:center;font-size:15px;">
-                    <thead>
-                        <tr>
-                            <th width='5%'>No.</th>
-                            <th>Log (Json)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for log in log_list %}
-                        <tr>
-                            <td style="vertical-align: middle;">{{forloop.counter}}</td>
-                            <td style="text-align:left;" class="log-entry">
+        <div class="card shadow mb-4 ml-auto" id="log_table" style="width:84%;">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-teiren">Log Total: {{total_count}} | Page: {{page}}</h6>
+                <div></div>
+            </div>
+            <div class="card-body" style="font-size:15px;">
+                <div class="table-responsive" style="overflow:hidden;">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                        style="table-layout:fixed;text-align:center;font-size:15px;">
+                        <thead>
+                            <tr>
+                                <th width='5%'>No.</th>
+                                <th>prop1</th>
+                                <th>prop2</th>
+                                <th width="45%">Log Data</th>
+                                <th width="15%">Detected Rules</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% with page|add:'-1'|mul:25 as index_num %}
+                            {% for log in log_list %}
+                            <tr>
+                                <td style="vertical-align: middle;">{{forloop.counter|add:index_num}}</td>
+                                <td style="vertical-align: middle;">{{forloop.counter|add:index_num}}</td>
+                                <td style="vertical-align: middle;">{{forloop.counter|add:index_num}}</td>
                                 {% if 'detected_by_rules' in log %}
+                                    
                                     {% with log.detected_by_rules as detected_by_rules %}
-                                    {% with log|pop:'detected_by_rules' as log %}
-                                        <pre>{{log|pprint}}</pre>
-                                    {% endwith %}
-                                    <div>
-                                    {% for rule in detected_by_rules %}
-                                        <form action="{% url 'logs_by_ruleset' system.lower rule %}" method="GET" style="display:inline;">
-                                            <input type="submit" value="{{rule}}" class="detected-button btn btn-sm mb-1"/>
-                                        </form>
-                                    {% endfor %}
-                                    </div>
+                                        <td style="text-align:left;" class="log-entry">
+                                            {% with log|pop:'detected_by_rules' as log %}
+                                            <div>
+                                                <span id="log_data_trunc_{{forloop.counter|add:index_num}}">
+                                                    {{log|pprint|truncatechars:100}}
+                                                    <button class="btn" type="button" onclick="displayLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-down"></i></button>
+                                                </span>
+                                            </div>
+                                            {% endwith %}
+                                        </td>
+                                        <td>
+                                            <div>
+                                                {% for rule in detected_by_rules %}
+                                                    <form action="{% url 'logs_by_ruleset' system.lower rule %}" method="GET" style="display:inline;">
+                                                        <input type="submit" value="{{rule}}" class="detected-button btn btn-sm mb-1"/>
+                                                    </form>
+                                                {% endfor %}
+                                            </div>
+                                        </td>        
                                     {% endwith %}
                                 {% else %}
-                                    <pre>{{log|pprint}}</pre>
-                                    <span class="text-muted">No rules detected</span>
+                                    <td>
+                                        <span id="log_data_trunc_{{forloop.counter|add:index_num}}">
+                                            {{log|pprint|truncatechars:100}}
+                                            <button class="btn" type="button" onclick="displayLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-down"></i></button>
+                                        </span>
+                                    </td>
+                                    <td> <span class="text-muted">No rules detected</span> </td>
                                 {% endif %}
-                            </td>
-                        </tr>
+                            </tr>
+                            <tr>
+                                <td colspan=5 id="log_data_{{forloop.counter|add:index_num}}" class="text-left" style="display:none;">
+                                    <div class="text-teiren">
+                                        <span>Log Data:</span>
+                                    </div>
+                                    <span>
+                                        {{log|pprint}}
+                                        <button class="btn" type="button" onclick="hideLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-up"></i></button>
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endwith %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-center">
+                    <ul style="display:flex; list-style: none;">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item" aria-current="page">
+                                <a href="?page=1">
+                                    <button class="page-link">&laquo; First</button>
+                                </a>
+                            </li>
+                            <li class="page-item" aria-current="page">
+                                <a href="?page={{ page_obj.previous_page_number }}">
+                                    <button class="page-link">Previous</button>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active" aria-current="page">
+                            <button class="page-link">{{ page_obj.number }}</button>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item" aria-current="page">
+                            <a href="?page={{ page_obj.next_page_number }}">
+                                <button class="page-link">Next</button>
+                            </a>
+                        </li>
+                        <li class="page-item" aria-current="page">
+                            <a href="?page={{ page_obj.paginator.num_pages }}">
+                                <button class="page-link">Last &raquo;</button>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% comment %} <div class="d-flex justify-content-center">
+                    <ul style="display:flex; list-style: none;">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter(1)">Start</button>
+                        </li>
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.previous_page_number}})">Prev</button>
+                        </li>
+                        {% endif %}
+
+                        {% for page_number in page_obj.paginator.page_range %}
+                        {% if page_number == page_obj.now_page %}
+                        <li class="page-item active" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
+                        </li>
+                        {% endif %}
                         {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="pagination">
-                <span class="step-links">
-                    {% if page_obj.has_previous %}
-                        <a href="?page=1">&laquo; first</a>
-                        <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-                    {% endif %}
 
-                    <span class="current">
-                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                    </span>
-
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}">next</a>
-                        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-                    {% endif %}
-                </span>
+                        {% if page_obj.has_next %}
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.next_page_number}})">Next</button>
+                        </li>
+                        <li class="page-item" aria-current="page">
+                            <button class="page-link" onclick="searchFilter({{page_obj.paginator.num_pages}})">End</button>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div> {% endcomment %}
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+{% block script %}
+<script>
+    function displayLogData(e){
+        $(`#log_data_trunc_${e}`).hide()
+        $(`#log_data_${e}`).slideDown()
+    }
+
+    function hideLogData(e){
+        $(`#log_data_${e}`).slideUp('fast')
+        $(`#log_data_trunc_${e}`).show()
+    }
+
+    function filterToggle(e){
+        var prop_id = $(e).attr('id').split('_').slice(-1)[0]
+        var toggle = $(e).find('i')
+        if(toggle.hasClass('fa-chevron-down')){
+            toggle.removeClass('fa-chevron-down')
+            toggle.addClass('fa-chevron-up')
+            $(`#filter_${prop_id}`).slideDown()
+        } else {
+            toggle.removeClass('fa-chevron-up')
+            toggle.addClass('fa-chevron-down')
+            $(`#filter_${prop_id}`).slideUp()
+        }
+    }
+
+    function filterChange(e){
+        console.log($(e).serialize())
+        $.ajax({
+            url: '',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: $(e).serialize(),
+            type: 'get'
+        }).done(function(response){
+            console.log(response)
+        })
+    }
+</script>
+{% endblock script %}
+
+

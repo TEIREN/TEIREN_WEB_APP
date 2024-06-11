@@ -5,7 +5,7 @@ from .src.finevo import integration, log, dashboard
 urlpatterns = [
     path('', tests.main_test),
     path('ajax/', tests.test_ajax),
-    path('dashboard/', dashboard.dashboard),
+    # path('dashboard/', dashboard.dashboard),
     path('trigger/', tests.running_trigger),
     path('trigger/trigger/', tests.trigger, name='trigger'),
     path('cloudformation/', tests.cloudformation, name='cloudformation'),

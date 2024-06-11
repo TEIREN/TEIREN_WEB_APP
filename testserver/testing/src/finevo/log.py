@@ -65,6 +65,35 @@ class LogManagement():
         paginator = Paginator(log_list, logs_per_page)
         page_obj = paginator.get_page(page_number)
         return page_obj
+    
+    # 로그 속성 추출 함수
+    def fetch_log_properties(self, exclude_keys=set()):
+        query = {
+            "query": {
+                "match_all": {}
+            },
+            "size": 1000
+        }
+        
+        response = self.es.search(index=f"test_{self.system}_syslog", body=query)
+        hits = response['hits']['hits']
+        
+        exclude_keys = {'@timestamp', 'message', 'timegenerated', '@version'} # 제외할 로그 프라퍼티
+        
+        properties = {}
+        for hit in hits:
+            log = hit['_source']
+            for key, value in log.items():
+                if key not in exclude_keys:
+                    if key not in properties:
+                        properties[key] = set()
+                    if isinstance(value, (str, int, float, bool)): 
+                        properties[key].add(value)
+    
+        properties_list = [{key: list(values)} for key, values in properties.items()]
+        
+        return properties_list
+
 
 
 # 시스템 로그 리스트를 보여주는 함수
@@ -73,6 +102,8 @@ def list_logs(request, system):
     
     # Get the page number from request
     page_number = request.GET.get('page', 1)
+    test = dict(request.GET).get('sysloghost', '')
+    print(test)
 
     # Perform the log search
     total_count, log_list = system_log.search_logs()
@@ -117,12 +148,16 @@ def list_logs(request, system):
         # Apply pagination to combined log list
         combined_page_obj = system_log.paginate_logs(all_logs, page_number)
 
+        # 로그 프로퍼티 추출
+        log_properties = system_log.fetch_log_properties()
+        
         context = {
             'total_count': len(all_logs),
             'log_list': combined_page_obj.object_list,
             'page_obj': combined_page_obj,
             'system': system.title(),
-            'page': page_number
+            'page': page_number,
+            'log_properties': log_properties
         }
 
     except ConnectionError as e:
