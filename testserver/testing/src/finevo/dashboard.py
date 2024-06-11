@@ -1,3 +1,5 @@
+from django.shortcuts import render, HttpResponse, redirect
+
 from elasticsearch import Elasticsearch
 import json
 from collections import defaultdict, Counter
@@ -5,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 import time
 
 # Elasticsearch 서버 URL 설정
-ELASTICSEARCH_URL = 'http://localhost:9200'
+ELASTICSEARCH_URL = 'http://3.35.81.217:9200'
 # Elasticsearch 인스턴스 생성
 es = Elasticsearch(ELASTICSEARCH_URL)
 
@@ -189,82 +191,80 @@ def event_counts_fortigate(logs):
     return event_counts, notable_events, latest_events[:10]
 
 # 메인 함수
-def main():
-    initial_run = True
-    while True:
-        if initial_run:
-            print("\n--- Initial Genian Logs ---")
-            genian_logs = search_genian_logs()
-            # 시간대별 세션 수 계산
-            session_overtime = session_overtime_genian(genian_logs)
-            # 시간대별 트래픽 계산
-            traffic_overtime = traffic_overtime_genian(genian_logs)
-            print(json.dumps({"session_overtime": session_overtime, "traffic_overtime": traffic_overtime}, ensure_ascii=False, indent=4))
-            
-            print("\n--- Initial Fortigate Logs ---")
-            fortigate_logs = search_fortigate_logs()
-            # 상위 소스 IP 계산
-            src_ip_counter = top_source_ip_fortigate(fortigate_logs)
-            # 상위 목적지 IP 계산
-            dst_ip_counter = top_destination_ip_fortigate(fortigate_logs)
-            # 장치별 트래픽 계산
-            traffic_by_device = traffic_by_device_fortigate(fortigate_logs)
-            # 사용자별 트래픽 계산
-            traffic_by_user = traffic_by_user_fortigate(fortigate_logs)
-            # 애플리케이션별 트래픽 계산
-            traffic_by_application = traffic_by_application_fortigate(fortigate_logs)
-            # 인터페이스별 트래픽 계산
-            traffic_by_interface = traffic_by_interface_fortigate(fortigate_logs)
-            # 이벤트 수 계산 및 최신 이벤트 가져오기
-            event_counts, notable_events, latest_events = event_counts_fortigate(fortigate_logs)
-            print(json.dumps({
-                "src_ip_counter": src_ip_counter,
-                "dst_ip_counter": dst_ip_counter,
-                "traffic_by_device": traffic_by_device,
-                "traffic_by_user": traffic_by_user,
-                "traffic_by_application": traffic_by_application,
-                "traffic_by_interface": traffic_by_interface,
-                "event_counts": event_counts,
-                "notable_events": notable_events,
-                "latest_events": latest_events
-            }, ensure_ascii=False, indent=4))
-            
-            initial_run = False
-        else:
-            # 최근 5분간의 로그를 검색
-            start_time = (datetime.now(timezone.utc) - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S.%f")
-            end_time = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")
-            
-            print("\n--- Genian Logs ---")
-            genian_logs = search_genian_logs(start_time, end_time)
-            session_overtime = session_overtime_genian(genian_logs)
-            traffic_overtime = traffic_overtime_genian(genian_logs)
-            print(json.dumps({"session_overtime": session_overtime, "traffic_overtime": traffic_overtime}, ensure_ascii=False, indent=4))
-            
-            print("\n--- Fortigate Logs ---")
-            fortigate_logs = search_fortigate_logs(start_time, end_time)
-            src_ip_counter = top_source_ip_fortigate(fortigate_logs)
-            dst_ip_counter = top_destination_ip_fortigate(fortigate_logs)
-            traffic_by_device = traffic_by_device_fortigate(fortigate_logs)
-            traffic_by_user = traffic_by_user_fortigate(fortigate_logs)
-            traffic_by_application = traffic_by_application_fortigate(fortigate_logs)
-            traffic_by_interface = traffic_by_interface_fortigate(fortigate_logs)
-            event_counts, notable_events, latest_events = event_counts_fortigate(fortigate_logs)
-            print(json.dumps({
-                "src_ip_counter": src_ip_counter,
-                "dst_ip_counter": dst_ip_counter,
-                "traffic_by_device": traffic_by_device,
-                "traffic_by_user": traffic_by_user,
-                "traffic_by_application": traffic_by_application,
-                "traffic_by_interface": traffic_by_interface,
-                "event_counts": event_counts,
-                "notable_events": notable_events,
-                "latest_events": latest_events
-            }, ensure_ascii=False, indent=4))
+def dashboard(request):
+        # print("\n--- Initial Genian Logs ---")/
+        genian_logs = search_genian_logs()
+        # 시간대별 세션 수 계산
+        session_overtime = session_overtime_genian(genian_logs)
+        # 시간대별 트래픽 계산
+        traffic_overtime = traffic_overtime_genian(genian_logs)
+        # print(json.dumps({"session_overtime": session_overtime, "traffic_overtime": traffic_overtime}, ensure_ascii=False, indent=4))
         
-        print("\n--- Waiting for next cycle ---\n")
-        # 30초 대기 (필요에 따라 조정 가능) 계속 가져올거면 예외 처리
-        time.sleep(30)
-
-if __name__ == '__main__':
-    main()
+        # print("\n--- Initial Fortigate Logs ---")
+        fortigate_logs = search_fortigate_logs()
+        # 상위 소스 IP 계산
+        src_ip_counter = top_source_ip_fortigate(fortigate_logs)
+        # 상위 목적지 IP 계산
+        dst_ip_counter = top_destination_ip_fortigate(fortigate_logs)
+        # 장치별 트래픽 계산
+        traffic_by_device = traffic_by_device_fortigate(fortigate_logs)
+        # 사용자별 트래픽 계산
+        traffic_by_user = traffic_by_user_fortigate(fortigate_logs)
+        # 애플리케이션별 트래픽 계산
+        traffic_by_application = traffic_by_application_fortigate(fortigate_logs)
+        # 인터페이스별 트래픽 계산
+        traffic_by_interface = traffic_by_interface_fortigate(fortigate_logs)
+        # 이벤트 수 계산 및 최신 이벤트 가져오기
+        event_counts, notable_events, latest_events = event_counts_fortigate(fortigate_logs)
+        context = {
+            "session_overtime": session_overtime,
+            "traffic_overtime": traffic_overtime,
+            "src_ip_counter": src_ip_counter,
+            "dst_ip_counter": dst_ip_counter,
+            "traffic_by_device": traffic_by_device,
+            "traffic_by_user": traffic_by_user,
+            "traffic_by_application": traffic_by_application,
+            "traffic_by_interface": traffic_by_interface,
+            "event_counts": event_counts,
+            "notable_events": notable_events,
+            "latest_events": latest_events
+        }
+        # print(context)
+        return render(request, 'testing/finevo/dashboard.html', context)
+        
+        initial_run = False
+        # else:
+        #     # 최근 5분간의 로그를 검색
+        #     start_time = (datetime.now(timezone.utc) - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S.%f")
+        #     end_time = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")
+            
+        #     print("\n--- Genian Logs ---")
+        #     genian_logs = search_genian_logs(start_time, end_time)
+        #     session_overtime = session_overtime_genian(genian_logs)
+        #     traffic_overtime = traffic_overtime_genian(genian_logs)
+        #     print(json.dumps({"session_overtime": session_overtime, "traffic_overtime": traffic_overtime}, ensure_ascii=False, indent=4))
+            
+        #     print("\n--- Fortigate Logs ---")
+        #     fortigate_logs = search_fortigate_logs(start_time, end_time)
+        #     src_ip_counter = top_source_ip_fortigate(fortigate_logs)
+        #     dst_ip_counter = top_destination_ip_fortigate(fortigate_logs)
+        #     traffic_by_device = traffic_by_device_fortigate(fortigate_logs)
+        #     traffic_by_user = traffic_by_user_fortigate(fortigate_logs)
+        #     traffic_by_application = traffic_by_application_fortigate(fortigate_logs)
+        #     traffic_by_interface = traffic_by_interface_fortigate(fortigate_logs)
+        #     event_counts, notable_events, latest_events = event_counts_fortigate(fortigate_logs)
+        #     print(json.dumps({
+        #         "src_ip_counter": src_ip_counter,
+        #         "dst_ip_counter": dst_ip_counter,
+        #         "traffic_by_device": traffic_by_device,
+        #         "traffic_by_user": traffic_by_user,
+        #         "traffic_by_application": traffic_by_application,
+        #         "traffic_by_interface": traffic_by_interface,
+        #         "event_counts": event_counts,
+        #         "notable_events": notable_events,
+        #         "latest_events": latest_events
+        #     }, ensure_ascii=False, indent=4))
+        
+        # print("\n--- Waiting for next cycle ---\n")
+        # # 30초 대기 (필요에 따라 조정 가능) 계속 가져올거면 예외 처리
+        # time.sleep(30)
