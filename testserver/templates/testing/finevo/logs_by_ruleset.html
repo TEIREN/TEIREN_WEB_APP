@@ -22,6 +22,20 @@
     .detected-button:hover {
         background-color: #79d4e7; 
     }
+    .ruleset-details {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .ruleset-details h6 {
+        color: #79d4e7; /* Ruleset Details 텍스트 색상 변경 */
+    }
+    .ruleset-details pre {
+        background: #f8f9fa;
+        border: none;
+        font-size: 1.6em; 
+    }
 </style>
 {% endblock %}
 
@@ -34,6 +48,10 @@
     <!-- 페이지 헤딩 -->
     <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{system}} Log - {{ruleset_name}}</h6>
     <p class="h6 mb-4 ml-2">{{system}} Integrated Logs filtered by {{ruleset_name}}</p>
+    <div class="ruleset-details">
+        <h6 class="font-weight-bold">Ruleset Details</h6>
+        <pre>{{ ruleset|safe }}</pre>
+    </div>
     {% include "./search_filter.html" %}
     <div class="card shadow mb-4" id="log_table">
         <div class="card-header py-3">

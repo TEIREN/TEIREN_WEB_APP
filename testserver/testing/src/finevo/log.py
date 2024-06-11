@@ -1,12 +1,11 @@
-### log.py
-from django.core.paginator import Paginator
 import json
+from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.http import JsonResponse
 from elasticsearch import Elasticsearch, ConnectionError
 
 # Elasticsearch 클라이언트를 설정합니다.
-es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
+es = Elasticsearch(hosts=["http://3.35.81.217:9200/"])
 
 # 탐지 대상 로그 인덱스
 log_index = {
@@ -62,7 +61,7 @@ class LogManagement():
         return self.search_logs()
 
     # 페이지네이션 적용 함수
-    def paginate_logs(self, log_list, page_number, logs_per_page=100):
+    def paginate_logs(self, log_list, page_number, logs_per_page=25):  # 변경된 로그 수
         paginator = Paginator(log_list, logs_per_page)
         page_obj = paginator.get_page(page_number)
         return page_obj
@@ -161,7 +160,50 @@ def logs_by_ruleset(request, system, ruleset_name):
             'page_obj': page_obj,
             'system': system.title(),
             'ruleset_name': ruleset_name,
-            'page': page_number
+            'page': page_number,
+            'ruleset': json.dumps(rule, indent=4)  # 룰셋 세부 정보를 prettified JSON으로 추가
+        }
+        return render(request, 'testing/finevo/logs_by_ruleset.html', context=context)
+
+    except ConnectionError as e:
+        return JsonResponse({"error": f"Connection error: {e}"}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
+
+
+def logs_by_ruleset(request, system, ruleset_name):
+    try:
+        page_number = request.GET.get('page', 1)
+
+        ruleset_index = ruleset_mapping[list(log_index.keys())[list(log_index.values()).index(f"test_{system}_syslog")]]
+        res = es.search(index=ruleset_index, body={"query": {"match": {"name": ruleset_name}}})
+        if res['hits']['total']['value'] == 0:
+            return render(request, 'testing/finevo/error_page.html', {'error': f"No ruleset found with name {ruleset_name}"})
+        
+        rule = res['hits']['hits'][0]['_source']
+        rule_query = rule["query"]["query"]
+
+        log_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 10000})
+        log_list = [hit['_source'] for hit in log_res['hits']['hits']]
+
+        # 각 로그 항목에 detected_by_rules 필드를 추가
+        for log in log_list:
+            log['detected_by_rules'] = [ruleset_name]
+
+        log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
+
+        # Apply pagination
+        system_log = LogManagement(system=system)
+        page_obj = system_log.paginate_logs(log_list, page_number)
+
+        context = {
+            'total_count': len(log_list),
+            'log_list': page_obj.object_list,
+            'page_obj': page_obj,
+            'system': system.title(),
+            'ruleset_name': ruleset_name,
+            'page': page_number,
+            'ruleset': json.dumps(rule, indent=4)  # 룰셋 세부 정보를 prettified JSON으로 추가
         }
         return render(request, 'testing/finevo/logs_by_ruleset.html', context=context)
 
