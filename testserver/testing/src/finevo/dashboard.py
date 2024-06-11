@@ -14,7 +14,8 @@ es = Elasticsearch("http://3.35.81.217:9200/")
 
 def dashboard(request):
     context = {'test': session_overtime()}
-    print(type(session_overtime()))
+    print(session_overtime())
+    
     return render(request, 'testing/finevo/dashboard.html', context)
 
 
