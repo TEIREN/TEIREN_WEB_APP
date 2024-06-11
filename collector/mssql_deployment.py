@@ -3,7 +3,7 @@ import json
 import requests
 
 def send_mssql_logs(server, database, username, password, table_name):
-    POST_URL = "http://44.204.132.232:8088/mssql_log"  # Elasticsearch에 데이터를 보낼 URL
+    POST_URL = "http://localhost:8088/mssql_log"  # Elasticsearch에 데이터를 보낼 URL
 
     # 데이터베이스 연결 설정
     conn = pymssql.connect(server=server, user=username, password=password, database=database)

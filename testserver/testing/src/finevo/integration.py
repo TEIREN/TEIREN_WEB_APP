@@ -2,10 +2,84 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseBadRequest, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 import requests
+import json
 import tempfile
+# from elasticsearch import Elasticsearch, ConnectionError
+
+"""
+임시적으로 추가한 check logs 함수
+"""
+# # Elasticsearch 클라이언트를 설정합니다.
+# es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
+
+# # 탐지 대상 로그 인덱스
+# log_index = {
+#     1: "test_linux_syslog",
+#     2: "test_window_syslog",
+#     3: "test_genian_syslog",
+#     4: "test_fortigate_syslog"
+# }
+
+# # 룰셋 인덱스 이름 매핑
+# ruleset_mapping = {
+#     1: "linux_ruleset",
+#     2: "window_ruleset",
+#     3: "genian_ruleset",
+#     4: "fortigate_ruleset"
+# }
+
+# def check_logs(request): # http://3.35.81.217/test/integration/check_logs/?index_choice=1
+#     index_choice = int(request.GET.get('index_choice', 1))
+#     if index_choice not in [1, 2, 3, 4]:
+#         return JsonResponse({"error": "Invalid index choice, please select a number between 1 and 4."}, status=400)
+    
+#     log_index_name = log_index[index_choice]
+#     ruleset_index = ruleset_mapping[index_choice]
+
+#     try:
+#         # 모든 룰셋을 Elasticsearch에서 가져옵니다.
+#         res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
+#         rulesets = res['hits']['hits']
+#         logs_detected = {}
+
+#         for rule in rulesets:
+#             rule_query = rule["_source"]["query"]["query"]
+#             rule_name = rule["_source"]["name"]
+#             severity = rule["_source"]["severity"]
+
+#             # 룰셋을 사용하여 로그를 탐지합니다.
+#             log_res = es.search(index=log_index_name, body={"query": rule_query, "size": 10000})
+#             logs_found = log_res['hits']['total']['value']
+
+#             if logs_found > 0:
+#                 for log in log_res['hits']['hits']:
+#                     log_id = log["_id"]
+#                     log_doc = log["_source"]
+
+#                     if log_id not in logs_detected:
+#                         logs_detected[log_id] = log_doc
+#                         logs_detected[log_id]["detected_by_rules"] = []
+#                         logs_detected[log_id]["severities"] = []
+
+#                     logs_detected[log_id]["detected_by_rules"].append(rule_name)
+#                     logs_detected[log_id]["severities"].append(severity)
+
+#         response_data = {
+#             "total_rules": len(rulesets),
+#             "logs_detected": logs_detected
+#         }
+
+#         return JsonResponse(response_data, json_dumps_params={'indent': 4}, safe=False)
+
+#     except ConnectionError as e:
+#         return JsonResponse({"error": f"Connection error: {e}"}, status=500)
+#     except Exception as e:
+#         return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
+
+
 
 def integration_action_genian(request):
-    url = f"http://44.204.132.232:8088/genian_api_send?api_key={request.POST['access_key']}"
+    url = f"http://3.35.81.217:8088/genian_api_send?api_key={request.POST['access_key']}"
     response = requests.get(url)
     return response.text
 
@@ -17,7 +91,7 @@ def integration_genian(request):
 
 
 def integration_action_fortigate(request):
-    url = f"http://44.204.132.232:8088/fortigate_api_send?api_key={request.POST['access_key']}"
+    url = f"http://3.35.81.217:8088/fortigate_api_send?api_key={request.POST['access_key']}"
     response = requests.get(url)
     return response.text
 
@@ -46,7 +120,7 @@ def integration_linux(request):
 
 # Form 데이터 형식 사용
 
-def integration_action_mssql(request):
+def integration_action_mssql(request): # alert가 잘 안됨
     if request.method == 'POST':
         server = request.POST.get('db_server')
         database = request.POST.get('db_name')
@@ -58,7 +132,7 @@ def integration_action_mssql(request):
             return JsonResponse({"error": "모든 필드를 입력하세요."}, safe=False, json_dumps_params={'ensure_ascii':False}, status=400)
 
         # 백그라운드 태스크 시작을 위한 요청을 보냄
-        url = "http://44.204.132.232:8088/start_mssql_collection"
+        url = "http://3.35.81.217:8088/start_mssql_collection"
         data = {
             'server': server,
             'database': database,
@@ -114,11 +188,48 @@ def get_client_ip(request):
     return ip
 
 
+# def integration_action_transmission(request):
+#     pass
+
+# def integration_transmission(request):
+#     if request.method == 'POST':
+#         return HttpResponse(integration_action_transmission(request))
+#     else:
+#         return render(request, 'testing/finevo/integration_transmission.html')
+
+
+@csrf_exempt # alert가 잘 안됨
 def integration_action_transmission(request):
-    pass
+    if request.method == 'POST':
+        protocol = request.POST.get('protocol')
+        source_ip = request.POST.get('source_ip')
+        dst_port = request.POST.get('dst_port')
+        log_tag = request.POST.get('log_tag')
+        
+        data = {
+            "new_protocol": protocol,
+            "new_source_ip": source_ip,
+            "new_dst_port": dst_port,
+            "new_log_tag": log_tag
+        }
+        
+        try:
+            response = requests.post(
+                'http://3.35.81.217:8088/add_config/',
+                headers={'Content-Type': 'application/json'},
+                data=json.dumps(data)
+            )
+            if response.status_code == 200:
+                return JsonResponse({"message": "Configuration added and Fluentd service restarted successfully."}, status=200)
+            else:
+                return JsonResponse({"error": "Failed to add configuration."}, status=response.status_code)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    else:
+        return HttpResponse(status=405)
 
 def integration_transmission(request):
     if request.method == 'POST':
-        return HttpResponse(integration_action_transmission(request))
+        return integration_action_transmission(request)
     else:
         return render(request, 'testing/finevo/integration_transmission.html')

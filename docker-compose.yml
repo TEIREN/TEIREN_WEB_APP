@@ -2,8 +2,8 @@ version: '3'
 services:
   django:
     build:
-      context: ./testserver  # Dockerfile과 필요한 파일들이 위치한 디렉토리
-      dockerfile: Dockerfile  # 사용할 Dockerfile 이름
+      context: ./testserver
+      dockerfile: Dockerfile
     container_name: deploy-app
     volumes:
       - ./testserver/:/app/
@@ -11,8 +11,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - ELASTICSEARCH_HOST=44.204.132.232  # Elasticsearch 호스트 주소
-      - ELASTICSEARCH_PORT=9200           # Elasticsearch 포트
+      - ELASTICSEARCH_HOST=3.35.81.217
+      - ELASTICSEARCH_PORT=9200
     command: sh entrypoint.sh
     networks:
       - webnet
@@ -28,19 +28,23 @@ services:
       - django
     networks:
       - webnet
- 
-  collector: # 새로만든 컬렉터
+
+  collector:
     build:
-      context: ./collector  
-      dockerfile: Dockerfile 
+      context: ./collector
+      dockerfile: Dockerfile
     container_name: collector-app
     volumes:
-      - ./collector:/app 
+      - ./collector:/app
+      # conf파일을 수정하기 위한 mount
+      - /etc/fluent/fluentd.conf:/etc/fluent/fluentd.conf
+      # SSH 키 마운트 경로 변경
+      - /home/ubuntu/.ssh/teiren-test.pem:/app/teiren-test.pem
     ports:
-      - "8088:8088"  
+      - "8088:8088"
     environment:
-      - ELASTICSEARCH_HOST=44.204.132.232  # Elasticsearch 호스트 주소
-      - ELASTICSEARCH_PORT=9200           # Elasticsearch 포트
+      - ELASTICSEARCH_HOST=3.35.81.217
+      - ELASTICSEARCH_PORT=9200
     depends_on:
       - django
       - nginx

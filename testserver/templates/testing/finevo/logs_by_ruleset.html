@@ -32,8 +32,8 @@
 </div>
 <div>
     <!-- 페이지 헤딩 -->
-    <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{system}} Log</h6>
-    <p class="h6 mb-4 ml-2">{{system}} Integrated Logs</p>
+    <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{system}} Log - {{ruleset_name}}</h6>
+    <p class="h6 mb-4 ml-2">{{system}} Integrated Logs filtered by {{ruleset_name}}</p>
     {% include "./search_filter.html" %}
     <div class="card shadow mb-4" id="log_table">
         <div class="card-header py-3">
@@ -54,11 +54,9 @@
                         <tr>
                             <td style="vertical-align: middle;">{{forloop.counter}}</td>
                             <td style="text-align:left;" class="log-entry">
+                                <pre>{{log|pprint}}</pre>
                                 {% if 'detected_by_rules' in log %}
                                     {% with log.detected_by_rules as detected_by_rules %}
-                                    {% with log|pop:'detected_by_rules' as log %}
-                                        <pre>{{log|pprint}}</pre>
-                                    {% endwith %}
                                     <div>
                                     {% for rule in detected_by_rules %}
                                         <form action="{% url 'logs_by_ruleset' system.lower rule %}" method="GET" style="display:inline;">
@@ -67,9 +65,6 @@
                                     {% endfor %}
                                     </div>
                                     {% endwith %}
-                                {% else %}
-                                    <pre>{{log|pprint}}</pre>
-                                    <span class="text-muted">No rules detected</span>
                                 {% endif %}
                             </td>
                         </tr>
