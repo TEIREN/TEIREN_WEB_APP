@@ -1,0 +1,19 @@
+{% load static %}
+<div id="threatDetectionOverview" class="h-100">
+    <div class="card shadow h-100 w-100">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header">
+            <div class="h6 m-0 font-weight-bold text-danger text-uppercase">Threat Overview</div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body pl-0 pb-0">
+            <div class="chart-area" style="height:100%">
+                <canvas id="threatOverview"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static '/dashboard/js/threatDetectionOverview.js' %}"></script>
+<script>
+    {"Month": {{ month|safe }}, "threat_month": {{ threat_month|safe }}}
+</script>

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<!-- Chart.js-->
+<script src="{% static '/plugin/chart.js/Chart.bundle.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
+
+<!-- Cytoscape.js -->
+<script src="{% static '/plugin/cytoscape.js/WebCola/cola.min.js' %}"></script>
+<script src="https://unpkg.com/popper.js@1.14.4/dist/umd/popper.js"></script>
+<script src="https://unpkg.com/tippy.js@2.6.0/dist/tippy.all.js"></script>
+<script src="https://unpkg.com/cytoscape@3.18.0/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/cytoscape-cola@2.2.3/cytoscape-cola.js"></script>
+<script src="https://unpkg.com/cytoscape-popper@1.0.2/cytoscape-popper.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-euler@1.2.2/cytoscape-euler.min.js"></script>
+<script src="https://unpkg.com/bluebird@3.5.2/js/browser/bluebird.js"></script>
+
+<!-- Jquery-ui -->
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<!-- Gridstack -->
+<link rel="stylesheet" href="{% static '/plugin/gridstack/gridstack.css' %}">
+<script src="{% static '/plugin/gridstack/gridstack-all.js' %}"></script>
+
+<!-- Page Essential -->
+{% endblock %}
+{% block content %}
+<!-- Begin Page Content -->
+<div class="">
+    <div id="" class="justify-content-center text-teiren" style="font-size:30px">
+        {% comment %} <a href="/configurations/dashboard">
+            <button class="btn btn-teiren">Click Here to Customize Dashboard</button>
+        </a> {% endcomment %}
+        <div class="row">
+            <div id="recentCollectedOverview" class="w-100 h-100">
+                <div class="card shadow h-100 w-100">
+                    <!-- Card Header - Dropdown -->
+                    <div class="card-header">
+                        <div class="h6 m-0 font-weight-bold text-primary text-uppercase">Collected Logs Overview</div>
+                    </div>
+                    <!-- Card Body -->
+                    <div class="card-body pl-0 pb-0">
+                        <div class="chart-area" style="height:100%;">
+                            <canvas id="recentOverview"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script src="{% static '/dashboard/js/recentCollectedOverview.js' %}"></script>
+            <script>
+                {"Month": {{ month|safe }}, "collected_month": {{ collected_month|safe }}}
+            </script>
+            {{test}}
+        <div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+{% comment %} <script src="{% static '/dashboard/js/default_layout.js' %}"></script>
+<script src="{% static '/dashboard/js/dashboard.js' %}"></script> {% endcomment %}
+{% endblock %}
