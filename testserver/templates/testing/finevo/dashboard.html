@@ -26,33 +26,14 @@
 {% endblock %}
 {% block content %}
 <!-- Begin Page Content -->
-<div class="">
-    <div id="" class="justify-content-center text-teiren" style="font-size:30px">
-        {% comment %} <a href="/configurations/dashboard">
-            <button class="btn btn-teiren">Click Here to Customize Dashboard</button>
-        </a> {% endcomment %}
-        <div class="row">
-            <div id="recentCollectedOverview" class="w-100 h-100">
-                <div class="card shadow h-100 w-100">
-                    <!-- Card Header - Dropdown -->
-                    <div class="card-header">
-                        <div class="h6 m-0 font-weight-bold text-primary text-uppercase">Collected Logs Overview</div>
-                    </div>
-                    <!-- Card Body -->
-                    <div class="card-body pl-0 pb-0">
-                        <div class="chart-area" style="height:100%;">
-                            <canvas id="recentOverview"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <script src="{% static '/dashboard/js/recentCollectedOverview.js' %}"></script>
-            <script>
-                {"Month": {{ month|safe }}, "collected_month": {{ collected_month|safe }}}
-            </script>
-        <div>
-    </div>
-    <pre style="height:1000px;">{{test|pprint}}<pre>
+<div class="row">
+    {% include "./dashboard_items/sessionOvertime.html" %}
+    <div style="font-size:15px;">
+        {{traffic_overtime}}
+    <div>
+    <div style="font-size:15px;">
+        {{test}}
+    <div>
 </div>
 {% endblock %}
 {% block script %}

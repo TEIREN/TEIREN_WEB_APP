@@ -28,12 +28,12 @@ def search_genian_logs(start_time=None, end_time=None):
                 }
             }
         },
-        "size": 300
+        "size": 1000
     } if start_time and end_time else {
         "query": {
             "match_all": {}
         },
-        "size": 300
+        "size": 1000
     }
     result = es.search(index='test_genian_syslog', body=query)
     return result['hits']['hits']
@@ -46,7 +46,7 @@ def session_overtime_genian(logs):
         timestamp = datetime.strptime(log.get('@timestamp'), "%Y-%m-%dT%H:%M:%S.%f")
         time_key = timestamp.strftime('%Y-%m-%d %H:%M')
         session_overtime[time_key] += 1
-    return session_overtime
+    return dict(sorted(session_overtime.items(), key=lambda x: x[0], reverse=False))
 
 # 시간대별 트래픽 계산 함수
 def traffic_overtime_genian(logs):
@@ -59,7 +59,8 @@ def traffic_overtime_genian(logs):
         rcvd_byte = int(log.get('rcvdbyte', 0))
         traffic_overtime[time_key]['sent'] += sent_byte
         traffic_overtime[time_key]['received'] += rcvd_byte
-    return traffic_overtime
+    print(traffic_overtime)
+    return dict(sorted(traffic_overtime.items(), key=lambda x: x[0], reverse=False))
 
 """
 fortigate log
@@ -217,8 +218,9 @@ def dashboard(request):
         # 이벤트 수 계산 및 최신 이벤트 가져오기
         event_counts, notable_events, latest_events = event_counts_fortigate(fortigate_logs)
         context = {
-            "session_overtime": session_overtime,
-            "traffic_overtime": traffic_overtime,
+            "session_overtime": {'month':list(session_overtime.keys()), 'values': list(session_overtime.values())},
+            "traffic_overtime": {'month': list(traffic_overtime.keys()), 'sent': [sent.get('sent', 0) for _,sent in traffic_overtime.items()], 'recieved':[recieved.get('recieved', 0) for _,recieved in traffic_overtime.items()]},
+            "test": traffic_overtime,
             "src_ip_counter": src_ip_counter,
             "dst_ip_counter": dst_ip_counter,
             "traffic_by_device": traffic_by_device,
