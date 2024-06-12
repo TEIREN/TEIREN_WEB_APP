@@ -28,12 +28,20 @@
 <!-- Begin Page Content -->
 <div class="row">
     {% include "./dashboard_items/sessionOvertime.html" %}
+    {% include "./dashboard_items/trafficOvertime.html" %}
+    {% include "./dashboard_items/topSourceIP.html" %}
+    {% include "./dashboard_items/topDestinationIP.html" %}
+    {% include "./dashboard_items/trafficDevice.html" %}
+    {% include "./dashboard_items/trafficUser.html" %}
+    {% include "./dashboard_items/trafficApplication.html" %}
+    {% include "./dashboard_items/trafficInterface.html" %}
+    {% include "./dashboard_items/notableEvents.html" %}
     <div style="font-size:15px;">
-        {{traffic_overtime}}
-    <div>
+        {{latest_events}}
+    </div>
     <div style="font-size:15px;">
-        {{test}}
-    <div>
+        {{x}}
+    </div>
 </div>
 {% endblock %}
 {% block script %}

@@ -11,7 +11,7 @@ function number_format(number, decimals, dec_point, thousands_sep) {
     sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
     dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
     s = '',
-    toFixedFix = function (n, prec) {
+    toFixedFix = function(n, prec) {
       var k = Math.pow(10, prec);
       return '' + Math.round(n * k) / k;
     };
@@ -27,51 +27,24 @@ function number_format(number, decimals, dec_point, thousands_sep) {
   return s.join(dec);
 }
 
-
-
-
-// Area Chart Example
-
-var ctxTrafficOvertime = document.getElementById("trafficOvertime");
-var trafficOvertime = new Chart(ctxTrafficOvertime, {
-  type: 'line',
+// Bar Chart Example
+var ctxtopDestinationIP = document.getElementById("topDestinationIP");
+var topDestinationIP = new Chart(ctxtopDestinationIP, {
+  type: 'bar',
   data: {
-    labels: Month,
+    labels: destinationIP,
     datasets: [{
-      label: "MBytes Sent",
-      lineTension: 0.3,
-      backgroundColor: "rgba(244, 204, 9, 0.00)",
-      borderColor: "rgba(244, 204, 9, 1)",
-      pointRadius: 3,
-      pointBackgroundColor: "rgba(244, 204, 9, 1)",
-      pointBorderColor: "rgba(244, 204, 9, 1)",
-      pointHoverRadius: 3,
-      pointHoverBackgroundColor: "rgba(244, 204, 9, 1)",
-      pointHoverBorderColor: "rgba(244, 204, 9, 1)",
-      pointHitRadius: 10,
-      pointBorderWidth: 2,
-      data: collected_sent,
-    },{
-      label: "MBytes Recieved",
-      lineTension: 0.3,
-      backgroundColor: "rgba(109, 197, 143, 0.00)",
-      borderColor: "rgba(109, 197, 143, 1)",
-      pointRadius: 3,
-      pointBackgroundColor: "rgba(109, 197, 143, 1)",
-      pointBorderColor: "rgba(109, 197, 143, 1)",
-      pointHoverRadius: 3,
-      pointHoverBackgroundColor: "rgba(109, 197, 143, 1)",
-      pointHoverBorderColor: "rgba(109, 197, 143, 1)",
-      pointHitRadius: 10,
-      pointBorderWidth: 2,
-      data: collected_recieved,
-    }]
+      label: "Times Detected",
+      backgroundColor: '#24B6D4',
+      borderColor: "#4e73df",
+      data: destinationIP_data
+    }],
   },
   options: {
     maintainAspectRatio: false,
     plugins: {
       datalabels: {
-        display: false, // This will disable the plugin for this chart
+          display: false, // This will disable the plugin for this chart
       }
     },
     layout: {
@@ -84,33 +57,26 @@ var trafficOvertime = new Chart(ctxTrafficOvertime, {
     },
     scales: {
       xAxes: [{
-        scaleLabel: {
-          display: true,
-          labelString: 'MONTH'
-        },
         time: {
-          unit: 'date'
+          unit: 'month'
         },
         gridLines: {
           display: false,
           drawBorder: false
         },
         ticks: {
-          maxTicksLimit: 7
+          min:0,
+          maxTicksLimit:100,
+          callback: function(value, index, values) {
+            return value;
+          }
         }
       }],
       yAxes: [{
-        scaleLabel: {
-          display: true,
-          labelString: ''
-        },
         ticks: {
+          min: 0,
           maxTicksLimit: 5,
-          padding: 10,
-          // Include a dollar sign in the ticks
-          callback: function (value, index, values) {
-            return number_format(value);
-          }
+          max: max
         },
         gridLines: {
           color: "rgb(234, 236, 244)",
@@ -120,30 +86,29 @@ var trafficOvertime = new Chart(ctxTrafficOvertime, {
           zeroLineBorderDash: [2]
         }
       }],
+      maxBarLength: 13000
     },
     legend: {
       display: false
     },
     tooltips: {
-      backgroundColor: "rgb(255,255,255)",
-      bodyFontColor: "#858796",
       titleMarginBottom: 10,
       titleFontColor: '#6e707e',
-      titleFontSize: 10,
+      titleFontSize: 14,
+      backgroundColor: "rgb(255,255,255)",
+      bodyFontColor: "#858796",
       borderColor: '#dddfeb',
       borderWidth: 1,
-      xPadding: 15,
-      yPadding: 15,
+      xPadding: 5,
+      yPadding: 5,
       displayColors: false,
-      intersect: false,
-      mode: 'index',
       caretPadding: 10,
       callbacks: {
-        label: function (tooltipItem, chart) {
+        label: function(tooltipItem, chart) {
           var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
           return datasetLabel + ': ' + number_format(tooltipItem.yLabel);
         }
       }
-    }
+    },
   }
 });

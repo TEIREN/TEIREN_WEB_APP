@@ -1,14 +1,20 @@
 {% load static %}
 <div id="trafficOvertime_" class="h-100 w-50">
-    <div class="card border-left-primary shadow h-100">
+    <div class="card shadow h-100">
         <div class="card-header">
             <div class="h6 m-0 font-weight-bold text-primary text-uppercase">Traffic Overtime</div>
         </div>
         <div class="card-body pb-0">
             <div class="chart-area" style="height:100%">
-                <canvas id="trafficOvertime"></canvas>
+                <canvas id="trafficOvertime" style="height:35vh;"></canvas>
             </div>
         </div>
     </div>
 </div>
+<script>
+    var Month = {{traffic_overtime.month|safe }}
+    var collected_sent = {{traffic_overtime.sent|safe }}
+    // var collected_recieved = {{traffic_overtime.recieved|safe }}
+    var collected_recieved = [10, 20, 10, 20, 10, 30, 30, 10, 10, 10, 30, 40, 50, 10, 0, 0, 0, 0, 30, 20]
+</script>
 <script src="{% static 'dashboard/js/finevo/trafficOvertime.js' %}"></script>

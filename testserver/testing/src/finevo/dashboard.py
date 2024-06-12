@@ -1,10 +1,11 @@
 from django.shortcuts import render, HttpResponse, redirect
 
 from elasticsearch import Elasticsearch
-import json
 from collections import defaultdict, Counter
 from datetime import datetime, timedelta, timezone
 import time
+import json
+import math
 
 # Elasticsearch 서버 URL 설정
 ELASTICSEARCH_URL = 'http://3.35.81.217:9200'
@@ -59,7 +60,6 @@ def traffic_overtime_genian(logs):
         rcvd_byte = int(log.get('rcvdbyte', 0))
         traffic_overtime[time_key]['sent'] += sent_byte
         traffic_overtime[time_key]['received'] += rcvd_byte
-    print(traffic_overtime)
     return dict(sorted(traffic_overtime.items(), key=lambda x: x[0], reverse=False))
 
 """
@@ -79,12 +79,12 @@ def search_fortigate_logs(start_time=None, end_time=None):
                 }
             }
         },
-        "size": 300
+        "size": 1000
     } if start_time and end_time else {
         "query": {
             "match_all": {}
         },
-        "size": 300
+        "size": 1000
     }
     result = es.search(index='test_fortigate_syslog', body=query)
     return result['hits']['hits']
@@ -96,7 +96,7 @@ def top_source_ip_fortigate(logs):
         log = hit['_source']
         src_ip = log.get('srcip', 'Unknown')
         src_ip_counter[src_ip] += 1
-    return src_ip_counter
+    return dict(sorted(src_ip_counter.items(), key=lambda x: x[1], reverse=True))
 
 # 목적지 IP 상위 10개를 계산하는 함수
 def top_destination_ip_fortigate(logs):
@@ -105,57 +105,57 @@ def top_destination_ip_fortigate(logs):
         log = hit['_source']
         dst_ip = log.get('dstip', 'Unknown')
         dst_ip_counter[dst_ip] += 1
-    return dst_ip_counter
+    return dict(sorted(dst_ip_counter.items(), key=lambda x: x[1], reverse=True))
 
 # 장치별 트래픽 계산 함수
 def traffic_by_device_fortigate(logs):
-    traffic_by_device = defaultdict(lambda: {'sent': 0, 'received': 0})
+    traffic_by_device = defaultdict(int)
     for hit in logs:
         log = hit['_source']
         src_ip = log.get('srcip', 'Unknown')
         dst_ip = log.get('dstip', 'Unknown')
         sent_byte = int(log.get('sentbyte', 0))
         rcvd_byte = int(log.get('rcvdbyte', 0))
-        traffic_by_device[src_ip]['sent'] += sent_byte
-        traffic_by_device[dst_ip]['received'] += rcvd_byte
-    return traffic_by_device
+        traffic_by_device[src_ip] += sent_byte
+        traffic_by_device[dst_ip] += rcvd_byte
+    return dict(sorted(traffic_by_device.items(), key=lambda x: x[1], reverse=True))
 
 # 사용자별 트래픽 계산 함수
 def traffic_by_user_fortigate(logs):
-    traffic_by_user = defaultdict(lambda: {'sent': 0, 'received': 0})
+    traffic_by_user = defaultdict(int)
     for hit in logs:
         log = hit['_source']
         user = log.get('user', 'Unknown')
         sent_byte = int(log.get('sentbyte', 0))
         rcvd_byte = int(log.get('rcvdbyte', 0))
-        traffic_by_user[user]['sent'] += sent_byte
-        traffic_by_user[user]['received'] += rcvd_byte
-    return traffic_by_user
+        traffic_by_user[user] += sent_byte
+        traffic_by_user[user] += rcvd_byte
+    return dict(sorted(traffic_by_user.items(), key=lambda x: x[1], reverse=True))
 
 # 애플리케이션별 트래픽 계산 함수
 def traffic_by_application_fortigate(logs):
-    traffic_by_application = defaultdict(lambda: {'sent': 0, 'received': 0})
+    traffic_by_application = defaultdict(int)
     for hit in logs:
         log = hit['_source']
         app = log.get('app', 'Unknown')
         sent_byte = int(log.get('sentbyte', 0))
         rcvd_byte = int(log.get('rcvdbyte', 0))
-        traffic_by_application[app]['sent'] += sent_byte
-        traffic_by_application[app]['received'] += rcvd_byte
-    return traffic_by_application
+        traffic_by_application[app] += sent_byte
+        traffic_by_application[app] += rcvd_byte
+    return dict(sorted(traffic_by_application.items(), key=lambda x: x[1], reverse=True))
 
 # 인터페이스별 트래픽 계산 함수
 def traffic_by_interface_fortigate(logs):
-    traffic_by_interface = defaultdict(lambda: {'sent': 0, 'received': 0})
+    traffic_by_interface = defaultdict(int)
     for hit in logs:
         log = hit['_source']
         srcintf = log.get('srcintf', 'Unknown')
         dstintf = log.get('dstintf', 'Unknown')
         sent_byte = int(log.get('sentbyte', 0))
         rcvd_byte = int(log.get('rcvdbyte', 0))
-        traffic_by_interface[srcintf]['sent'] += sent_byte
-        traffic_by_interface[dstintf]['received'] += rcvd_byte
-    return traffic_by_interface
+        traffic_by_interface[srcintf] += sent_byte
+        traffic_by_interface[dstintf] += rcvd_byte
+    return dict(sorted(traffic_by_interface.items(), key=lambda x: x[1], reverse=True))
 
 # 이벤트 수 계산 함수
 def event_counts_fortigate(logs):
@@ -189,8 +189,11 @@ def event_counts_fortigate(logs):
             "Message": log.get('msg', 'Unknown')
         })
 
-    return event_counts, notable_events, latest_events[:10]
+    return event_counts, dict(sorted(notable_events.items(), key=lambda x: x[1], reverse=True)), latest_events[:10]
 
+def give_colors(_list:list):
+    color_list =['#24B6D4','#1cc88a','#f6c23e','#fd7e14','#e74a3b']
+    return [color_list[int(i%5)] for i in range(len(_list))]
 # 메인 함수
 def dashboard(request):
         # print("\n--- Initial Genian Logs ---")/
@@ -220,15 +223,14 @@ def dashboard(request):
         context = {
             "session_overtime": {'month':list(session_overtime.keys()), 'values': list(session_overtime.values())},
             "traffic_overtime": {'month': list(traffic_overtime.keys()), 'sent': [sent.get('sent', 0) for _,sent in traffic_overtime.items()], 'recieved':[recieved.get('recieved', 0) for _,recieved in traffic_overtime.items()]},
-            "test": traffic_overtime,
-            "src_ip_counter": src_ip_counter,
-            "dst_ip_counter": dst_ip_counter,
-            "traffic_by_device": traffic_by_device,
-            "traffic_by_user": traffic_by_user,
-            "traffic_by_application": traffic_by_application,
-            "traffic_by_interface": traffic_by_interface,
+            "src_ip_counter": {'sourceIP': list(src_ip_counter.keys()), 'data': list(src_ip_counter.values()), 'max': int(math.ceil(list(src_ip_counter.values())[0]/100.0)) *100},
+            "dst_ip_counter": {'destinationIP': list(dst_ip_counter.keys()), 'data': list(dst_ip_counter.values()), 'max': int(math.ceil(list(dst_ip_counter.values())[0]/100.0)) *100},
+            "traffic_by_device": {'name':list(traffic_by_device.keys()), 'data': list(traffic_by_device.values()), 'color': give_colors(list(traffic_by_device.values()))},
+            "traffic_by_user": {'name':list(traffic_by_user.keys()), 'data': list(traffic_by_user.values()), 'color': give_colors(list(traffic_by_user.values()))},
+            "traffic_by_application": {'name':list(traffic_by_application.keys()), 'data': list(traffic_by_application.values()), 'color': give_colors(list(traffic_by_application.values()))},
+            "traffic_by_interface": {'name':list(traffic_by_interface.keys()), 'data': list(traffic_by_interface.values()), 'color': give_colors(list(traffic_by_interface.values()))},
             "event_counts": event_counts,
-            "notable_events": notable_events,
+            "notable_events": {'name': list(notable_events.keys()), 'data': list(notable_events.values()), 'max': int(math.ceil(list(notable_events.values())[0]/100.0)) *100},
             "latest_events": latest_events
         }
         # print(context)
