@@ -1,4 +1,5 @@
 import json
+from .tableProperty import get_property_key
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -157,7 +158,8 @@ def list_logs(request, system):
             'page_obj': combined_page_obj,
             'system': system.title(),
             'page': page_number,
-            'log_properties': log_properties
+            'log_properties': log_properties,
+            'table_properties': get_property_key(system)
         }
 
     except ConnectionError as e:
