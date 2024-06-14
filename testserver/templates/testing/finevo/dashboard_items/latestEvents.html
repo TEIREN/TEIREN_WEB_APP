@@ -1,5 +1,5 @@
 {% load static %}
-<div id="latestEvents_" class="h-100">
+<div id="latestEvents_" class="h-100 w-100">
     <div class="card shadow h-100">
         <!-- Card Header - Dropdown -->
         <div class="card-header d-flex flex-row align-items-center justify-content-between">
@@ -19,46 +19,22 @@
                             <th>Action</th>
                             <th>Message</th>
                         </tr>
-
-                        
                     </thead>
                     <tbody>
-                        {% if recent_threat %}
-                        {% for threat in recent_threat %}
-                        {% if  threat.alert == 0 %}
-                        <tr class="text-danger">
-                        {% else %}
-                        <tr>
-                        {% endif %}
-                            {% for key, value in threat.items %}
-                            {% if key != 'form' %}
-                            {% if key == 'level' %}
-                            <td><i class="text-{{value}} fa-solid fa-circle"></i></td>
-                            {% elif key == 'alert' %}
-                                {% if value == 1 %}
-                                <td style="font-weight:900; font-size:1rem;"><i class="text-teiren fa-solid fa-circle-check"></i></td>
-                                {% else %}
-                                <td style="font-weight:900; font-size:1rem;"><i class="text-danger fa-solid fa-eye-slash"></i></td>
-                                {% endif %}
-                            {% else %}
-                            <td>
-                                {{ value }}
-                            </td>
-                            {% endif %}
-                            {% endif %}
+                        {% if latest_events %}
+                            {% for event in latest_events %}
+                                <tr>
+                                    <td>{{event.Time}}</td>
+                                    <td>{{event.Device}}</td>
+                                    <td>{{event.Virtual_Domain}}</td>
+                                    <td>{{event.Subtype}}</td>
+                                    <td>{{event.Level}}</td>
+                                    <td>{{event.Action}}</td>
+                                    <td>{{event.Message}}</td>
+                                </tr>
                             {% endfor %}
-                            <td>
-                                <form class="gdb_threat" method="post" onclick="threat(this)">
-                                    {% csrf_token %}
-                                    {% for key, value in threat.form.items %}
-                                    <input type="hidden" name="{{key}}" value="{{value}}">
-                                    {% endfor %}
-                                    <input type=button class="btn btn-md btn-danger" style="font-size:0.5vw" value='Details'>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
                         {% endif %}
+                        
                     </tbody>
                 </table>
             </div>
