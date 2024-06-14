@@ -95,15 +95,26 @@ class LogManagement():
         return properties_list
 
 
-
 # 시스템 로그 리스트를 보여주는 함수
 def list_logs(request, system):
     system_log = LogManagement(system=system)
     
     # Get the page number from request
     page_number = request.GET.get('page', 1)
-    test = dict(request.GET).get('sysloghost', '')
-    print(test)
+    
+    # 딕셔너리로 필터 저장
+    filters = dict(request.GET)
+    
+    # 필터 쿼리 추가: 필터링 옵션이 요청에 포함된 경우, bool 쿼리를 만들어서 적용
+    if filters:
+        bool_query = {"must": []}
+        for key, values in filters.items():
+            if key in ["page", "csrfmiddlewaretoken"]:
+                continue
+            values = values if isinstance(values, list) else [values]
+            for value in values:
+                bool_query["must"].append({"term": {key: value}})
+        system_log.query = {"bool": bool_query}
 
     # Perform the log search
     total_count, log_list = system_log.search_logs()
@@ -160,52 +171,41 @@ def list_logs(request, system):
             'log_properties': log_properties
         }
 
+        # Ajax 요청 처리: Ajax 요청인 경우, 필터링된 로그 리스트와 기타 정보를 JsonResponse로 반환
+        if request.is_ajax():
+            return JsonResponse({
+                'total_count': len(all_logs),
+                'log_list': combined_page_obj.object_list,
+                'page_obj': combined_page_obj.number,
+                'system': system.title(),
+                'page': page_number
+            })
+
     except ConnectionError as e:
         print(f"Connection error: {e}")
+        context = {
+            'total_count': 0,
+            'log_list': [],
+            'page_obj': None,
+            'system': system.title(),
+            'page': page_number,
+            'log_properties': []
+        }
     except Exception as e:
         print(f"An error occurred: {e}")
+        context = {
+            'total_count': 0,
+            'log_list': [],
+            'page_obj': None,
+            'system': system.title(),
+            'page': page_number,
+            'log_properties': []
+        }
 
     return render(request, 'testing/finevo/elasticsearch.html', context=context)
 
+
 # 룰셋에 따른 로그 리스트를 보여주는 함수
-def logs_by_ruleset(request, system, ruleset_name):
-    try:
-        page_number = request.GET.get('page', 1)
-
-        ruleset_index = ruleset_mapping[list(log_index.keys())[list(log_index.values()).index(f"test_{system}_syslog")]]
-        res = es.search(index=ruleset_index, body={"query": {"match": {"name": ruleset_name}}})
-        if res['hits']['total']['value'] == 0:
-            return render(request, 'testing/finevo/error_page.html', {'error': f"No ruleset found with name {ruleset_name}"})
-        
-        rule = res['hits']['hits'][0]['_source']
-        rule_query = rule["query"]["query"]
-
-        log_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 10000})
-        log_list = [hit['_source'] for hit in log_res['hits']['hits']]
-        
-        log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
-
-        # Apply pagination
-        system_log = LogManagement(system=system)
-        page_obj = system_log.paginate_logs(log_list, page_number)
-
-        context = {
-            'total_count': len(log_list),
-            'log_list': page_obj.object_list,
-            'page_obj': page_obj,
-            'system': system.title(),
-            'ruleset_name': ruleset_name,
-            'page': page_number,
-            'ruleset': json.dumps(rule, indent=4)  # 룰셋 세부 정보를 prettified JSON으로 추가
-        }
-        return render(request, 'testing/finevo/logs_by_ruleset.html', context=context)
-
-    except ConnectionError as e:
-        return JsonResponse({"error": f"Connection error: {e}"}, status=500)
-    except Exception as e:
-        return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
-
-
 def logs_by_ruleset(request, system, ruleset_name):
     try:
         page_number = request.GET.get('page', 1)
@@ -224,7 +224,7 @@ def logs_by_ruleset(request, system, ruleset_name):
         # 각 로그 항목에 detected_by_rules 필드를 추가
         for log in log_list:
             log['detected_by_rules'] = [ruleset_name]
-
+        
         log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
 
         # Apply pagination

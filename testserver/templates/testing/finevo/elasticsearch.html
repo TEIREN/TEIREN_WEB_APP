@@ -57,7 +57,7 @@
                                 {% for value in values %}
                                 <div>
                                     <input id="{{value}}" name="{{key}}" value="{{value}}" type="checkbox">
-                                    <label for="{{value}}">{{value}}</lable>
+                                    <label for="{{value}}">{{value}}</label>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -84,7 +84,7 @@
                                 <th width="15%">Detected Rules</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="log_tbody">
                             {% with page|add:'-1'|mul:25 as index_num %}
                             {% for log in log_list %}
                             <tr>
@@ -248,9 +248,28 @@
             type: 'get'
         }).done(function(response){
             console.log(response)
+            updateLogTable(response.log_list)
+        })
+    }
+
+    function updateLogTable(log_list){
+        var tbody = $('#log_tbody')
+        tbody.empty()
+        log_list.forEach(function(log, index){
+            var logDataTrunc = `<span id="log_data_trunc_${index}">${JSON.stringify(log).substring(0, 100)}<button class="btn" type="button" onclick="displayLogData(${index})"><i class="fa-solid fa-chevron-down"></i></button></span>`
+            var logDataFull = `<div class="text-teiren"><span>Log Data:</span></div><span>${JSON.stringify(log)}<button class="btn" type="button" onclick="hideLogData(${index})"><i class="fa-solid fa-chevron-up"></i></button></span>`
+            var logRow = `<tr>
+                            <td style="vertical-align: middle;">${index + 1}</td>
+                            <td style="vertical-align: middle;">${index + 1}</td>
+                            <td style="vertical-align: middle;">${index + 1}</td>
+                            <td style="text-align:left;" class="log-entry">${logDataTrunc}</td>
+                            <td> <span class="text-muted">No rules detected</span> </td>
+                          </tr>
+                          <tr>
+                            <td colspan=5 id="log_data_${index}" class="text-left" style="display:none;">${logDataFull}</td>
+                          </tr>`
+            tbody.append(logRow)
         })
     }
 </script>
 {% endblock script %}
-
-
