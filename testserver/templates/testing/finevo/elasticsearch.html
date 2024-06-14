@@ -173,39 +173,6 @@
                         {% endif %}
                     </ul>
                 </div>
-                {% comment %} <div class="d-flex justify-content-center">
-                    <ul style="display:flex; list-style: none;">
-                        {% if page_obj.has_previous %}
-                        <li class="page-item" aria-current="page">
-                            <button class="page-link" onclick="searchFilter(1)">Start</button>
-                        </li>
-                        <li class="page-item" aria-current="page">
-                            <button class="page-link" onclick="searchFilter({{page_obj.previous_page_number}})">Prev</button>
-                        </li>
-                        {% endif %}
-
-                        {% for page_number in page_obj.paginator.page_range %}
-                        {% if page_number == page_obj.now_page %}
-                        <li class="page-item active" aria-current="page">
-                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
-                        </li>
-                        {% else %}
-                        <li class="page-item">
-                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
-                        </li>
-                        {% endif %}
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-                        <li class="page-item" aria-current="page">
-                            <button class="page-link" onclick="searchFilter({{page_obj.next_page_number}})">Next</button>
-                        </li>
-                        <li class="page-item" aria-current="page">
-                            <button class="page-link" onclick="searchFilter({{page_obj.paginator.num_pages}})">End</button>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </div> {% endcomment %}
             </div>
         </div>
     </div>
