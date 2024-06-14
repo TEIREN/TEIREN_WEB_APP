@@ -35,14 +35,9 @@
     {% include "./dashboard_items/trafficUser.html" %}
     {% include "./dashboard_items/trafficApplication.html" %}
     {% include "./dashboard_items/trafficInterface.html" %}
+    {% include "./dashboard_items/eventCount.html" %}
     {% include "./dashboard_items/notableEvents.html" %}
     {% include "./dashboard_items/latestEvents.html" %}
-    <div style="font-size:15px;">
-        {{event_counts}}
-    </div>
-    <div style="font-size:15px;">
-        {{x}}
-    </div>
 </div>
 {% endblock %}
 {% block script %}

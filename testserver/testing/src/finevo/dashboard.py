@@ -68,7 +68,6 @@ fortigate log
 
 # fortigate 로그를 검색하는 함수
 def search_fortigate_logs(start_time=None, end_time=None):
-    # 시간 범위가 주어졌을 때와 아닐 때의 쿼리 생성
     query = {
         "query": {
             "range": {
@@ -79,7 +78,7 @@ def search_fortigate_logs(start_time=None, end_time=None):
                 }
             }
         },
-        "size": 1000
+        "size": 300
     } if start_time and end_time else {
         "query": {
             "match_all": {}
@@ -112,12 +111,11 @@ def traffic_by_device_fortigate(logs):
     traffic_by_device = defaultdict(int)
     for hit in logs:
         log = hit['_source']
-        src_ip = log.get('srcip', 'Unknown')
-        dst_ip = log.get('dstip', 'Unknown')
-        sent_byte = int(log.get('sentbyte', 0))
-        rcvd_byte = int(log.get('rcvdbyte', 0))
-        traffic_by_device[src_ip] += sent_byte
-        traffic_by_device[dst_ip] += rcvd_byte
+        device = log.get('vd', 'Unknown')  # vd 필드 사용
+        sent_byte = int(log.get('sentbyte', 0))  # sentbyte 필드 사용
+        rcvd_byte = int(log.get('rcvdbyte', 0))  # rcvdbyte 필드 사용
+        traffic_by_device[device] += sent_byte
+        traffic_by_device[device] += rcvd_byte
     return dict(sorted(traffic_by_device.items(), key=lambda x: x[1], reverse=True))
 
 # 사용자별 트래픽 계산 함수
@@ -164,32 +162,33 @@ def event_counts_fortigate(logs):
     latest_events = []
     for hit in logs:
         log = hit['_source']
-        timestamp = log.get('@timestamp', 'Unknown')
+        # date와 time 필드를 결합하여 timestamp 생성
+        timestamp = f"{log.get('date')}T{log.get('time')}"  # date와 time 필드 사용
         if timestamp and timestamp != 'Unknown':
             try:
-                event_time = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
+                event_time = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
                 time_key = event_time.strftime('%Y-%m-%d %H:%M')
             except ValueError:
                 print(f"Skipping log with invalid timestamp: {timestamp}")
                 time_key = 'Unknown'
         else:
             time_key = 'Unknown'
-        
+       
         event_counts[time_key] += 1
-        action = log.get('action', 'Unknown')
+        action = log.get('action', 'Unknown')  # action 필드 사용
         notable_events[action] += 1
-
+ 
         latest_events.append({
             "Time": timestamp,
-            "Device": log.get('device', 'Unknown'),
-            "Virtual_Domain": log.get('vd', 'Unknown'),
-            "Subtype": log.get('subtype', 'Unknown'),
-            "Level": log.get('level', 'Unknown'),
+            "Device": log.get('srcintf', 'Unknown'),  # srcintf 필드 사용
+            "Virtual_Domain": log.get('vd', 'Unknown'),  # vd 필드 사용
+            "Subtype": log.get('subtype', 'Unknown'),  # subtype 필드 사용
+            "Level": log.get('level', 'Unknown'),  # level 필드 사용
             "Action": action,
-            "Message": log.get('msg', 'Unknown')
+            "Message": log.get('msg', 'Unknown')  # msg 필드 사용
         })
 
-    return event_counts, dict(sorted(notable_events.items(), key=lambda x: x[1], reverse=True)), latest_events[:10]
+    return dict(sorted(event_counts.items(), key=lambda x: x[0], reverse=True)), dict(sorted(notable_events.items(), key=lambda x: x[1], reverse=True)), latest_events[:10]
 
 def give_colors(_list:list):
     color_list =['#24B6D4','#1cc88a','#f6c23e','#fd7e14','#e74a3b']
@@ -229,7 +228,7 @@ def dashboard(request):
             "traffic_by_user": {'name':list(traffic_by_user.keys()), 'data': list(traffic_by_user.values()), 'color': give_colors(list(traffic_by_user.values()))},
             "traffic_by_application": {'name':list(traffic_by_application.keys()), 'data': list(traffic_by_application.values()), 'color': give_colors(list(traffic_by_application.values()))},
             "traffic_by_interface": {'name':list(traffic_by_interface.keys()), 'data': list(traffic_by_interface.values()), 'color': give_colors(list(traffic_by_interface.values()))},
-            "event_counts": event_counts,
+            "event_counts": {'name': list(event_counts.keys()), 'data': list(event_counts.values()), 'max': int(math.ceil(list(event_counts.values())[0]/100.0)) *100},
             "notable_events": {'name': list(notable_events.keys()), 'data': list(notable_events.values()), 'max': int(math.ceil(list(notable_events.values())[0]/100.0)) *100},
             "latest_events": latest_events
         }
