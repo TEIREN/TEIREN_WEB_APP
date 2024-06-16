@@ -104,7 +104,7 @@ def list_logs(request, system):
     # Get the page number from request
     page_number = request.GET.get('page', 1)
     test = dict(request.GET).get('sysloghost', '')
-    print(test)
+    # print(test)
 
     # Perform the log search
     total_count, log_list = system_log.search_logs()

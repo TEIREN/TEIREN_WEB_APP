@@ -234,7 +234,7 @@
                             {% for property in table_properties %}
                             <div class="row align-items-center my-4" style="font-size: 18px;">
                                 <span class="ml-3">{{forloop.counter}}</span>
-                                <input type="text" class="form-control ml-3" style="width:90%;" name="properties" value=''>
+                                <input type="text" class="form-control ml-3" style="width:90%;" name="properties" value="{{property}}">
                             </div>
                             {% endfor %}
                         {% else %}
@@ -253,7 +253,7 @@
                 </div>
             </div>
             <div class="modal-footer" id="modal_footer">
-                <button type='submit' id='modify' class="btn btn-md btn-outline-teiren" onclick="modifyAssetTable()">Save Properties</button>
+                <button type='submit' id='modify' class="btn btn-md btn-outline-teiren" onclick="saveTableProperty()">Save Properties</button>
             </div>
         </div>
     </div>
@@ -310,8 +310,17 @@
         `)
     }
 
-    function saveTableProperty(e){
-        console.log(e)
+    function saveTableProperty(){
+        $.ajax({
+            url:`/test/log/{{system}}/property/save/`,
+            data: $('form#table_properties_form').serialize(),
+            type: 'get'
+        }).done(function(response){
+            alert(response)
+            if(response.startsWith('Success')){
+                location.reload()
+            }
+        })
     }
 </script>
 {% endblock script %}
