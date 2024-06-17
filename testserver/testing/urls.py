@@ -18,6 +18,7 @@ urlpatterns = [
     path('integration/genian/', integration.integration_genian),
     path('integration/fortigate/', integration.integration_fortigate),
     path('integration/linux/', integration.integration_linux),
+    path('integration/windows/', integration.integration_windows),
     path('integration/mssql/', integration.integration_mssql),
     path('integration/snmp/', integration.integration_snmp),
     path('integration/transmission/', integration.integration_transmission),

@@ -118,6 +118,22 @@ def integration_linux(request):
     else:
         return render(request, 'testing/finevo/integration_linux.html')
 
+
+def integration_action_windows(request):
+    url = 'https://raw.githubusercontent.com/hw1186/rsys_conf/main/setup_win.ps1'
+    response = requests.get(url)
+    filename = url.split('/')[-1]
+    temp = tempfile.NamedTemporaryFile(delete=False)
+    # temp = tempfile.NamedTemporaryFile(suffix=".sh")
+    temp.write(response.content)
+    temp.close()
+    return FileResponse(open(temp.name, 'rb'), as_attachment=True, filename=filename)
+
+def integration_windows(request):
+    if request.method == 'POST':
+        return integration_action_windows(request)
+    else:
+        return render(request, 'testing/finevo/integration_windows.html')
 # Form 데이터 형식 사용
 
 def integration_action_mssql(request): # alert가 잘 안됨

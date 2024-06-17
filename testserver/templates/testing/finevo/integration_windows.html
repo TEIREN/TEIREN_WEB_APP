@@ -3,25 +3,25 @@
 {% block content %}
 <div class="locationbar ml-2">
     <span>Resource Management &nbsp;&nbsp;>&nbsp;&nbsp;Integreation &nbsp;&nbsp;>&nbsp;&nbsp;Registration &nbsp;&nbsp;>&nbsp;&nbsp;</span>
-    <span class="current">Linux<span>
+    <span class="current">Windows<span>
 </div>
 <div>
     <!-- Page Heading -->
-    <h6 class="h3 mb-2 ml-2 font-weight-bold text-gray-800">Integrate Linux</h6>
-    <p class="h6 mb-4 ml-2">Integrate Linux Logs To Teiren Cloud</p>
+    <h6 class="h3 mb-2 ml-2 font-weight-bold text-gray-800">Integrate Windows</h6>
+    <p class="h6 mb-4 ml-2">Integrate Windows Logs To Teiren Cloud</p>
     <!-- Begin Page Content -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <div style="float: left">
-                <h6 class="m-0 font-weight-bold text-success">
-                    Download Linux Integration File
+                <h6 class="m-0 font-weight-bold text-teiren">
+                    Download Windows Integration File
                 </h6>
             </div>
         </div>
         <div class="card-body" style="font-size:12px">
-            <form method="POST" id='account_form' action="/test/integration/linux/" target="_blank">
+            <form method="POST" id='account_form' action="/test/integration/windows/" target="_blank">
                 {% csrf_token %}
-                <input type="submit" class="btn btn-outline-primary" id='form-check' value="Download Linux Integration File"/>
+                <input type="submit" class="btn btn-outline-primary" id='form-check' value="Download Windows Integration File"/>
             </form>
             </div>
         </div>
