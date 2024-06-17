@@ -44,4 +44,41 @@
             $(`#filter_${prop_id}`).slideUp()
         }
     }
+
+    function filterChange(e){
+        var data = $(e).serialize()
+        if($('form#search').serializeArray()[0].value != ''){
+            data += '&'+$('form#search').serialize()
+        }
+        $.ajax({
+            url: '',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: data,
+            type: 'get'
+        }).done(function(response){
+            $('#log_table').html(response)
+            $('.page-item a').each(function(){
+                $(this).attr('filter', data)
+            })
+        })
+    }
+
+    function filterPage(e){
+        var data = $(e).attr('filter')
+        $.ajax({
+            url: '',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: data+'&'+$(e).attr('page'),
+            type: 'get'
+        }).done(function(response){
+            $('#log_table').html(response)
+            $('.page-item a').each(function(){
+                $(this).attr('filter', data)
+            })
+        })
+    }
 </script>

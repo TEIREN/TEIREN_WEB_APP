@@ -18,6 +18,7 @@ class LogManagement():
         self.query = {"match_all": {}}  # 기본 쿼리 설정
         self.page_number = page
         self.timestamp = self.get_timestamp()
+        self.limit = 15
         
     def get_timestamp(self):
         timestamp_mapping = {
@@ -25,6 +26,8 @@ class LogManagement():
             "genian": "@timestamp",
             "window": "date",
             "fortigate": "eventtime",
+            "mssql": "",
+            "snmp": ""
         }
         return timestamp_mapping[self.system]
         
@@ -32,7 +35,7 @@ class LogManagement():
     def search_logs(self):
         try:
             self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 1000000})
-            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": 25,"query": self.query, "sort":{f"{self.timestamp}": "desc"}, "from":((self.page_number-1)*25)})
+            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit,"query": self.query, "sort":{f"{self.timestamp}": "desc"}, "from":((self.page_number-1)*self.limit)})
             hits = response['hits']['hits']
             log_list = []
             for hit in hits:
@@ -53,7 +56,7 @@ class LogManagement():
                 finally:
                     log_list.append(log)
             total_count = self.es.count(index=f"test_{self.system}_syslog", query=self.query)['count']
-            self.total_page = int(round(total_count/25, 0))
+            self.total_page = int(round(total_count/self.limit, 0))
         except Exception as e:
             total_count = 0
             log_list = []
@@ -133,6 +136,7 @@ class LogManagement():
                     "must_not": must_not_conditions
                 }
             }
+            print(self.query)
         else:
             self.query = {"match_all": {}}
 
@@ -148,11 +152,13 @@ class LogManagement():
     
     def paginate(self):
         #page_range
+        if self.total_page == 0:
+            self.total_page = 1
         start_page = max(int(self.page_number)-5, 1)
         end_page = min(int(self.page_number)+5, self.total_page)
         page_range = range(start_page, end_page+1)
-
-        
+        print(self.page_number)
+        print(page_range)
         return {
             'has_previous': False if self.page_number == 1 else True,
             'has_next': False if self.page_number == self.total_page else True,
@@ -198,15 +204,19 @@ def list_logs(request, system):
     page_number = int(request.GET.get('page', 1))
     system_log = LogManagement(system=system, page=page_number)    
     filters = dict(request.GET)
+    print(filters)
     if 'page' in filters:
         del filters['page']
-    if filters:
+    if 'query' in filters and filters['query'][0] == '':
+        del filters['query']
+    if 'query' not in filters:
         total_count, log_list = system_log.filter_query(filters)
     # 필터 쿼리가 있는 경우 필터링된 로그만 검색
     elif 'query' in filters:
         query_string = filters.pop('query')[0]
         parsed_must, parsed_must_not, parsed_filters = system_log.parse_query_string(query_string)
         filters.update(parsed_filters)
+        print(filters)
         total_count, log_list = system_log.filter_query(filters)
     else:
         total_count, log_list = system_log.search_logs()
@@ -303,35 +313,3 @@ def logs_by_ruleset(request, system, ruleset_name):
         return JsonResponse({"error": f"Connection error: {e}"}, status=500)
     except Exception as e:
         return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
-
-
-
-
-# res = es.search(index=f"{system}_ruleset", body={"query": {"match_all": {}}}, scroll='1m', size=10000)
-# rulesets = res['hits']['hits']
-# logs_detected = {}
-
-# for rule in rulesets:
-#     rule_query = rule["_source"]["query"]["query"]
-#     rule_name = rule["_source"]["name"]
-#     severity = rule["_source"]["severity"]
-
-#     log_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query}, scroll='1m', size=10000)
-#     logs_found = log_res['hits']['total']['value']
-
-#     if logs_found > 0:
-#         for log in log_res['hits']['hits']:
-#             log_id = log["_id"]
-#             log_doc = log["_source"]
-
-#             if log_id not in logs_detected:
-#                 logs_detected[log_id] = log_doc
-#                 logs_detected[log_id]["detected_by_rules"] = []
-#                 logs_detected[log_id]["severities"] = []
-
-#             logs_detected[log_id]["detected_by_rules"].append(rule_name)
-#             logs_detected[log_id]["severities"].append(severity)
-
-# detected_log_list = list(logs_detected.values())
-# all_logs = log_list + detected_log_list
-# all_logs.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')), reverse=True)

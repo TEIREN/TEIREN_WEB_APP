@@ -222,14 +222,14 @@ def dashboard(request):
         context = {
             "session_overtime": {'month':list(session_overtime.keys()), 'values': list(session_overtime.values())},
             "traffic_overtime": {'month': list(traffic_overtime.keys()), 'sent': [sent.get('sent', 0) for _,sent in traffic_overtime.items()], 'recieved':[recieved.get('recieved', 0) for _,recieved in traffic_overtime.items()]},
-            "src_ip_counter": {'sourceIP': list(src_ip_counter.keys()), 'data': list(src_ip_counter.values()), 'max': int(math.ceil(list(src_ip_counter.values())[0]/100.0)) *100},
-            "dst_ip_counter": {'destinationIP': list(dst_ip_counter.keys()), 'data': list(dst_ip_counter.values()), 'max': int(math.ceil(list(dst_ip_counter.values())[0]/100.0)) *100},
+            "src_ip_counter": {'sourceIP': list(src_ip_counter.keys()), 'data': list(src_ip_counter.values()), 'max': int(math.ceil(list(src_ip_counter.values())[0]/100.0)) *100, 'color': give_colors(list(src_ip_counter.keys()))},
+            "dst_ip_counter": {'destinationIP': list(dst_ip_counter.keys()), 'data': list(dst_ip_counter.values()), 'max': int(math.ceil(list(dst_ip_counter.values())[0]/100.0)) *100, 'color': give_colors(list(dst_ip_counter.keys()))},
             "traffic_by_device": {'name':list(traffic_by_device.keys()), 'data': list(traffic_by_device.values()), 'color': give_colors(list(traffic_by_device.values()))},
             "traffic_by_user": {'name':list(traffic_by_user.keys()), 'data': list(traffic_by_user.values()), 'color': give_colors(list(traffic_by_user.values()))},
             "traffic_by_application": {'name':list(traffic_by_application.keys()), 'data': list(traffic_by_application.values()), 'color': give_colors(list(traffic_by_application.values()))},
             "traffic_by_interface": {'name':list(traffic_by_interface.keys()), 'data': list(traffic_by_interface.values()), 'color': give_colors(list(traffic_by_interface.values()))},
-            "event_counts": {'name': list(event_counts.keys()), 'data': list(event_counts.values()), 'max': int(math.ceil(list(event_counts.values())[0]/100.0)) *100},
-            "notable_events": {'name': list(notable_events.keys()), 'data': list(notable_events.values()), 'max': int(math.ceil(list(notable_events.values())[0]/100.0)) *100},
+            "event_counts": {'name': list(event_counts.keys()), 'data': list(event_counts.values()), 'max': int(math.ceil(list(event_counts.values())[0]/100.0)) *100, 'color': give_colors(list(event_counts.keys()))},
+            "notable_events": {'name': list(notable_events.keys()), 'data': list(notable_events.values()), 'max': int(math.ceil(list(notable_events.values())[0]/100.0)) *100, 'color': give_colors(list(notable_events.keys()))},
             "latest_events": latest_events
         }
         # print(context)

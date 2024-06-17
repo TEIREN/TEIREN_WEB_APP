@@ -24,64 +24,72 @@
                     </tr>
                 </thead>
                 <tbody id="log_tbody">
-                    {% with page|add:'-1'|mul:25 as index_num %}
-                    {% for log in log_list %}
-                    <tr>
-                        <td style="vertical-align: middle;">{{forloop.counter|add:index_num}}</td>
-                        {% for property in table_properties %}
-                            <td style="vertical-align: middle;">
-                                {{log|get_item:property|default:'-'}}
-                            </td>
-                        {% endfor %}
-                        {% if 'detected_by_rules' in log %}
-                            {% with log.detected_by_rules as detected_by_rules %}
-                            {% with log.severities as severities %}
-                                <td style="text-align:left;" class="log-entry">
-                                    {% with log|pop:'detected_by_rules' as log %}
-                                    {% with log|pop:'severities' as log %}
-                                    <div>
-                                        <span id="log_data_trunc_{{forloop.counter|add:index_num}}">
-                                            {{log|pprint|truncatechars:120}}
-                                            <button class="btn" type="button" onclick="displayLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-down"></i></button>
-                                        </span>
-                                    </div>
-                                    {% endwith %}
-                                    {% endwith %}
-                                </td>
+                    {% if log_list %}
+                        {% with page|add:'-1'|mul:25 as index_num %}
+                        {% for log in log_list %}
+                        <tr>
+                            <td style="vertical-align: middle;">{{forloop.counter|add:index_num}}</td>
+                            {% for property in table_properties %}
                                 <td style="vertical-align: middle;">
-                                    <div>
-                                        {% for rule in detected_by_rules %}
-                                            <form action="{% url 'logs_by_ruleset' system.lower rule %}" method="GET" style="display:inline;">
-                                                <input type="submit" value="{{rule}}" class="btn btn-md btn-{{severities|list_item:forloop.counter0|rule_color}}"/>
-                                            </form>
-                                        {% endfor %}
-                                    </div>
+                                    {{log|get_item:property|default:'-'}}
                                 </td>
-                            {% endwith %}      
-                            {% endwith %}
-                        {% else %}
-                            <td style="text-align:left;">
-                                <span id="log_data_trunc_{{forloop.counter|add:index_num}}">
-                                    {{log|pprint|truncatechars:110}}
-                                    <button class="btn" type="button" onclick="displayLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-down"></i></button>
+                            {% endfor %}
+                            {% if 'detected_by_rules' in log %}
+                                {% with log.detected_by_rules as detected_by_rules %}
+                                {% with log.severities as severities %}
+                                    <td style="text-align:left;" class="log-entry">
+                                        {% with log|pop:'detected_by_rules' as log %}
+                                        {% with log|pop:'severities' as log %}
+                                        <div>
+                                            <span id="log_data_trunc_{{forloop.counter|add:index_num}}">
+                                                {{log|pprint|truncatechars:120}}
+                                                <button class="btn" type="button" onclick="displayLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-down"></i></button>
+                                            </span>
+                                        </div>
+                                        {% endwith %}
+                                        {% endwith %}
+                                    </td>
+                                    <td style="vertical-align: middle;">
+                                        <div>
+                                            {% for rule in detected_by_rules %}
+                                                <form action="{% url 'logs_by_ruleset' system.lower rule %}" method="GET" style="display:inline;">
+                                                    <input type="submit" value="{{rule}}" class="btn btn-md btn-{{severities|list_item:forloop.counter0|rule_color}}"/>
+                                                </form>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                {% endwith %}      
+                                {% endwith %}
+                            {% else %}
+                                <td style="text-align:left;">
+                                    <span id="log_data_trunc_{{forloop.counter|add:index_num}}">
+                                        {{log|pprint|truncatechars:110}}
+                                        <button class="btn" type="button" onclick="displayLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-down"></i></button>
+                                    </span>
+                                </td>
+                                <td> <span class="text-muted">No rules detected</span> </td>
+                            {% endif %}
+                        </tr>
+                        <tr>
+                            <td colspan={{table_properties|length |add:3}} id="log_data_{{forloop.counter|add:index_num}}" class="text-left" style="display:none;">
+                                <div class="text-teiren">
+                                    <span>Log Data:</span>
+                                </div>
+                                <span>
+                                    {{log|pprint}}
+                                    <button class="btn" type="button" onclick="hideLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-up"></i></button>
                                 </span>
                             </td>
-                            <td> <span class="text-muted">No rules detected</span> </td>
-                        {% endif %}
-                    </tr>
+                        </tr>
+                        {% endfor %}
+                        {% endwith %}
+                    {% else %}
                     <tr>
-                        <td colspan={{table_properties|length |add:3}} id="log_data_{{forloop.counter|add:index_num}}" class="text-left" style="display:none;">
-                            <div class="text-teiren">
-                                <span>Log Data:</span>
-                            </div>
-                            <span>
-                                {{log|pprint}}
-                                <button class="btn" type="button" onclick="hideLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-up"></i></button>
-                            </span>
+                        <td colspan={{table_properties|length |add:3}}>
+                            No Data
                         </td>
                     </tr>
-                    {% endfor %}
-                    {% endwith %}
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -90,12 +98,12 @@
                 
                 {% if page_obj.has_previous %}
                     <li class="page-item" aria-current="page">
-                        <a href="?page=1">
+                        <a onclick="filterPage(this)" page="page=1" filter=''>
                             <button class="page-link">&laquo; 1</button>
                         </a>
                     </li>
                     <li class="page-item" aria-current="page">
-                        <a href="?page={{ page_obj.previous_page_number }}">
+                        <a onclick="filterPage(this)" page="page={{ page_obj.previous_page_number }}" filter=''>
                             <button class="page-link">Previous</button>
                         </a>
                     </li>
@@ -108,7 +116,7 @@
                         </li>
                     {% else %}
                         <li class="page-item" aria-current="page">
-                            <a href="?page={{ page_num }}">
+                            <a onclick="filterPage(this)" page="page={{ page_num }}" filter=''>
                                 <button class="page-link">{{ page_num }}</button>
                             </a>
                         </li>
@@ -116,16 +124,16 @@
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                <li class="page-item" aria-current="page">
-                    <a href="?page={{ page_obj.next_page_number }}">
-                        <button class="page-link">Next</button>
-                    </a>
-                </li>
-                <li class="page-item" aria-current="page">
-                    <a href="?page={{ page_obj.num_pages }}">
-                        <button class="page-link">{{ page_obj.num_pages }} &raquo;</button>
-                    </a>
-                </li>
+                    <li class="page-item" aria-current="page">
+                        <a onclick="filterPage(this)" page="page={{ page_obj.next_page_number }}" filter=''>
+                            <button class="page-link">Next</button>
+                        </a>
+                    </li>
+                    <li class="page-item" aria-current="page">
+                        <a onclick="filterPage(this)" page="page={{ page_obj.num_pages }}" filter=''>
+                            <button class="page-link">{{ page_obj.num_pages }} &raquo;</button>
+                        </a>
+                    </li>
                 {% endif %}
             </ul>
         </div>

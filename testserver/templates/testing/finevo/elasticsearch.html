@@ -80,21 +80,6 @@
         $(`#log_data_trunc_${e}`).show()
     }
 
-    function filterChange(e){
-        $.ajax({
-            url: '',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            data: $(e).serialize(),
-            type: 'get'
-        }).done(function(response){
-            console.log('test')
-            $('#log_table').html(response)
-            console.log(response)
-        })
-    }
-
     function addPropertyList(){
         var count = $('form#table_properties_form').find('input').length + 1
         

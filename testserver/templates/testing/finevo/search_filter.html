@@ -1,15 +1,14 @@
 {% load static %}
 {% load custom_filter %}
 <div class="searchcard shadow mb-4">
-    <form id="search" action="/test/log/{{system.lower}}/" method="GET">
+    <form id="search" onsubmit="querySearch(); return false;">
         <div class="searchcard-body py-3">
             {% if query.bool %}
             <input class="search-input" style="font-size: 15px;"name="query" placeholder="Search" value="{{query.bool|pop:'minimum_should_match'}}"/>
             {% else %}
-            <input class="search-input" style="font-size: 15px;"name="query" placeholder="Search" value="{'should': [{'match':{'key':'value'}}], 'must': [], 'must_not': []}"/>
+            <input class="search-input" style="font-size: 15px;"name="query" placeholder="Search" value=""/>
             {% endif %}
-            <input type="hidden" name="page" value="{{page}}" />
-            <button class="btn-search" type="submit">
+            <button class="btn btn-md btn-search" type="submit">
                 <span class="material-symbols-outlined">
                     search
                 </span>
@@ -38,6 +37,23 @@
             data: $(form).serializeArray()
         }).done(function(response){
             console.log(response)
+        })
+    }
+
+    function querySearch(){
+        var data = $('form#search').serialize()+'&'+$('form#filter_form').serialize()
+        $.ajax({
+            url: '',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: data,
+            type: 'get'
+        }).done(function(response){
+            $('#log_table').html(response)
+            $('.page-item a').each(function(){
+                $(this).attr('filter', data)
+            })
         })
     }
 </script>
