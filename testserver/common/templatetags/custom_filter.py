@@ -48,4 +48,8 @@ def rule_color(value):
 def get_type(value):
     print(type(value))
     return type(value)
-    
+
+
+@register.filter(name="get_item")
+def get_item(_dict, _key):
+    return _dict.get(_key, '')

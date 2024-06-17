@@ -35,16 +35,18 @@ STATIC_DIR = BASE_DIR / 'staticfiles'
 
 # Create your tests here.
 def main_test(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0] # 'X-Forwarded-For' header can contain multiple IP addresses
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    try:
-        xxx = requests.get('http://169.254.169.254/latest/meta-data/public-ipv4', timeout=2).text
-    except requests.exceptions.RequestException:
-        xxx = '127.0.0.1'
-    context = {'test': ip+'---'+xxx}
+    # x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    # if x_forwarded_for:
+    #     ip = x_forwarded_for.split(',')[0] # 'X-Forwarded-For' header can contain multiple IP addresses
+    # else:
+    #     ip = request.META.get('REMOTE_ADDR')
+    # try:
+    #     xxx = requests.get('http://169.254.169.254/latest/meta-data/public-ipv4', timeout=2).text
+    # except requests.exceptions.RequestException:
+    #     xxx = '127.0.0.1'
+    # context = {'test': ip+'---'+xxx}
+    
+    context = {'test': {'asdf': 123}, 'xxx': 'asdf'}
     
     return render(request, 'testing/test.html', context)
 
