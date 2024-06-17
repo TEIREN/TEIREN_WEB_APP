@@ -51,33 +51,87 @@ class LogManagement():
             logging.error(f"Error searching logs: {e}")
         return total_count, log_list
 
+    # 쿼리 문자열을 파싱하는 함수
+    def parse_query_string(self, query_string):
+        must_conditions = []
+        must_not_conditions = []
+        filters = {}
+
+        conditions = query_string.split('&')
+        for condition in conditions:
+            condition = condition.strip()
+            if '!=' in condition:
+                key, value = map(str.strip, condition.split('!='))  # NOT 조건 파싱
+                must_not_conditions.append({"match": {key: value}})
+                filters[f"NOT_{key}"] = [value]
+            else:
+                key, value = map(str.strip, condition.split(':'))  # AND 조건 파싱
+                must_conditions.append({"match": {key: value}})
+                filters[key] = [value]
+
+        return must_conditions, must_not_conditions, filters
+
+
+    """
+    AND 조건 쿼리: 시설이 daemon이고 심각도가 warning인 로그를 검색하는 쿼리:
+
+
+    facility: daemon & severity: warning
+
+    NOT 조건 쿼리: 시설이 daemon이 아니고 심각도가 warning인 로그를 검색하는 쿼리:
+
+
+    facility != daemon & severity: warning
+
+    복합 조건 쿼리: 시설이 daemon이고 심각도가 warning이며 애플리케이션이 nginx가 아닌 로그를 검색하는 쿼리:
+
+
+    facility: daemon & severity: warning & application != nginx
+
+    """
     # 필터링된 쿼리 함수
     def filter_query(self, filters):
         must_conditions = []
+        must_not_conditions = []
+        parsed_filters = {}
 
         for key, values in filters.items():
             if key in ["page", "csrfmiddlewaretoken"]:
                 continue
             if not isinstance(values, list):
                 values = [values]
-            should_conditions = [{"match": {key: value}} for value in values]
-            must_conditions.append({"bool": {"should": should_conditions, "minimum_should_match": 1}})
 
-        if must_conditions:
+            for value in values:
+                if '&' in value or '!=' in value:
+                    parsed_must, parsed_must_not, parsed_filter = self.parse_query_string(value)
+                    must_conditions.extend(parsed_must)
+                    must_not_conditions.extend(parsed_must_not)
+                    parsed_filters.update(parsed_filter)
+                else:
+                    if key.startswith("NOT_"):  # NOT 조건 처리
+                        field = key[4:]
+                        should_conditions = [{"match": {field: v}} for v in values]
+                        must_not_conditions.append({"bool": {"should": should_conditions, "minimum_should_match": 1}})
+                    else:  # 기본 AND 조건 처리
+                        must_conditions.append({"match": {key: value}})
+                        parsed_filters[key] = values
+
+        if must_conditions or must_not_conditions:
             self.query = {
                 "bool": {
-                    "must": must_conditions
+                    "must": must_conditions,
+                    "must_not": must_not_conditions
                 }
             }
         else:
             self.query = {"match_all": {}}
 
         logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
-        logging.debug(f"Filters Applied: {filters}")
+        logging.debug(f"Filters Applied: {parsed_filters}")
         return self.search_logs()
 
     # 페이지네이션 적용 함수
-    def paginate_logs(self, log_list, page_number, logs_per_page=25):  # 변경된 로그 수
+    def paginate_logs(self, log_list, page_number, logs_per_page=25):
         paginator = Paginator(log_list, logs_per_page)
         page_obj = paginator.get_page(page_number)
         return page_obj
@@ -107,7 +161,7 @@ class LogManagement():
             },
             "size": 10000
         }
-        
+
         response = self.es.search(index=f"test_{self.system}_syslog", body=query)
         hits = response['hits']['hits']
         
@@ -122,20 +176,27 @@ class LogManagement():
                         properties[key] = set()
                     if isinstance(value, (str, int, float, bool)):
                         properties[key].add(value)
-    
+
         properties_list = [{key: list(values)} for key, values in properties.items()]
-        
+
         return properties_list
 
-
-# 시스템 로그 리스트를 보여주는 함수
 def list_logs(request, system):
     # logging.basicConfig(level=logging.DEBUG)
+
+    
     page_number = int(request.GET.get('page', 1))
     system_log = LogManagement(system=system, page=page_number)    
     filters = dict(request.GET)
-    del filters['page']
+    if 'page' in filters:
+        del filters['page']
     if filters:
+        total_count, log_list = system_log.filter_query(filters)
+    # 필터 쿼리가 있는 경우 필터링된 로그만 검색
+    elif 'query' in filters:
+        query_string = filters.pop('query')[0]
+        parsed_must, parsed_must_not, parsed_filters = system_log.parse_query_string(query_string)
+        filters.update(parsed_filters)
         total_count, log_list = system_log.filter_query(filters)
     else:
         total_count, log_list = system_log.search_logs()
