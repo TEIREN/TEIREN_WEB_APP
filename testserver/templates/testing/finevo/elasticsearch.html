@@ -132,7 +132,7 @@
                                 {% endif %}
                             </tr>
                             <tr>
-                                <td colspan=5 id="log_data_{{forloop.counter|add:index_num}}" class="text-left" style="display:none;">
+                                <td colspan={{table_properties|length |add:3}} id="log_data_{{forloop.counter|add:index_num}}" class="text-left" style="display:none;">
                                     <div class="text-teiren">
                                         <span>Log Data:</span>
                                     </div>
