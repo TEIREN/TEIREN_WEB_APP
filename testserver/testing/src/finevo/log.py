@@ -121,7 +121,7 @@ def list_logs(request, system):
     page_obj = system_log.paginate_logs(log_list, page_number)
 
     # Ajax 요청 처리: Ajax 요청인 경우, 필터링된 로그 리스트와 기타 정보를 JsonResponse로 반환
-    if request.is_ajax():
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({
             'total_count': total_count,
             'log_list': [log for log in page_obj.object_list],
