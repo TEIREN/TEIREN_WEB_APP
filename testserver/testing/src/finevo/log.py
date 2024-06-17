@@ -25,7 +25,7 @@ class LogManagement():
             "linux": "@timestamp",
             "genian": "@timestamp",
             "window": "date",
-            "fortigate": "eventtime",
+            "fortigate": "eventtime.keyword",
             "mssql": "",
             "snmp": ""
         }
