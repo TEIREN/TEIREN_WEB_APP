@@ -35,7 +35,7 @@ var eventCount = new Chart(ctxeventCount, {
     labels: event_counts['name'],
     datasets: [{
       label: "Times Detected",
-      backgroundColor: '#24B6D4',
+      backgroundColor: event_counts['color'],
       borderColor: "#4e73df",
       data: event_counts['data']
     }],

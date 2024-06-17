@@ -14,8 +14,6 @@
     </div>
 </div>
 <script>
-    var destinationIP = {{dst_ip_counter.destinationIP|safe }}
-    var destinationIP_data = {{dst_ip_counter.data|safe }}
-    var max = {{dst_ip_counter.max|safe}}
+    var topDst = {{dst_ip_counter|safe }}
 </script>
 <script src="{% static '/dashboard/js/finevo/topDestinationIP.js' %}"></script>

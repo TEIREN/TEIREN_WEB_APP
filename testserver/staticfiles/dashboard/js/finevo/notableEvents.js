@@ -35,7 +35,7 @@ var notableEvents = new Chart(ctxnotableEvents, {
     labels: notable_events['name'],
     datasets: [{
       label: "Times Detected",
-      backgroundColor: '#24B6D4',
+      backgroundColor: notable_events['color'],
       borderColor: "#4e73df",
       data: notable_events['data']
     }],

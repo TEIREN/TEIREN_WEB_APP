@@ -32,12 +32,11 @@ var ctxtopDestinationIP = document.getElementById("topDestinationIP");
 var topDestinationIP = new Chart(ctxtopDestinationIP, {
   type: 'bar',
   data: {
-    labels: destinationIP,
+    labels: topDst['destinationIP'],
     datasets: [{
       label: "Times Detected",
-      backgroundColor: '#24B6D4',
-      borderColor: "#4e73df",
-      data: destinationIP_data
+      backgroundColor: topDst['color'],
+      data: topDst['data']
     }],
   },
   options: {
@@ -76,7 +75,7 @@ var topDestinationIP = new Chart(ctxtopDestinationIP, {
         ticks: {
           min: 0,
           maxTicksLimit: 5,
-          max: max
+          max: topDst['max']
         },
         gridLines: {
           color: "rgb(234, 236, 244)",

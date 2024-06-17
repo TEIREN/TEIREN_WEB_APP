@@ -32,12 +32,12 @@ var ctxtopSourceIP = document.getElementById("topSourceIP");
 var topSourceIP = new Chart(ctxtopSourceIP, {
   type: 'bar',
   data: {
-    labels: sourceIP,
+    labels: topSrc['sourceIP'],
     datasets: [{
       label: "Times Detected",
-      backgroundColor: '#24B6D4',
+      backgroundColor: topSrc['color'],
       borderColor: "#4e73df",
-      data: sourceIP_data
+      data: topSrc['data']
     }],
   },
   options: {
@@ -76,7 +76,7 @@ var topSourceIP = new Chart(ctxtopSourceIP, {
         ticks: {
           min: 0,
           maxTicksLimit: 5,
-          max: max
+          max: topSrc['max']
         },
         gridLines: {
           color: "rgb(234, 236, 244)",

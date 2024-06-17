@@ -14,8 +14,6 @@
     </div>
 </div>
 <script>
-    var sourceIP = {{src_ip_counter.sourceIP|safe }}
-    var sourceIP_data = {{src_ip_counter.data|safe }}
-    var max = {{src_ip_counter.max|safe}}
+    var topSrc = {{src_ip_counter|safe }}
 </script>
 <script src="{% static '/dashboard/js/finevo/topSourceIP.js' %}"></script>
