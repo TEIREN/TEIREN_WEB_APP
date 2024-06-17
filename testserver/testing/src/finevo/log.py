@@ -17,18 +17,28 @@ class LogManagement():
         self.system = system
         self.query = {"match_all": {}}  # 기본 쿼리 설정
         self.page_number = page
-
+        self.timestamp = self.get_timestamp()
+        
+    def get_timestamp(self):
+        timestamp_mapping = {
+            "linux": "@timestamp",
+            "genian": "@timestamp",
+            "window": "date",
+            "fortigate": "eventtime",
+        }
+        return timestamp_mapping[self.system]
+        
     # 로그 검색 함수
     def search_logs(self):
         try:
             self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 1000000})
-            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": 25,"query": self.query, "sort":{"@timestamp": "desc"}, "from":((self.page_number-1)*25)})
+            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": 25,"query": self.query, "sort":{f"{self.timestamp}": "desc"}, "from":((self.page_number-1)*25)})
             hits = response['hits']['hits']
             log_list = []
             for hit in hits:
                 log = hit['_source']
                 try:
-                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query":{"bool": {"must": [{"match": {"@timestamp": hit['_source']['@timestamp']}}]}}}, size=1000)
+                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query":{"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=1000)
                     if len(detected_response['hits']['hits']) > 0:
                         detected_rules = []
                         severities = []
@@ -161,11 +171,11 @@ class LogManagement():
             },
             "size": 10000
         }
-
+        
         response = self.es.search(index=f"test_{self.system}_syslog", body=query)
         hits = response['hits']['hits']
         
-        exclude_keys = {'@timestamp', 'message', 'timegenerated', '@version', 'teiren_stamp'} # 제외할 로그 프라퍼티
+        exclude_keys = {'@timestamp', 'message', 'timegenerated', '@version', 'date', 'eventtime','teiren_@timestamp', 'teiren_ddd', 'teiren_timestamp'} # 제외할 로그 프라퍼티
         
         properties = {}
         for hit in hits:
@@ -176,15 +186,15 @@ class LogManagement():
                         properties[key] = set()
                     if isinstance(value, (str, int, float, bool)):
                         properties[key].add(value)
-
+    
         properties_list = [{key: list(values)} for key, values in properties.items()]
-
+        
         return properties_list
 
+
+# 시스템 로그 리스트를 보여주는 함수
 def list_logs(request, system):
     # logging.basicConfig(level=logging.DEBUG)
-
-    
     page_number = int(request.GET.get('page', 1))
     system_log = LogManagement(system=system, page=page_number)    
     filters = dict(request.GET)
