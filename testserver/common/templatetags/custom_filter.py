@@ -32,13 +32,13 @@ def pop(value, prop):
 
 @register.filter(name="rule_color")
 def rule_color(value):
-    if value == '1':
+    if str(value) == '1':
         color = 'success'
-    elif value == '2':
+    elif str(value) == '2':
         color = 'info'
-    elif value == '3':
+    elif str(value) == '3':
         color = 'warning'
-    elif value == '4':
+    elif str(value) == '4':
         color = 'danger'
     else:
         color = 'dark'
@@ -46,10 +46,16 @@ def rule_color(value):
 
 @register.filter(name="get_type")
 def get_type(value):
-    print(type(value))
     return type(value)
 
 
 @register.filter(name="get_item")
 def get_item(_dict, _key):
     return _dict.get(_key, '')
+
+
+@register.simple_tag
+def page_range(page_number, max_page_number):
+    start_page = max(int(page_number)-5, 1)
+    end_page = min(int(page_number)+5, max_page_number)
+    return range(start_page, end_page+1)
