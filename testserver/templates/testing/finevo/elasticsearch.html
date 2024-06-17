@@ -57,7 +57,7 @@
                                 {% for value in values %}
                                 <div>
                                     <input id="{{value}}" name="{{key}}" value="{{value}}" type="checkbox">
-                                    <label for="{{value}}">{{value}}</lable>
+                                    <label for="{{value}}">{{value}}</label>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -84,7 +84,7 @@
                                 <th width="15%">Detected Rules</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="log_tbody">
                             {% with page|add:'-1'|mul:25 as index_num %}
                             {% for log in log_list %}
                             <tr>
@@ -173,39 +173,6 @@
                         {% endif %}
                     </ul>
                 </div>
-                {% comment %} <div class="d-flex justify-content-center">
-                    <ul style="display:flex; list-style: none;">
-                        {% if page_obj.has_previous %}
-                        <li class="page-item" aria-current="page">
-                            <button class="page-link" onclick="searchFilter(1)">Start</button>
-                        </li>
-                        <li class="page-item" aria-current="page">
-                            <button class="page-link" onclick="searchFilter({{page_obj.previous_page_number}})">Prev</button>
-                        </li>
-                        {% endif %}
-
-                        {% for page_number in page_obj.paginator.page_range %}
-                        {% if page_number == page_obj.now_page %}
-                        <li class="page-item active" aria-current="page">
-                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
-                        </li>
-                        {% else %}
-                        <li class="page-item">
-                            <button class="page-link" onclick="searchFilter({{ page_number }})">{{ page_number }}</button>
-                        </li>
-                        {% endif %}
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-                        <li class="page-item" aria-current="page">
-                            <button class="page-link" onclick="searchFilter({{page_obj.next_page_number}})">Next</button>
-                        </li>
-                        <li class="page-item" aria-current="page">
-                            <button class="page-link" onclick="searchFilter({{page_obj.paginator.num_pages}})">End</button>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </div> {% endcomment %}
             </div>
         </div>
     </div>
@@ -248,9 +215,28 @@
             type: 'get'
         }).done(function(response){
             console.log(response)
+            updateLogTable(response.log_list)
+        })
+    }
+
+    function updateLogTable(log_list){
+        var tbody = $('#log_tbody')
+        tbody.empty()
+        log_list.forEach(function(log, index){
+            var logDataTrunc = `<span id="log_data_trunc_${index}">${JSON.stringify(log).substring(0, 100)}<button class="btn" type="button" onclick="displayLogData(${index})"><i class="fa-solid fa-chevron-down"></i></button></span>`
+            var logDataFull = `<div class="text-teiren"><span>Log Data:</span></div><span>${JSON.stringify(log)}<button class="btn" type="button" onclick="hideLogData(${index})"><i class="fa-solid fa-chevron-up"></i></button></span>`
+            var logRow = `<tr>
+                            <td style="vertical-align: middle;">${index + 1}</td>
+                            <td style="vertical-align: middle;">${index + 1}</td>
+                            <td style="vertical-align: middle;">${index + 1}</td>
+                            <td style="text-align:left;" class="log-entry">${logDataTrunc}</td>
+                            <td> <span class="text-muted">No rules detected</span> </td>
+                          </tr>
+                          <tr>
+                            <td colspan=5 id="log_data_${index}" class="text-left" style="display:none;">${logDataFull}</td>
+                          </tr>`
+            tbody.append(logRow)
         })
     }
 </script>
 {% endblock script %}
-
-

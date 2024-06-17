@@ -15,7 +15,6 @@ genian log
 
 # genian 로그를 검색하는 함수
 def search_genian_logs(start_time=None, end_time=None):
-    # 시간 범위가 주어졌을 때와 아닐 때의 쿼리 생성
     query = {
         "query": {
             "range": {
@@ -65,7 +64,6 @@ fortigate log
 
 # fortigate 로그를 검색하는 함수
 def search_fortigate_logs(start_time=None, end_time=None):
-    # 시간 범위가 주어졌을 때와 아닐 때의 쿼리 생성
     query = {
         "query": {
             "range": {
@@ -91,7 +89,7 @@ def top_source_ip_fortigate(logs):
     src_ip_counter = Counter()
     for hit in logs:
         log = hit['_source']
-        src_ip = log.get('srcip', 'Unknown')
+        src_ip = log.get('srcip', 'Unknown')  # srcip 필드 사용
         src_ip_counter[src_ip] += 1
     return src_ip_counter
 
@@ -100,21 +98,21 @@ def top_destination_ip_fortigate(logs):
     dst_ip_counter = Counter()
     for hit in logs:
         log = hit['_source']
-        dst_ip = log.get('dstip', 'Unknown')
+        dst_ip = log.get('dstip', 'Unknown')  # dstip 필드 사용
         dst_ip_counter[dst_ip] += 1
     return dst_ip_counter
 
-# 장치별 트래픽 계산 함수
+# 방화벽별 트래픽 계산 함수 (vd 필드를 방화벽 식별자로 사용) , 
+# Finevo가 사용하는 대쉬보드에서 뭘 지정 했는지는정확히 모르겠음
 def traffic_by_device_fortigate(logs):
     traffic_by_device = defaultdict(lambda: {'sent': 0, 'received': 0})
     for hit in logs:
-        log = hit['_source']
-        src_ip = log.get('srcip', 'Unknown')
-        dst_ip = log.get('dstip', 'Unknown')
-        sent_byte = int(log.get('sentbyte', 0))
-        rcvd_byte = int(log.get('rcvdbyte', 0))
-        traffic_by_device[src_ip]['sent'] += sent_byte
-        traffic_by_device[dst_ip]['received'] += rcvd_byte
+        log = hit['_source'] 
+        device = log.get('vd', 'Unknown')  # vd 필드 사용
+        sent_byte = int(log.get('sentbyte', 0))  # sentbyte 필드 사용
+        rcvd_byte = int(log.get('rcvdbyte', 0))  # rcvdbyte 필드 사용
+        traffic_by_device[device]['sent'] += sent_byte
+        traffic_by_device[device]['received'] += rcvd_byte
     return traffic_by_device
 
 # 사용자별 트래픽 계산 함수
@@ -122,9 +120,9 @@ def traffic_by_user_fortigate(logs):
     traffic_by_user = defaultdict(lambda: {'sent': 0, 'received': 0})
     for hit in logs:
         log = hit['_source']
-        user = log.get('user', 'Unknown')
-        sent_byte = int(log.get('sentbyte', 0))
-        rcvd_byte = int(log.get('rcvdbyte', 0))
+        user = log.get('user', 'Unknown')  # user 필드 사용
+        sent_byte = int(log.get('sentbyte', 0))  # sentbyte 필드 사용
+        rcvd_byte = int(log.get('rcvdbyte', 0))  # rcvdbyte 필드 사용
         traffic_by_user[user]['sent'] += sent_byte
         traffic_by_user[user]['received'] += rcvd_byte
     return traffic_by_user
@@ -134,9 +132,9 @@ def traffic_by_application_fortigate(logs):
     traffic_by_application = defaultdict(lambda: {'sent': 0, 'received': 0})
     for hit in logs:
         log = hit['_source']
-        app = log.get('app', 'Unknown')
-        sent_byte = int(log.get('sentbyte', 0))
-        rcvd_byte = int(log.get('rcvdbyte', 0))
+        app = log.get('app', 'Unknown')  # app 필드 사용
+        sent_byte = int(log.get('sentbyte', 0))  # sentbyte 필드 사용
+        rcvd_byte = int(log.get('rcvdbyte', 0))  # rcvdbyte 필드 사용
         traffic_by_application[app]['sent'] += sent_byte
         traffic_by_application[app]['received'] += rcvd_byte
     return traffic_by_application
@@ -146,10 +144,10 @@ def traffic_by_interface_fortigate(logs):
     traffic_by_interface = defaultdict(lambda: {'sent': 0, 'received': 0})
     for hit in logs:
         log = hit['_source']
-        srcintf = log.get('srcintf', 'Unknown')
-        dstintf = log.get('dstintf', 'Unknown')
-        sent_byte = int(log.get('sentbyte', 0))
-        rcvd_byte = int(log.get('rcvdbyte', 0))
+        srcintf = log.get('srcintf', 'Unknown')  # srcintf 필드 사용
+        dstintf = log.get('dstintf', 'Unknown')  # dstintf 필드 사용
+        sent_byte = int(log.get('sentbyte', 0))  # sentbyte 필드 사용
+        rcvd_byte = int(log.get('rcvdbyte', 0))  # rcvdbyte 필드 사용
         traffic_by_interface[srcintf]['sent'] += sent_byte
         traffic_by_interface[dstintf]['received'] += rcvd_byte
     return traffic_by_interface
@@ -161,10 +159,11 @@ def event_counts_fortigate(logs):
     latest_events = []
     for hit in logs:
         log = hit['_source']
-        timestamp = log.get('@timestamp', 'Unknown')
+        # date와 time 필드를 결합하여 timestamp 생성
+        timestamp = f"{log.get('date')}T{log.get('time')}"  # date와 time 필드 사용
         if timestamp and timestamp != 'Unknown':
             try:
-                event_time = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
+                event_time = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
                 time_key = event_time.strftime('%Y-%m-%d %H:%M')
             except ValueError:
                 print(f"Skipping log with invalid timestamp: {timestamp}")
@@ -173,17 +172,17 @@ def event_counts_fortigate(logs):
             time_key = 'Unknown'
         
         event_counts[time_key] += 1
-        action = log.get('action', 'Unknown')
+        action = log.get('action', 'Unknown')  # action 필드 사용
         notable_events[action] += 1
 
         latest_events.append({
             "Time": timestamp,
-            "Device": log.get('device', 'Unknown'),
-            "Virtual_Domain": log.get('vd', 'Unknown'),
-            "Subtype": log.get('subtype', 'Unknown'),
-            "Level": log.get('level', 'Unknown'),
+            "Device": log.get('srcintf', 'Unknown'),  # srcintf 필드 사용
+            "Virtual_Domain": log.get('vd', 'Unknown'),  # vd 필드 사용
+            "Subtype": log.get('subtype', 'Unknown'),  # subtype 필드 사용
+            "Level": log.get('level', 'Unknown'),  # level 필드 사용
             "Action": action,
-            "Message": log.get('msg', 'Unknown')
+            "Message": log.get('msg', 'Unknown')  # msg 필드 사용
         })
 
     return event_counts, notable_events, latest_events[:10]
@@ -207,7 +206,7 @@ def main():
             src_ip_counter = top_source_ip_fortigate(fortigate_logs)
             # 상위 목적지 IP 계산
             dst_ip_counter = top_destination_ip_fortigate(fortigate_logs)
-            # 장치별 트래픽 계산
+            # 방화벽별 트래픽 계산
             traffic_by_device = traffic_by_device_fortigate(fortigate_logs)
             # 사용자별 트래픽 계산
             traffic_by_user = traffic_by_user_fortigate(fortigate_logs)
@@ -263,8 +262,7 @@ def main():
             }, ensure_ascii=False, indent=4))
         
         print("\n--- Waiting for next cycle ---\n")
-        # 30초 대기 (필요에 따라 조정 가능) 계속 가져올거면 예외 처리
-        time.sleep(30)
+        time.sleep(30)  # 조정 필요
 
 if __name__ == '__main__':
     main()

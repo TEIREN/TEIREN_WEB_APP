@@ -1,4 +1,5 @@
 import json
+import logging
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -39,25 +40,32 @@ class LogManagement():
         except Exception as e:
             total_count = 0
             log_list = []
-            print(f"Error searching logs: {e}")
+            logging.error(f"Error searching logs: {e}")
         return total_count, log_list
 
     # 필터링된 쿼리 함수
-    def filter_query(self, query):
-        page = query.pop('page') if 'page' in query else 'no page'
-        for clause in query:
-            try:
-                new_clause = json.loads(query[clause].replace("'", '"'))
-            except Exception as e:
-                new_clause = []
-                print(f"Error parsing query clause: {e}")
-            finally:
-                query[clause] = new_clause
-        if 'should' in query and len(query['should']) != 0:
-            query.update({"minimum_should_match": 1})
-        self.query = {
-            "bool": query
-        }
+    def filter_query(self, filters):
+        must_conditions = []
+
+        for key, values in filters.items():
+            if key in ["page", "csrfmiddlewaretoken"]:
+                continue
+            if not isinstance(values, list):
+                values = [values]
+            should_conditions = [{"match": {key: value}} for value in values]
+            must_conditions.append({"bool": {"should": should_conditions, "minimum_should_match": 1}})
+
+        if must_conditions:
+            self.query = {
+                "bool": {
+                    "must": must_conditions
+                }
+            }
+        else:
+            self.query = {"match_all": {}}
+
+        logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
+        logging.debug(f"Filters Applied: {filters}")
         return self.search_logs()
 
     # 페이지네이션 적용 함수
@@ -95,26 +103,44 @@ class LogManagement():
         return properties_list
 
 
-
 # 시스템 로그 리스트를 보여주는 함수
 def list_logs(request, system):
+    logging.basicConfig(level=logging.DEBUG)
     system_log = LogManagement(system=system)
     
-    # Get the page number from request
-    page_number = request.GET.get('page', 1)
-    test = dict(request.GET).get('sysloghost', '')
-    print(test)
-
-    # Perform the log search
-    total_count, log_list = system_log.search_logs()
+    page_number = int(request.GET.get('page', 1))
+    
+    filters = dict(request.GET)
+    
+    if filters:
+        total_count, log_list = system_log.filter_query(filters)
+    else:
+        total_count, log_list = system_log.search_logs()
 
     # Apply pagination
     page_obj = system_log.paginate_logs(log_list, page_number)
 
+    # Ajax 요청 처리: Ajax 요청인 경우, 필터링된 로그 리스트와 기타 정보를 JsonResponse로 반환
+    if request.is_ajax():
+        return JsonResponse({
+            'total_count': total_count,
+            'log_list': [log for log in page_obj.object_list],
+            'page_obj': {
+                'number': page_obj.number,
+                'has_previous': page_obj.has_previous(),
+                'has_next': page_obj.has_next(),
+                'previous_page_number': page_obj.previous_page_number() if page_obj.has_previous() else None,
+                'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
+                'paginator': {
+                    'num_pages': page_obj.paginator.num_pages
+                }
+            }
+        })
+
     # 룰셋을 기반으로 로그를 탐지합니다.
     index_choice = list(log_index.keys())[list(log_index.values()).index(f"test_{system}_syslog")]
     ruleset_index = ruleset_mapping[index_choice]
-    
+
     try:
         res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
         rulesets = res['hits']['hits']
@@ -160,10 +186,28 @@ def list_logs(request, system):
             'log_properties': log_properties
         }
 
+        return render(request, 'testing/finevo/elasticsearch.html', context=context)
+
     except ConnectionError as e:
-        print(f"Connection error: {e}")
+        logging.error(f"Connection error: {e}")
+        context = {
+            'total_count': 0,
+            'log_list': [],
+            'page_obj': None,
+            'system': system.title(),
+            'page': page_number,
+            'log_properties': []
+        }
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"An error occurred: {e}")
+        context = {
+            'total_count': 0,
+            'log_list': [],
+            'page_obj': None,
+            'system': system.title(),
+            'page': page_number,
+            'log_properties': []
+        }
 
     return render(request, 'testing/finevo/elasticsearch.html', context=context)
 
@@ -182,49 +226,11 @@ def logs_by_ruleset(request, system, ruleset_name):
 
         log_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 10000})
         log_list = [hit['_source'] for hit in log_res['hits']['hits']]
-        
-        log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
-
-        # Apply pagination
-        system_log = LogManagement(system=system)
-        page_obj = system_log.paginate_logs(log_list, page_number)
-
-        context = {
-            'total_count': len(log_list),
-            'log_list': page_obj.object_list,
-            'page_obj': page_obj,
-            'system': system.title(),
-            'ruleset_name': ruleset_name,
-            'page': page_number,
-            'ruleset': json.dumps(rule, indent=4)  # 룰셋 세부 정보를 prettified JSON으로 추가
-        }
-        return render(request, 'testing/finevo/logs_by_ruleset.html', context=context)
-
-    except ConnectionError as e:
-        return JsonResponse({"error": f"Connection error: {e}"}, status=500)
-    except Exception as e:
-        return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
-
-
-def logs_by_ruleset(request, system, ruleset_name):
-    try:
-        page_number = request.GET.get('page', 1)
-
-        ruleset_index = ruleset_mapping[list(log_index.keys())[list(log_index.values()).index(f"test_{system}_syslog")]]
-        res = es.search(index=ruleset_index, body={"query": {"match": {"name": ruleset_name}}})
-        if res['hits']['total']['value'] == 0:
-            return render(request, 'testing/finevo/error_page.html', {'error': f"No ruleset found with name {ruleset_name}"})
-        
-        rule = res['hits']['hits'][0]['_source']
-        rule_query = rule["query"]["query"]
-
-        log_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 10000})
-        log_list = [hit['_source'] for hit in log_res['hits']['hits']]
 
         # 각 로그 항목에 detected_by_rules 필드를 추가
         for log in log_list:
             log['detected_by_rules'] = [ruleset_name]
-
+        
         log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
 
         # Apply pagination
