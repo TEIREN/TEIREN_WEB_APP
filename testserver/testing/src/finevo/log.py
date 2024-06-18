@@ -303,35 +303,3 @@ def logs_by_ruleset(request, system, ruleset_name):
         return JsonResponse({"error": f"Connection error: {e}"}, status=500)
     except Exception as e:
         return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
-
-
-
-
-# res = es.search(index=f"{system}_ruleset", body={"query": {"match_all": {}}}, scroll='1m', size=10000)
-# rulesets = res['hits']['hits']
-# logs_detected = {}
-
-# for rule in rulesets:
-#     rule_query = rule["_source"]["query"]["query"]
-#     rule_name = rule["_source"]["name"]
-#     severity = rule["_source"]["severity"]
-
-#     log_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query}, scroll='1m', size=10000)
-#     logs_found = log_res['hits']['total']['value']
-
-#     if logs_found > 0:
-#         for log in log_res['hits']['hits']:
-#             log_id = log["_id"]
-#             log_doc = log["_source"]
-
-#             if log_id not in logs_detected:
-#                 logs_detected[log_id] = log_doc
-#                 logs_detected[log_id]["detected_by_rules"] = []
-#                 logs_detected[log_id]["severities"] = []
-
-#             logs_detected[log_id]["detected_by_rules"].append(rule_name)
-#             logs_detected[log_id]["severities"].append(severity)
-
-# detected_log_list = list(logs_detected.values())
-# all_logs = log_list + detected_log_list
-# all_logs.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')), reverse=True)
