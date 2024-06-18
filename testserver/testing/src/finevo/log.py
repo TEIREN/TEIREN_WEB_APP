@@ -9,6 +9,8 @@ from elasticsearch import Elasticsearch, ConnectionError
 # Elasticsearch 클라이언트를 설정합니다.
 es = Elasticsearch(hosts=["http://3.35.81.217:9200/"])
 
+# Docker 로그에 기록되도록 로깅 설정
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # 로그 관리 클래스
 class LogManagement():
