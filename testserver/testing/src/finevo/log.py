@@ -80,30 +80,44 @@ class LogManagement():
                 must_not_conditions.append({"match": {key: value}})
                 filters[f"NOT_{key}"] = [value]
             else:
-                key, value = map(str.strip, condition.split(':'))  # AND 조건 파싱
-                must_conditions.append({"match": {key: value}})
-                filters[key] = [value]
+                key, value = map(str.strip, condition.split(':'))  # 기본 조건 파싱
+                if key not in filters:
+                    filters[key] = []
+                filters[key].append(value)
+
+        for key, values in filters.items():
+            if key.startswith("NOT_"):
+                continue
+            if len(values) > 1:
+                must_conditions.append({
+                    "bool": {
+                        "should": [{"match": {key: value}} for value in values],
+                        "minimum_should_match": 1
+                    }
+                })
+            else:
+                must_conditions.append({"match": {key: values[0]}})
 
         return must_conditions, must_not_conditions, filters
 
-
     """
-    AND 조건 쿼리: 시설이 daemon이고 심각도가 warning인 로그를 검색하는 쿼리:
+    OR 조건 쿼리 : 
 
+    facility: daemon & facility:user
+
+    AND 조건 쿼리: 
 
     facility: daemon & severity: warning
 
-    NOT 조건 쿼리: 시설이 daemon이 아니고 심각도가 warning인 로그를 검색하는 쿼리:
-
+    NOT 조건 쿼리: 
 
     facility != daemon & severity: warning
 
-    복합 조건 쿼리: 시설이 daemon이고 심각도가 warning이며 애플리케이션이 nginx가 아닌 로그를 검색하는 쿼리:
+    복합 조건 쿼리: 
 
-
-    facility: daemon & severity: warning & application != nginx
-
+    severity : err & severity : notice & facility != user
     """
+
     # 필터링된 쿼리 함수
     def filter_query(self, filters):
         must_conditions = []
