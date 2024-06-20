@@ -105,6 +105,7 @@ class LogManagement():
     def filter_query(self, filters):
         must_conditions = []
         must_not_conditions = []
+        should_conditions = {}
         parsed_filters = {}
 
         for key, values in filters.items():
@@ -124,9 +125,15 @@ class LogManagement():
                         field = key[4:]
                         should_conditions = [{"match": {field: v}} for v in values]
                         must_not_conditions.append({"bool": {"should": should_conditions, "minimum_should_match": 1}})
-                    else:  # 기본 AND 조건 처리
-                        must_conditions.append({"match": {key: value}})
+                    else:  # 기본 OR 조건 처리
+                        if key not in should_conditions:
+                            should_conditions[key] = []
+                        should_conditions[key].append({"match": {key: value}})
                         parsed_filters[key] = values
+
+        # should_conditions를 must_conditions로 변환
+        for key, conditions in should_conditions.items():
+            must_conditions.append({"bool": {"should": conditions, "minimum_should_match": 1}})
 
         if must_conditions or must_not_conditions:
             self.query = {
