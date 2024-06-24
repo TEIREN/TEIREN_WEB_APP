@@ -1,0 +1,25 @@
+<div id="flow{{flow_num}}_{{prop_num}}" class="form-group row text-center prop">
+    <div class="text-center col-6 mb-1">
+        <span>Property</span>
+        <br>
+        <input type="text-area" class="form-control form-control-user" list="flow_list_{{flow_num}}_{{prop_num}}" name="flow_key_{{flow_num}}_{{prop_num}}" onchange="newPropertyKey(this)" placeholder="Property">
+        <datalist id="flow_list_{{flow_num}}_{{prop_num}}">
+            <option value='Property'></option>
+            <option value='New Property'></option>
+            {% for property in log_properties %}
+                {% if property == "eventSource" %}
+                {% else %}
+                    <option value={{property}}></option>
+                {% endif %}
+            {% endfor%}
+        </datalist>
+    </div>
+    <div class="col-5">
+        <span>Value</span>
+        <input type="text-area" class="form-control form-control-user" name="flow_val_{{flow_num}}_{{prop_num}}" placeholder="Value">
+    </div>
+    <div class="col-1 d-flex align-items-center px-0">
+        <button type="button" class="btn btn-teiren btn-sm ml-auto mr-auto" style="border-radius:40px" onclick="addDynamicProperty({{flow_num}})">+</button>
+        <button type="button" class="btn btn-danger btn-sm mr-auto" style="border-radius:40px" onclick="deleteDynamicProperty(this)">-</button>
+    </div>
+</div>
