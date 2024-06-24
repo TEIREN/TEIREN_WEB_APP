@@ -22,5 +22,6 @@ urlpatterns = [
     path('integration/mssql/', integration.integration_mssql),
     path('integration/snmp/', integration.integration_snmp),
     path('integration/transmission/', integration.integration_transmission),
-    path('rule/config/', rule.rule_config_page),
+    path('rule/<system>/', rule.rule_config_page),
+    path('rule/<system>/<action_type>/', rule.rule_config_action)
 ]

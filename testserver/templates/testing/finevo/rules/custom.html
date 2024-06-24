@@ -64,7 +64,7 @@
         </tbody>
     </table>
 </div>
-<button onclick='addRuleModal("{{logType}}")' class='btn btn-teiren btn-md btn-block'>Add Rule</button>
+<button data-toggle='modal' data-target='#rule-modal' class='btn btn-teiren btn-md btn-block'>Add Rule</button>
 <script type="text/javascript">
     $(function() {
         $.fn.dataTable.ext.type.order['threat-level-pre'] = function(data) {
