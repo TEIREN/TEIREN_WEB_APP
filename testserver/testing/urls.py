@@ -1,6 +1,6 @@
 from django.urls import path
 from .src import tests
-from .src.finevo import integration, log, dashboard, tableProperty
+from .src.finevo import integration, log, dashboard, tableProperty, rule
 
 urlpatterns = [
     path('', tests.main_test),
@@ -22,4 +22,5 @@ urlpatterns = [
     path('integration/mssql/', integration.integration_mssql),
     path('integration/snmp/', integration.integration_snmp),
     path('integration/transmission/', integration.integration_transmission),
+    path('rule/config/', rule.rule_config_page),
 ]

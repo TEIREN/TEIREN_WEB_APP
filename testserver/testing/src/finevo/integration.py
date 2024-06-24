@@ -110,6 +110,7 @@ def integration_action_linux(request):
     # temp = tempfile.NamedTemporaryFile(suffix=".sh")
     temp.write(response.content)
     temp.close()
+    print(temp.name)
     return FileResponse(open(temp.name, 'rb'), as_attachment=True, filename=filename)
 
 def integration_linux(request):
