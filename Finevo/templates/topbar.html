@@ -1,0 +1,67 @@
+{% load static %}
+<!-- Content Wrapper -->
+<div id="content-wrapper" class="d-flex flex-column">
+    <!-- Main Content -->
+    <div id="content">
+        <!-- Topbar -->
+        <nav class="topbar shadow">
+            <!-- Topbar Logo -->
+            <a href="/dashboard/">
+                <div class="topbar-logo">
+                    <img src="{% static '/img/teiren_icon.png' %}" class="topbar-logo-img">
+                    TEIREN CLOUD
+                </div>
+            </a>
+            <!-- Topbar Navbar -->
+            <ul class="navbar-icon">
+                <!-- TOP BAR NAV ITEM-->
+                <li >
+                    <a class="nav-link" href="/threat/notifications/logs/">
+                        <i id="topbar_alert" class="h3 fa-regular fa-bell"></i>
+                    </a>
+                </li>
+                {% comment %} <li >
+                    <a class="nav-link">
+                        <span class="material-symbols-outlined">
+                            settings
+                        </span>
+                    </a>
+                    <div class="collapse" style="right:auto; margin-left:-65px;">
+                        <a class="row align-items-start" href="/configurations/account/">
+                            <span class="material-symbols-outlined mr-2">
+                                manage_accounts
+                            </span>
+                            <span>Account </span>
+                        </a>
+                        <div class="divider"></div>
+                        <a class="row align-items-start" href="/configurations/dashboard/">
+                            <span class="material-symbols-outlined mr-2">
+                                dashboard_customize
+                            </span>
+                            <span>Dashboard</span>
+                        </a>
+                    </div>
+                </li> {% endcomment %}
+                <div class="divider"></div>
+                <!-- TOP BAR USER INFO-->
+                <li >
+                    <a class="nav-link">
+                        <div class="h6 mr-2 d-flex align-items-center font-weight-bold">
+                            {{user}}
+                            <i class="h4 fa-solid fa-circle-user ml-2"></i>
+                        </div>
+                    </a>
+                    <div class="collapse">
+                        <a class="row align-items-start" href="/auth/logout/">
+                            <span class="material-symbols-outlined mr-2">
+                                logout
+                            </span>
+                            <span>logout</span>
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+        <!-- End of Topbar -->
+    </div>
+</div>

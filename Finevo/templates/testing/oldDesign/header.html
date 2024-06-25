@@ -1,0 +1,296 @@
+{% load static %}
+<!-- Content Wrapper -->
+<div id="content-wrapper" class="d-flex flex-column">
+    <!-- Main Content -->
+    <div id="content">
+        <!-- Topbar -->
+        <nav class="topbar navbar navbar-expand navbar-dark bg-topbar mb-2 static-top shadow">
+
+            <!-- Topbar Logo -->
+            <a href="/dashboard">
+                <div class="navbar-brand" style="margin-top:-15px;">
+                    <img src="{% static '/img/teiren2-side-logo.png' %}" class="topbar-brand-logo">
+                </div>
+            </a>
+            <!-- Topbar Navbar -->
+            <ul class="navbar-nav">
+
+                <!-- TOP BAR NAV ITEM-->
+                <li class="nav-item dropdown no-arrow mx-1" id='dashboard_top'>
+                    <a class="nav-link dropdown-toggle" href="/dashboard" id="dashboard" role="button"
+                        aria-haspopup="true" aria-expanded="false">
+                        <span class="h6 mr-2 d-lg-inline">대시보드</span>
+                    </a>
+                </li>
+
+                <!-- TOP BAR NAV ITEM-->
+                <li class="nav-item dropdown no-arrow mx-1" id='log_top'>
+                    <a class="nav-link dropdown-toggle" id="logs" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <span class="h6 mr-2 d-lg-inline">로그관리</span>
+                    </a>
+                    <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="logs">
+                        <h6 class="dropdown-header">
+                            클라우드 로그
+                        </h6>
+                        <a id='ncpcloudlog' class="dropdown-item d-flex align-items-center disabled" href="#">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Naver</div>
+                                <div class="text-truncate">NCP 로그</div>
+                            </div>
+                        </a>
+                        <a id='nhncloudlog' class="dropdown-item d-flex align-items-center disabled" href="#">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">NHN</div>
+                                <div class="text-truncate">NHN 로그</div>
+                            </div>
+                        </a>
+                        <a id='awscloudlog' class="dropdown-item d-flex align-items-center" href="/logs/aws">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Amazon</div>
+                                <div class="text-truncate">AWS 로그</div>
+                            </div>
+                        </a>
+                        <h6 class="dropdown-header">
+                            솔루션 로그
+                        </h6>
+                        <a id='officekeeperlog' class="dropdown-item d-flex align-items-center disabled" href="#">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">지란지교</div>
+                                <div class="text-truncate">Office Keeper 로그</div>
+                            </div>
+                        </a>
+
+                        <h6 class="dropdown-header">
+                            시스템 로그
+                        </h6>
+                        <a id='window_SecLoglog' class="dropdown-item d-flex align-items-center disabled" href="#">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Windows</div>
+                                <div class="text-truncate">Windows Event 로그</div>
+                            </div>
+                        </a>
+                    </div>
+                </li>
+
+                <!-- TOP BAR NAV ITEM-->
+                <li class="nav-item dropdown no-arrow mx-1" id='system_top'>
+                    <a class="nav-link dropdown-toggle" id="systems" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <span class="h6 mr-2 d-lg-inline">장비관리</span>
+
+                    </a>
+                    <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="systems">
+                        <h6 class="dropdown-header">
+                            연동 관리
+                        </h6>
+                        <a id='integration' class="dropdown-item d-flex align-items-center"
+                            href="/integration">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Integration</div>
+                                <div class="text-truncate">제품 연동</div>
+                            </div>
+                        </a>
+                    </div>
+                </li>
+
+                <!-- TOP BAR NAV ITEM-->
+                <li class="nav-item dropdown no-arrow mx-1" id='threat_top'>
+                    <a class="nav-link dropdown-toggle" id="threats" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <span class="h6 mr-2 d-lg-inline">위협관리</span>
+                        <div id="topbar_alert_div"class="d-flex justify-content-center">
+                            <i id="topbar_alert" class="text-danger fa-solid fa-triangle-exclamation fa-beat" style="font-size:1rem; margin-top:-0.2rem" hidden></i>
+                        </div>
+                    </a>
+                    <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="threats">
+                        <h6 class="dropdown-header">
+                            위협알림
+                        </h6>
+                        <a class="dropdown-item d-flex align-items-center" href="/threat/notifications/logs">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Theat Alert</div>
+                                <div class="text-truncate">위협 알림
+                                    <span id="topbar_alert_count" class="badge badge-danger text-center" style="border-radius:10px"></span>
+                                </div>
+                            </div>
+                        </a>
+                        <h6 class="dropdown-header">
+                            룰 설정
+                        </h6>
+                        <a id='rule_all' class="dropdown-item align-items-center disabled" href="/threat/rules/all">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">All</div>
+                                <div class="text-truncate">전체 룰 설정</div>
+                            </div>
+                        </a>
+                        <a id='rule_ncp' class="dropdown-item d-flex align-items-center disabled" href="#">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Naver</div>
+                                <div class="text-truncate">NCP 룰 설정</div>
+                            </div>
+                        </a>
+                        <a id='rule_nhn' class="dropdown-item d-flex align-items-center disabled" href="#">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">NHN</div>
+                                <div class="text-truncate">NHN 룰 설정</div>
+                            </div>
+                        </a>
+                        <a id='rule_aws' class="dropdown-item d-flex align-items-center" href="/threat/rules/aws">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Amazon</div>
+                                <div class="text-truncate">AWS 룰 설정</div>
+                            </div>
+                        </a>
+                        <a id='rule_ofk' class="dropdown-item d-flex align-items-center disabled" href="#">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">지란지교</div>
+                                <div class="text-truncate">Office Keeper 룰 설정</div>
+                            </div>
+                        </a>
+                        <h6 class="dropdown-header">
+                            Graph 시각화
+                        </h6>
+                        <a id='visuals_user' class="dropdown-item d-flex align-items-center" href="/threat/visuals/user">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">USER</div>
+                                <div class="text-truncate">사용자 중심 분석</div>
+                            </div>
+                        </a>
+                        <a id='visuals_ip' class="dropdown-item d-flex align-items-center disabled" href="#">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Ip</div>
+                                <div class="text-truncate">Ip 중심 분석</div>
+                            </div>
+                        </a>
+                    </div>
+                </li>
+
+                <!-- TOP BAR NAV ITEM-->
+                <li class="nav-item dropdown no-arrow mx-1" id='setting_top'>
+                    <a class="nav-link dropdown-toggle" id="settings" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <span class="h6 mr-2 d-lg-inline">설정변경</span>
+
+                    </a>
+                    <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="configurations">
+                        <h6 class="dropdown-header">
+                            SIEM 설정
+                        </h6>
+                        {% comment %} <a id='default_setting' class="dropdown-item d-flex align-items-center" href="#">
+                            <div class="font-weight-bold" >
+                                <div class="small text-gray-500">Default</div>
+                                <div class="text-truncate">기본 설정</div>
+                            </div>
+                        </a> {% endcomment %}
+                        <a id='default_setting' class="dropdown-item d-flex align-items-center"
+                            href="/configurations/dashboard">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Dashboard</div>
+                                <div class="text-truncate">대시보드 설정</div>
+                            </div>
+                        </a>
+                        <a id='default_setting' class="dropdown-item d-flex align-items-center"
+                            href="/configurations/account">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Account</div>
+                                <div class="text-truncate">사용자 설정</div>
+                            </div>
+                        </a>
+                    </div>
+                </li>
+
+                 <!-- TOP BAR NAV ITEM-->
+                 <!--  <li class="nav-item dropdown no-arrow mx-1" id=compliance_top>
+                    <a class="nav-link dropdown-toggle" id="compliance" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <span class="h6 mr-2 d-lg-inline">컴플라이언스</span>
+
+                    </a>
+                    <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="compliance">
+                        <h6 class="dropdown-header">
+                            컴플라이언스
+                        </h6>
+                        <a id='comliance_dashboard' class="dropdown-item d-flex align-items-center"
+                            href="/compliance/compliance">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Dashboard</div>
+                                <div class="text-truncate">컴플라이언스 대시보드</div>
+                            </div>
+                        </a>
+                        <a id='compliance_report' class="dropdown-item d-flex align-items-center"
+                            href="/compliance/report">
+                            <div class="font-weight-bold">
+                                <div class="small text-gray-500">Report</div>
+                                <div class="text-truncate">보고서 추출</div>
+                            </div>
+                        </a>
+                    </div>
+                </li> -->
+
+                <!-- TOP BAR DIVIDER -->
+                <div class="topbar-divider d-sm-block"></div>
+                <!-- TOP BAR USER INFO-->
+                <li class="nav-item dropdown no-arrow">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <span class="h5 mr-2 d-lg-inline font-weight-bold"> 
+                            {{user}}
+                            <i class="fa-solid fa-user text-white ml-2" style=""></i>
+                        </span>
+                    </a>
+                    <!-- Dropdown - User Information -->
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                        aria-labelledby="userDropdown">
+                        <a class="dropdown-item disabled" href="/settings/admins/">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item disabled" href="/settings/default">
+                            <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        {% if user.is_authenticated %}
+                        <a class="dropdown-item" data-toggle="modal" data-target="#logoutModal">
+                            <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Logout
+                        </a>
+                        {% else %}
+                        <a class="dropdown-item" href="/login">
+                            <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Login
+                        </a>
+                        {% endif %}
+                    </div>
+                </li>
+            </ul>
+        </nav>
+        <!-- End of Topbar -->
+
+        <!-- Logout Modal-->
+        <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">로그아웃 하시겠습니까?</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">메인화면으로 돌아갑니다</div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">취소</button>
+                        <a class="btn btn-teiren" href="{% url 'logout' %}">로그아웃</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

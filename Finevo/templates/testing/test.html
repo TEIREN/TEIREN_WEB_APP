@@ -1,0 +1,36 @@
+{% load static %}
+{% block head %}
+<!-- Jquery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="{% static '/js/jquery-easing/jquery.easing.min.js' %}"></script>
+{% endblock %}
+{% block content %}
+<style>
+
+</style>
+<div class="mt-4" style="font-size:20px;">
+    <form id='test'>
+        <input type="checkbox" name="testinput" value="1">1
+        <input type="checkbox" name="testinput" value="2">2
+        <input type="checkbox" name="testinput" value="3">3
+    </form>
+    <button onclick="fff()">dddddd</button>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    function fff(){
+        console.log($('#test').serializeArray())
+        $.ajax({
+            url:'ajax/',
+            headers:{
+                'X-CSRFToken':  '{{csrf_token}}'
+            },
+            data: $('#test').serialize(),
+            type: 'post'
+        }).done(function(response){
+            console.log(response)
+        })
+    }
+</script>
+{% endblock %}

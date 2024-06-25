@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<!-- Chart.js-->
+<script src="{% static '/plugin/chart.js/Chart.bundle.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
+
+<!-- Cytoscape.js -->
+<script src="{% static '/plugin/cytoscape.js/WebCola/cola.min.js' %}"></script>
+<script src="https://unpkg.com/popper.js@1.14.4/dist/umd/popper.js"></script>
+<script src="https://unpkg.com/tippy.js@2.6.0/dist/tippy.all.js"></script>
+<script src="https://unpkg.com/cytoscape@3.18.0/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/cytoscape-cola@2.2.3/cytoscape-cola.js"></script>
+<script src="https://unpkg.com/cytoscape-popper@1.0.2/cytoscape-popper.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-euler@1.2.2/cytoscape-euler.min.js"></script>
+<script src="https://unpkg.com/bluebird@3.5.2/js/browser/bluebird.js"></script>
+
+<!-- Jquery-ui -->
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<!-- Gridstack -->
+<link rel="stylesheet" href="{% static '/plugin/gridstack/gridstack.css' %}">
+<script src="{% static '/plugin/gridstack/gridstack-all.js' %}"></script>
+
+<!-- Page Essential -->
+{% endblock %}
+{% block content %}
+<!-- Begin Page Content -->
+<div class="grid-stack">
+    <div id="no_data" class="justify-content-center text-teiren" style="display:hidden; margin:40vh 0; font-size:30px">
+        <a href="/configurations/dashboard">
+            <button class="btn btn-teiren">Click Here to Customize Dashboard</button>
+        </a>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script src="{% static '/dashboard/js/default_layout.js' %}"></script>
+<script src="{% static '/dashboard/js/dashboard.js' %}"></script>
+{% endblock %}

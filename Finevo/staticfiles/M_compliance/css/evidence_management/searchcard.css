@@ -1,0 +1,242 @@
+.searchcard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fbfefe;
+    background-clip: border-box;
+    border: 1px solid #eaeaea;
+    border-radius: 5px;
+}
+
+.searchcard-body {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 1.25rem;
+}
+
+.searchcard .searchcard-body .btn-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 130px;
+    max-width: 130px;
+    overflow: hidden;
+    color: #57626F;
+    background-color: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 5px;
+    margin-right:20px;
+    padding: 6px 15px;
+    font-size: 12px;
+}
+
+.searchcard .searchcard-body .btn-select:focus {
+    outline: none;
+    border: 1px solid #24b6d4;
+}
+
+.searchcard .searchcard-body .search-input {
+    display: flex;
+    align-items: center;
+    width: 85%;
+    margin: 0 auto;
+    padding: 8px 15px;
+    color: #57626F;
+    background-color: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
+.searchcard .searchcard-body .search-input:focus {
+    outline: none;
+    border: 1px solid #24b6d4;
+}
+
+.searchcard .searchcard-body .btn-search {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #fff;
+    background-color: #24b6d4;
+    border: 2px solid #24b6d4;
+    border-radius: 5px;
+    padding: 5px 15px;
+    margin-left: 20px;
+    transition: all 0.3s;
+}
+
+.searchcard .searchcard-body .btn-search:hover {
+    color: #24b6d4;
+    background-color: #f2fefe;
+}
+
+.searchcard .searchcard-body .btn-collapse {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    border: none;
+    margin-left: auto;
+    color: #57626F;
+}
+
+.searchcard .searchcard-body .btn-collapse:hover {
+    color: #24b6d4;
+}
+
+.searchcard .searchcard-collapse {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 1.25rem;
+    padding-top: 0;
+}
+
+
+.searchcard .searchcard-collapse .collapsebox{
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    padding-right: 15px;
+    padding-left: 0;
+}
+
+.searchcard .searchcard-collapse .searchbox {
+    display: flex;
+    width: 100%;
+    padding: 0;
+}
+
+.searchcard .searchcard-collapse .searchbox .calandar{
+    width: 75%;
+    display:flex;
+    flex-direction: row;
+    align-items: center;
+    border: 1px solid #eaeaea;
+    border-left: none;
+    border-radius: 5px;
+
+}
+
+.searchcard .searchcard-collapse .searchbox .calandar-input{
+    width: 50%;
+    display:flex;
+    margin-left: 5px;
+    border: none;
+    font-size: 12px;
+}
+
+.searchcard .searchcard-collapse .regexbox {
+    display: flex;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.searchcard .searchcard-collapse .regexbox .regex-input{
+    display: flex;
+    width: 100%;
+    color: #57626F;
+    background-color: #fff;
+    border: 1px solid #24b6d4;
+    border-radius: 5px;
+    padding: 5px 15px;
+    font-size: 12px;
+}
+
+.searchcard .searchcard-collapse .regexbox .regex-input:focus{
+    outline: none;
+}
+
+.searchcard .searchcard-collapse .searchbox-header {
+    display: flex;
+    width: 25%;
+    color: #fff;
+    background-color: #24b6d4;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    padding: 5px 15px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.searchcard .searchcard-collapse .searchbox-input {
+    display: flex;
+    width: 100%;
+    color: #57626F;
+    background-color: #fff;
+    border: 1px solid #eaeaea;
+    border-left: none;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    padding: 5px 15px;
+    font-size: 12px;
+}
+
+.searchcard .searchcard-collapse .searchbox-input:focus {
+    outline: none;
+    caret-color: #ddd;
+}
+
+.searchcard .searchcard-collapse .disabled{
+    pointer-events: none;
+    color: #a6aaaf !important;
+}
+
+.searchcard .searchcard-collapse .btn-reset {
+    display: flex;
+    align-items: center;
+    color: #24b6d4;
+    border: none;
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.3s;
+    margin-left:auto;
+}
+
+.searchcard .searchcard-collapse .btn-reset:hover {
+    font-weight: 900;
+}
+
+.searchcard .searchcard-collapse .btn-info {
+    display: flex;
+    align-items: center;
+    color: #12536b;
+    border: none;
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.3s;
+}
+
+.searchcard .searchcard-collapse .btn-info:hover {
+    font-weight: 900;
+}
+
+
+/* Dropdown */
+
+.search-dropdown-menu{
+    position: absolute;
+    z-index: 1000;
+    display: none;
+    width: 21.5%;
+    height: 100%;
+    padding: 0.5rem 0;
+    margin: 0.125rem 0 0;
+    font-size: 0.85rem;
+    color: #858796;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+}
+
+/* End Dropdown */
