@@ -1,5 +1,6 @@
 from django.urls import path
 from . import ajax_views, views
+from .src.rule import elasticsearch_rule
 
 urlpatterns = [
     # Risk Management
@@ -7,6 +8,8 @@ urlpatterns = [
     path('notifications/<threat>/', views.notification_view),
     # ## rules
     path('rules/<resourceType>/<logType>/', views.rules_view),
+    path('rules/<resourceType>/<system>/elasticsearch/<action_type>/', elasticsearch_rule.rule_config_action),
+    
     ## visuals
     path('visuals/<threat>/', views.visuals_view),
     # User Threat AJAX ajax

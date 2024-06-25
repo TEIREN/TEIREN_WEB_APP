@@ -6,6 +6,7 @@ from .src.visual.user.user import UserThreat
 from .src.visual.ip.folium import folium_test
 from .src.notification.detection import Detection
 from .src.notification.notification import Notification
+from .src.rule.elasticsearch_rule import rule_config_page
 
 # django
 from django.shortcuts import render, HttpResponse
@@ -41,17 +42,19 @@ def notification_view(request, threat):
 # Rules
 @login_required
 def rules_view(request, resourceType, logType):
-    # 여긴 POST 검사 안함?
-    with Default(request=request) as __default:
-        context = __default.get_custom_rules(logType)
-        context.update(__default.get_default_rules(logType))
-    if resourceType == 'cloud':
-        logType = (' ').join(logType.split('_')).upper()
+    if logType in ['aws', 'teiren_cloud']:
+        with Default(request=request) as __default:
+            context = __default.get_custom_rules(logType)
+            context.update(__default.get_default_rules(logType))
+        if resourceType == 'cloud':
+            logType = (' ').join(logType.split('_')).upper()
+        else:
+            logType = (' ').join(logType.split('_')).title()
+        context.update({'logType': logType})
+        context.update({'resourceType': resourceType})
+        return render(request, f"M_threatD/rules/rule.html", context)
     else:
-        logType = (' ').join(logType.split('_')).title()
-    context.update({'logType': logType})
-    context.update({'resourceType': resourceType})
-    return render(request, f"M_threatD/rules/rule.html", context)
+        return rule_config_page(request=request, system=logType)
 
 
 ## Visuals
