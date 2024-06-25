@@ -1,0 +1,14 @@
+<div>
+    <div class='content'>
+        <button type='button' onclick='changerule("new", this, {{count}}, "{{cloud}}")' class='btn btn-md btn-outline-teiren mt-4'>신규 행위로 변경</button>
+        <div class="form-group row text-center mt-4">
+            <input type='hidden' name='ruleType_{{count}}' value='default'/>
+            <select name='ruleName_{{count}}' class="btn btn-md" style="background-color:#FFFFFF; border-color:#E5E5E5; width:800px; margin:auto">
+                <option>행위 선택</option>
+                {% for action in actions %}
+                <option value="{{action}}">{{action}}</option>
+                {% endfor %}
+            </select> &nbsp;
+        </div>
+    </div>
+</div>

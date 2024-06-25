@@ -1,0 +1,19 @@
+{% load static %}
+<div id="recentCollectedOverview" class="h-100">
+    <div class="card shadow h-100 w-100">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header">
+            <div class="h6 m-0 font-weight-bold text-primary text-uppercase">Collected Logs Overview</div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body pl-0 pb-0">
+            <div class="chart-area" style="height:100%;">
+                <canvas id="recentOverview"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static '/dashboard/js/recentCollectedOverview.js' %}"></script>
+<script>
+    {"Month": {{ month|safe }}, "collected_month": {{ collected_month|safe }}}
+</script>

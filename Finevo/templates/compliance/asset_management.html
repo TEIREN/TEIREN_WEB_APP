@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static '/M_compliance/css/asset_management/tab.css' %}">
+<link rel="stylesheet" href="{% static '/M_compliance/css/asset_management/searchcard.css' %}">
+{% endblock head %}
+{% block content %}
+<!-- Begin Page Content -->
+<div class="locationbar ml-2">
+    <span>Compliance Management&nbsp;&nbsp;>&nbsp;&nbsp; </span>
+    <span class="current">Asset Management<span>
+</div>
+<div>
+    <h6 class="h3 mb-2 font-weight-bold text-gray-800 ml-2">Assets Management</h6>
+    <p class="h6 mb-4 ml-2">Manage Registered Assets</p>
+</div>
+<div class="d-flex text-center mb-2 ml-2">
+    <div class="tabs row">
+        <a class="tab active" onclick="assetChange('All')">
+            All
+        </a>
+        {% for asset in data_list %}
+        <a class="tab" onclick="assetChange('{{asset}}')">
+            {{asset}}
+        </a>
+        {% endfor %}
+        <a class="tab" onclick="assetChange('File')">
+            File
+        </a>
+        <div class="my-auto">
+            <button class="btn btn-md btn-outline-teiren" style="border-radius:10px;" data-toggle="modal" data-target="#assets_category_add">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4 ml-2" id="asset_table">
+    <div class="card-header py-3 mt-2">
+        <h6 class="m-0 mb-3 font-weight-bold text-teiren">All Asset Management</h6>
+        {% include "./asset_management/searchcard.html" %} 
+    </div>
+    <div class="card-body" style="font-size:15px;">
+        <div class="table-responsive" style="overflow:hidden;">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                   style="text-align:center;font-size:15px;">
+                <thead>
+                    <tr>
+                        <th style="width:10%">Category</th>
+                        <th style="width:10%">Type</th>
+                        <th>Serial No</th>
+                        <th>Name</th>
+                        <th>Usage</th>
+                        <th>Data</th>
+                        <th>Level</th>
+                        <th>PoC</th>
+                        <th style="width:10%">User</th>
+                        <th style="width:15%">Upload Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asset in assets%}
+                    <tr>
+                        <td>{{asset.dataType}}</td>
+                        <td>{{asset.assetType}}</td>
+                        <td>{{asset.assetNo}}</td>
+                        <td>{{asset.assetName}}</td>
+                        <td>{{asset.assetUsage}}</td>
+                        <td>{{asset.assetData}}</td>
+                        <td>{{asset.assetLevel}}</td>
+                        <td>{{asset.assetPoC}}</td>
+                        <td>{{asset.assetUser}}</td>
+                        <td>{{asset.assetDate}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--Add Asset Category Modal -->
+<div class="modal hide fade card-body" id="assets_category_add" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Add Asset Category</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="add_category_form" enctype="multipart/form-data">         
+                    <p>Asset Category Name:<input type="text" class="form-control" id='category_name' name="category_name" value=''></p>
+                    <p>Category Comment: <input type="text" class="form-control" id='category_comment' name="category_comment" value='' placeholder="Enter a Comment for the Category"></p>
+                    {% csrf_token %}
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='submit' id='add' class="btn btn-md btn-outline-teiren" value="Add">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function assetChange(dataType){
+        $('#asset_table').hide()
+        $.ajax({
+            url:`/compliance/assets/${dataType}/`,
+            headers:{
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            type: 'post'
+        }).done(function(response){
+            if(response.trim().startsWith('<head')){
+                location.reload()
+                return 0
+            }
+            $('#dataTable').DataTable().destroy()
+            $('#asset_table').html(response)
+            $('#dataTable').DataTable({
+                info: true,
+                searching: false,
+                lengthChange: false
+            })
+            $('#asset_table').show()
+        })
+    }
+
+    $('#add_category_form').on('submit', function(e){
+        e.preventDefault();
+
+        var formData = new FormData(this)
+        
+        $.ajax({
+            url: '/compliance/assets/table/add/',
+            headers: {
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            data: formData,
+            type: 'post',
+            processData: false,  // Important!
+            contentType: false,  // Important!
+            success: function(response) {
+                alert(response);
+                if(response === 'Successfully Created Asset Category'){
+                    location.reload()
+                    return 0
+                }
+            }
+        });
+    })
+
+    $('#dataTable').DataTable({
+        info: true,
+        searching: false,
+        lengthChange: false
+    })
+
+
+    $('.tabs > a.tab').on('click', (event) => {
+        $(event.target).parent('.tabs').find('> a.tab.active').removeClass('active');
+        $(event.target).addClass('active');
+    });
+</script>
+<script src="{% static '/M_compliance/js/asset_management/searchcard.js' %}"></script>
+<script>$('#compliance_side').addClass('active');</script>
+{% endblock %}
+
+

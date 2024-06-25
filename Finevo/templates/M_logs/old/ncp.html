@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<head>
+    <link rel="stylesheet" href="{% static '/css/tab.css' %}">
+</head>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <h6 class="h5 mb-2 text-gray-800 ml-2 font-weight-bold">{{ type }} 로그 확인하기</h6>
+
+    <p class="mb-4 ml-2">모든 로그들을 한번에 확인할 수 있습니다. </p>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4 ">
+        <div class="card-header py-3" data-toggle="collapse" href="#searchCollapse" role="button" aria-expanded="false" aria-controls="collapseExample">
+            <h6 class="m-0 font-weight-bold text-teiren ">작업 내역 검색</h6>
+        </div>
+
+        <div class="card-body collapse" id="searchCollapse">
+            <div class="table-responsive" style="overflow:hidden;">
+                <!-- 검색 기능-->
+                <form name="classify_filtering" method="POST" action="log">
+                    <div class='ml-0 row'>
+                        <div class="dropdown mb-4">
+                            상품
+                            <button class="btn btn-sm border border-1 dropdown-toggle" type="button" style='width:auto;' id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            </button>
+                            <div class="dropdown-menu animated--fade-in scrollable-menu" aria-labelledby="dropdownMenuButton" style="width:250px; height:150px; overflow:auto;">
+                                <input type="checkbox" onclick="selectAll(this,'productName[]')"> 전체<br>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown ml-3 mb-4">
+                            계정구분
+                            <button class="btn btn-sm border border-1 dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            </button>
+                            <div class="dropdown-menu animated--fade-in scrollable-menu" aria-labelledby="dropdownMenuButton" style="width:auto; height:auto;overflow:auto;">
+                                <input type="checkbox" onclick="selectAll(this,'actionUserType[]')"> 전체<br>
+
+                            </div>
+                        </div>
+
+                        <div class="dropdown ml-3 mb-4">
+                            조회기간
+                            <select class="btn btn-sm border border-1" name="period" id="period">
+                            </select>
+                        </div>
+                    </div>
+                    <div class='ml-0 row'>
+                        <div class="dropdown mb-4">
+                            직접입력
+                        </div>
+                    </div>
+
+
+                    <div class="dropdown mb-4">
+                        상세검색
+                        <select class="btn btn-sm border border-1" name="cate" id="search_opt">
+
+                        </select>
+                        <input class="btn-sm border border-1" type=text name='search' id="search_box" placeholder="검색어를 입력해주세요">
+                        <button type=button class="btn btn-outline-info btn-sm" data-toggle='modal' data-target='#help'>help</button>
+                    </div>
+
+
+                    <input class="btn btn-outline-teiren btn-sm" type=submit value=검색>
+                    <a href="log" class="btn btn-outline-warning btn-sm">초기화</a>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-teiren">로그 목록 ({{ total_log }}개 중 {{ current_log.0 }}~{{ current_log.1 }})</h6>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive" style="overflow:hidden;">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="table-layout:fixed;text-align:center;">
+                    <thead>
+                    <tr>
+                        <th>historyId</th>
+                        <th>nrn</th>
+                        <th>eventTime</th>
+                        <th>sourceType</th>
+                        <th>productDataStatus</th>
+                        <th>actionResultType</th>
+                        <th>상세 보기</th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <th>historyId</th>
+                        <th>nrn</th>
+                        <th>eventTime</th>
+                        <th>sourceType</th>
+                        <th>productDataStatus</th>
+                        <th>actionResultType</th>
+                        <th>상세 보기</th>
+                    </tr>
+                    </tfoot>
+                    <tbody>
+                    {%for log in page_obj.log_list%}
+                    <tr>
+                        <td>{{log.historyId}}</td>
+                        <td>{{log.nrn| truncatechars:50}}</td>
+                        <td>{{log.eventTime}}</td>
+                        <td>{{log.sourceType }}</td>
+                        <td>{{log.productDataStatus}}</td>
+                        <td>{{log.actionResultType | truncatechars:50}}</td>
+                        <td>
+                        <button class="btn btn-teiren btn-md" style="font-size:0.7vw" data-toggle="modal" data-target="#detail" data-id={{log.historyId}} data-cloud={{type}}>
+                            상세정보</button>
+                        </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- 페이지리스트 -->
+                <div>
+                    <ul style="display:flex; list-style: none;">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item" aria-current="page">
+                            <a class="page-link" href="?page=1">처음</a>
+                        </li>
+                        <li class="page-item" aria-current="page">
+                            <a class="page-link" href="?page={{page_obj.previous_page_number}}">이전</a>
+                        </li>
+                        {% endif %}
+
+                        {% for page_number in page_obj.paginator.page_range %}
+                        {% if page_number == page_obj.now_page %}
+                        <li class="page-item active" aria-current="page">
+                            <a class="page-link" href="?page={{ page_number }}">{{ page_number }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_number }}">{{ page_number }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item" aria-current="page">
+                            <a class="page-link" href="?page={{page_obj.next_page_number}}">다음</a>
+                        </li>
+                        <li class="page-item" aria-current="page">
+                            <a class="page-link" href="?page={{page_obj.paginator.num_pages}}">끝</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL -->
+<!-- Detail Modal -->
+<div class="modal fade card-body" id="detail" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class='card-body'>
+        <div class="modal-dialog">
+            <div class="modal-content" style='width:1000px; height:auto;'>
+                <button type="button" class="close" style="margin-top:30px; margin-left:900px;" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+                <img src="{% static '/img/teiren-side-logo.png' %}" style="margin:0 auto; margin-bottom:0; width:300px; height: 100px;">
+                <div class="modal-body card-body" id='detail-body'>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-teiren" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Help Modal-->
+<div class="modal fade card-body" id="help" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:1000px; height:auto'>
+            <button type="button" class="close" style="margin-top:30px; margin-left:900px" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">x</span>
+            </button>
+            <div class="modal-body card-body" id='help-body'></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-teiren" type="button" data-dismiss="modal">확인</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    $('#detail').on('show.bs.modal', function(event) {
+        var button = $(event.relatedTarget);
+        var id = button.data('id')
+        var cloud = button.data('cloud')
+        $.ajax({
+            url: '/modal/log/details/',
+            headers:{
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: {
+                id: id,
+                cloud: cloud
+            },
+            type: 'post'
+        }).done(function(data) {
+            $('#detail-body').html(data)
+        }).fail(function(data) {
+            $('#detail-body').html('fail')
+        })
+    })
+    $('#help').on('show.bs.modal', function(event) {
+        $.ajax({
+            url: '/modal/log/help/',
+            headers:{
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            type: 'post'
+        }).done(function(data) {
+            $('#help-body').html(data)
+        }).fail(function(data) {
+            $('#help-body').html('fail')
+        })
+    })
+    $(function() {
+        $('#log_top').addClass('show')
+    })
+</script>
+{% endblock %}

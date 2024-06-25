@@ -1,0 +1,571 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filter %}
+{% block content %}
+
+<!-- Begin Page Content -->
+
+<div class="locationbar ml-2">
+    <span>Compliance Management&nbsp;&nbsp;>&nbsp;&nbsp;Compliance &nbsp;&nbsp;>&nbsp;&nbsp;<a href="/compliance/evidence/">Evidence Management</a>&nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">{{product_name}}&nbsp;&nbsp;>&nbsp;&nbsp;{{data_name}}<span>
+</div>
+
+
+<!-- Page Heading -->
+<h6 class="h3 mb-2 font-weight-bold text-gray-800 ml-2">{{data_name}}</h6>
+<p class="h6 mb-4 ml-2">Manage evidence files & related compliance.</p>
+<div class="card shadow mb-4" id="log_table">
+    <div class="card-header py-3">
+        <h5 class="m-0 font-weight-bold text-teiren">Overview</h5>
+    </div>
+    
+    <div class="card-body" style="font-size:15px;">
+        <div class="table-responsive" style="overflow:hidden;">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                style="table-layout:fixed;text-align:center;font-size:15px;">
+                <tbody>
+                    {%for data in data_list%}
+                        <tr>
+                            <th style="width:20%;">Name</th>
+                            <td>{{data.data.name}}</td>
+                        </tr>
+                        <tr>
+                            <th>Comment</th>
+                            <td>{{data.data.comment}}</td>
+                        </tr>
+                        <tr>
+                            <th>Product</th>
+                            <td>{{data.product.name}}</td>
+                        </tr>
+                        <tr>
+                            <th>Author</th>
+                            <td>{{data.data.author}}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Update Time</th>
+                            <td>{{data.data.last_update}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4" id="log_table">
+    <div id="preview_div"></div>
+    <div class="card-header py-3 row">
+        <h5 class="m-0 font-weight-bold text-teiren">Evidence File Manage</h5>
+        <button class="btn btn-md btn-teiren ml-auto mr-3" data-toggle="modal" data-target="#file_add" data-name="{{data_name}}" data-author="{{user}}"><i class="fa-solid fa-plus mr-2"></i>Add File</button>           
+    </div>
+    <div class="card-body" style="font-size:15px;">
+        <div class="table-responsive" style="overflow:hidden;">
+            <table class="table table-bordered" id="file_dataTable" width="100%" cellspacing="0"
+                style="table-layout:fixed;text-align:center;font-size:15px;">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Name</th>
+                        <th>Comment</th>
+                        <th>Version</th>
+                        <th>PoC</th>
+                        <th>Author</th>
+                        <th>Upload Date</th>
+                        {% comment %} <th>Preview</th> {% endcomment %}
+                        <th>Download</th>
+                        <th>Modify</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%for file in file_list%}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td>{{file.name}}</td>
+                            <td>{{file.comment}}</td>
+                            <td>{{file.version}}</td>
+                            <td>{{file.poc}}</td>
+                            <td>{{file.author}}</td>
+                            <td>{{file.upload_date}}</td>
+                            {% comment %} <td>
+                                <form>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="name" value="{{file.name}}">
+                                    <input type="hidden" name="comment" value="{{file.comment}}">
+                                    <button type="button" class="btn btn-md btn-outline-teiren" onClick="preview(this)"><i class="fa-solid fa-magnifying-glass mr-2"></i>Preview</button>
+                                </form>
+                            </td> {% endcomment %}
+                            <td>
+                                <form method="POST" action="/compliance/evidence/file/download/" target="_blank">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="name" value="{{file.name}}">
+                                    <input type="hidden" name="comment" value="{{file.comment}}">
+                                    <button type="submit" class="btn btn-md btn-outline-teiren"><i class="fa-solid fa-download mr-2"></i>Download</button>
+                                </form>
+                            </td>
+                            <td>
+                                <button class="btn btn-md btn-teiren" data-toggle="modal" data-target="#file_mod" 
+                                data-data-name="{{data_name}}" data-name="{{file.name}}" data-comment="{{file.comment}}" data-version="{{file.version}}"
+                                data-poc="{{file.poc}}" data-author="{{file.author}}" data-last-update="{{file.last_update}}"><i class="fa-solid fa-pen-to-square mr-2"></i>Modify</button>
+                            </td>
+                            <td>         
+                                <button class="btn btn-md btn-danger" data-toggle="modal" data-target="#file_delete" 
+                                data-data-name="{{data_name}}" data-name="{{file.name}}" data-comment="{{file.comment}}" data-version="{{file.version}}"
+                                data-poc="{{file.poc}}" data-author="{{file.author}}" data-upload-date="{{file.upload_date}}"><i class="fa-solid fa-trash mr-2"></i>Delete</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4" id="log_table">
+    <div class="card-header py-3 row">
+        <h5 class="m-0 font-weight-bold text-teiren">Related Compliance Management</h5>
+        <button class="btn btn-md btn-teiren ml-auto mr-3" data-toggle="modal" data-target="#com_add"><i class="fa-solid fa-plus mr-2"></i>Add Related Compliance</button>           
+    </div>
+
+    <div class="card-body" style="font-size:15px;">
+        <div class="table-responsive" style="overflow:hidden;">
+            <table class="table table-bordered" id="compliance_dataTable" width="100%" cellspacing="0"
+                style="table-layout:fixed;text-align:center;font-size:15px;">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Compliance</th>
+                        <th>Version Date</th>
+                        <th>Chapter</th>
+                        <th>Section</th>
+                        <th>Article</th>
+                        <th>Details</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {%for compliance in related_compliance_list%}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{compliance.version.name}}</td>
+                        <td>{{compliance.version.date}}</td>
+                        <td>{{compliance.chapter.no}} {{compliance.chapter.name}}</td>
+                        <td>{{compliance.section.no}} {{compliance.section.name}}</td>
+                        <td>{{compliance.article.no}} {{compliance.article.name}}</td>
+                        <td>
+                            <form method="POST" action="/compliance/lists/{{compliance.version.name}}/details/">
+                                {% csrf_token %}
+                                <input type="hidden" name="no" value="{{compliance.article.no}}"/>
+                                <input type="hidden" name="name" value="{{compliance.article.name}}"/>
+                                <input type="hidden" name="product" value="{{product_name}}"/>
+                                <input type="hidden" name="version" value="{{compliance.version.date}}"/>
+                                <button class="btn btn-md btn-teiren"><i class="fa-solid fa-circle-info mr-2"></i>Details</button>
+                            </form>
+                        </td>
+                        <td>
+                            <button class="btn btn-md btn-danger" data-toggle="modal" data-target="#compliance_delete" 
+                                data-compliance="{{compliance.version.name}}" data-version="{{compliance.version.date}}" data-article="{{compliance.article.no}} {{compliance.article.name}}">
+                                <i class="fa-solid fa-trash mr-2"></i>Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Evidence File Modal -->
+<div class="modal hide fade card-body" id="file_add" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Add Evidence File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="file_add_form">
+                    <p>Data Name: <input class="form-control" name="data_name" type="text" readonly></p>
+                    {% comment %} <p>File: <div class="form-control"><input name="file" type="file" accept="image/*, .pdf, .xlsx, .xls, .hwp, .hwpx, .ppt, .pptx, .csv, .docx, .doc"></div></p> {% endcomment %}
+                    <p>File: <div class="form-control"><input name="file" type="file" accept=".png, .jpg, .jpeg, .pdf"></div></p>
+                    <p>File Comment: <input class="form-control" name="comment" type="text"></p>
+                    <p>Author: <input class="form-control" name="author" type="text" readonly></p>
+                    <p>Version: <input class="form-control" name="version" type="text"></p>
+                    <p>PoC: <input class="form-control" name="poc" type="text"></p>
+                    <input type="hidden" name="product" value="{{product_name}}">
+                    {% comment %} <h6>image 파일 전체, pdf, 엑셀(xlsx, xls, csv), 한글파일(hwp, hwpx), 파워포인트(ppt, pptx), 워드(docx, doc)</h6> {% endcomment %}
+                    <h6> .png, .jpg, .jpeg, .pdf 파일 형식만 업로드 가능합니다. </h6>
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' id='file_add_accept' class="btn btn-md btn-teiren" value="Save">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modify Evidence File Modal -->
+<div class="modal hide fade card-body" id="file_mod" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Modify Evidence File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="file_modify_form">
+                    <p>Data Name: <input class="form-control" name="data_name" type="text" readonly></p>
+                    <p>Last Update(Auto Change): <input class="form-control" name="last_update" type="text" readonly></p>
+                    <p>File Name: <input class="form-control" name="name" type="text" readonly></p>
+                    <p>File Comment: <input class="form-control" name="comment" type="text"></p>
+                    <p>File Author: <input class="form-control" name="author" type="text" readonly></p>
+                    <p>File Version: <input class="form-control" name="version" type="text"></p>
+                    <p>File PoC: <input class="form-control" name="poc" type="text"></p>
+                    <input type="hidden" name="og_comment">
+                    <input type="hidden" name="product" value="{{product_name}}">
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' id='file_modify_accept' class="btn btn-md btn-teiren" value="Modify">
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Delete Evidence File Modal -->
+<div class="modal hide fade card-body" id="file_delete" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-danger" id='modal_title'>Delete Evidence File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="file_delete_form">
+                    <p>Data Name: <input class="form-control" name="data_name" type="text" readonly></p>
+                    <p>File Name: <input class="form-control" name="name" type="text" readonly></p>
+                    <p>File Comment: <input class="form-control" name="comment" type="text" readonly></p>
+                    <p>File Author: <input class="form-control" name="author" type="text" readonly></p>
+                    <p>File Version: <input class="form-control" name="version" type="text" readonly></p>
+                    <p>File PoC: <input class="form-control" name="poc" type="text" readonly></p>
+                    <p>Uploaded Date: <input class="form-control" name="upload_date" type="text" readonly></p>
+                    <input type="hidden" name="product" value="{{product_name}}">
+                </form>
+                <h5 class="text-danger">Will You Delete Evidence File?</h5>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' id='file_delete_accept' class="btn btn-md btn-danger" value="Delete">
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Compliance Modal -->
+<div class="modal hide fade card-body" id="com_add" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Add Related Compliance</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="compliance_add_form">
+                    <input class="form-control" name="data_name" value="{{data_name}}" type="hidden">
+                    <p>Related Compliance:
+                        <select class="form-control" id="compliance" name="compliance" onchange="updateVersion()">
+                            <!-- 초기에는 아무것도 선택되지 않도록 빈 옵션 추가 -->
+                            <option value="">Choose Compliance</option>
+                            {% for compliance in compliance_list %}
+                            <option value="{{compliance}}">{{compliance}}</option>
+                            {% endfor %}
+                        </select>
+                    </p>
+                    <p>Related Compliance Version:
+                        <select class="form-control" id="version_selected" name="version" onchange="updateArticle()">
+                            <!-- 초기에는 아무것도 선택되지 않도록 빈 옵션 추가 -->
+                            <option value=""></option>
+                        </select>
+                    </p>
+                    <p>Related Compliance Article:
+                        <select class="form-control" id="article_selected" name="article">
+                            <!-- 초기에는 아무것도 선택되지 않도록 빈 옵션 추가 -->
+                            <option value=""></option>
+                        </select>
+                    </p>
+
+                    <!--더 많은 Relation Compliance를 추가할 수 있는 코드를 아래 제작해야 함-->
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' class="btn btn-md btn-teiren" onclick="addRelatedCompliance()" value="Add">
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Related Complaince Modal -->
+<div class="modal hide fade card-body" id="compliance_delete" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-danger" id='modal_title'>Delete Evidence File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="compliance_delete_form">
+                    <input class="form-control" name="data_name" value="{{data_name}}" type="hidden">
+                    <p>Related Compliance: <input class="form-control" name="compliance" type="text" readonly></p>
+                    <p>Related Compliance Version: <input class="form-control" name="version" type="text" readonly></p>
+                    <p>Related Compliance Article <input class="form-control" name="article" type="text" readonly></p>
+                </form>
+                <h5 class="text-danger">Will You Delete Compliance Relation?</h5>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' class="btn btn-md btn-danger" onClick="deleteRelatedCompliance()" value="Delete">
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#file_dataTable').DataTable({
+        info: true,
+        searching: false,
+        lengthChange: false
+    })
+    $('#compliance_dataTable').DataTable({
+        info: true,
+        searching: false,
+        lengthChange: false
+    })
+
+    $('#file_add').on('shown.bs.modal', function (e) {
+        $('#file_add_form input[name="data_name"]').val($(e.relatedTarget).data('name'));
+        $('#file_add_form input[name="author"]').val($(e.relatedTarget).data('author'))
+    });
+
+    $('#file_add_accept').click(function() {
+        var formData = new FormData($('#file_add_form')[0]);    
+        $.ajax({
+            url: '/compliance/evidence/file/add/',
+            headers: {
+                'X-CSRFToken': "{{ csrf_token }}"
+            },
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false
+        }).done(function(response){
+            alert(response)
+            if(response.startsWith("Success")){
+                location.reload()
+                return 0
+            }
+        })
+    })
+
+    $('#file_mod').on('shown.bs.modal', function (e) {
+        var button = $(e.relatedTarget); // 클릭된 버튼
+
+        $('#file_modify_form input[name="data_name"]').val(button.data('data-name'));
+        $('#file_modify_form input[name="last_update"]').val(button.data('last-update'));
+        $('#file_modify_form input[name="name"]').val(button.data('name'));
+        $('#file_modify_form input[name="comment"]').val(button.data('comment'));
+        $('#file_modify_form input[name="og_comment"]').val(button.data('comment'));
+        $('#file_modify_form input[name="author"]').val(button.data('author'));
+        $('#file_modify_form input[name="version"]').val(button.data('version'));
+        $('#file_modify_form input[name="poc"]').val(button.data('poc'));
+    });
+
+
+
+    $('#file_modify_accept').click(function() {
+        $.ajax({
+            url: '/compliance/evidence/file/modify/',
+            headers: {
+                'X-CSRFToken': "{{ csrf_token }}"
+            },
+            type: 'POST',
+            data: $('#file_modify_form').serialize()
+        }).done(function(response){
+            alert(response)
+            if(response.startsWith("Success")){
+                location.reload()
+                return 0
+            }
+        })
+    });
+
+    $('#file_delete').on('shown.bs.modal', function (e) {
+        var button = $(e.relatedTarget); // 클릭된 버튼
+        $('#file_delete_form input[name="data_name"]').val(button.data('data-name'));
+        $('#file_delete_form input[name="upload_date"]').val(button.data('upload-date'));
+        $('#file_delete_form input[name="name"]').val(button.data('name'));
+        $('#file_delete_form input[name="comment"]').val(button.data('comment'));
+        $('#file_delete_form input[name="author"]').val(button.data('author'));
+        $('#file_delete_form input[name="version"]').val(button.data('version'));
+        $('#file_delete_form input[name="poc"]').val(button.data('poc'));
+    });
+
+    $('#file_delete_accept').click(function (){
+        $.ajax({
+            url: '/compliance/evidence/file/delete/',
+            headers: {
+                'X-CSRFToken': "{{ csrf_token }}"
+            },
+            type: 'POST',
+            data: $('#file_delete_form').serialize()
+        }).done(function(response){
+            alert(response)
+            if(response.startsWith("Success")){
+                location.reload()
+                return 0
+            }
+        })
+    })
+
+function addRelatedCompliance(){
+    $.ajax({
+        url: '/compliance/evidence/compliance/add/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: $('#compliance_add_form').serialize()
+    }).done(function(response){
+        alert(response)
+        if(response.startsWith("Success")){
+            location.reload()
+            return 0
+        }
+    })
+}
+
+$('#compliance_delete').on('shown.bs.modal', function (e) {
+    var button = $(e.relatedTarget); // 클릭된 버튼
+    $('#compliance_delete_form input[name="compliance"]').val(button.data('compliance'));
+    $('#compliance_delete_form input[name="version"]').val(button.data('version'));
+    $('#compliance_delete_form input[name="article"]').val(button.data('article'));
+});
+
+function deleteRelatedCompliance(){
+    $.ajax({
+        url: '/compliance/evidence/compliance/delete/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: $('#compliance_delete_form').serialize()
+    }).done(function(response){
+        alert(response)
+        if(response.startsWith("Success")){
+            location.reload()
+            return 0
+        }
+    })
+}
+// 상위 카테고리가 변경될 때 호출되는 함수
+function updateVersion() {
+    $.ajax({
+        url: '/compliance/evidence/data/get_version/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: {
+            "compliance": $('#compliance').val()
+        }
+    }).done(function(response){
+        var version_list = response['version_list'];
+        $('#article_selected').html('')
+        $('#version_selected').html('')
+        $('#version_selected').append(
+            $('<option>').text('Choose Compliance Version').attr('disabled', true).attr('selected', true)
+        )
+        $(version_list).each(function(i){
+            var version = $('<option>').text(this).val(this)
+            $('#version_selected').append(version)
+        })
+    })
+}
+
+
+// 하위 카테고리를 서버에서 받아오는 함수
+function updateArticle() {
+    $.ajax({
+        url: '/compliance/evidence/data/get_article/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: {
+            "compliance": $('#compliance').val(), // Send the selected value to the server
+            "version": $('#version_selected').val()
+        }
+    }).done(function(response){
+        var article_list = response['article_list']
+        $('#article_selected').html('')
+        $('#article_selected').append(
+            $('<option>').text('Choose Compliance Article').attr('disabled', true).attr('selected', true)
+        )
+        $(article_list).each(function(){
+            var version = $('<option>').text(`${this['no']} ${this['name']}`).val(`${this['no']} ${this['name']}`)
+            $('#article_selected').append(version)
+        })
+    })
+}
+
+function preview(e){
+    $('#preview_div').css('max-height', '900px')
+    $('#preview_div').html(`
+    <div class="card-header py-3 row">
+        <h4 class="m-0 font-weight-bold text-teiren">File Preview</h4>
+    </div>
+    <div id="preview" class="d-flex justify-content-center" style="background-color:#d7d7d7">
+        <div id="loader" class="d-flex justify-content-center align-items-center" 
+            style="width:100%; height:600px; background-color:rgba(156, 154, 154, 0.1);">
+            <div class="spinner-border-lg text-teiren"></div>
+        </div>
+    </div>
+    `)
+    $('.body-content').animate({
+        scrollTop: Math.abs($('.locationbar').offset().top)+$('#preview_div').offset().top+20
+      }, 'slow');
+    $.ajax({
+        url:'/compliance/file/preview/{{product_name}}/',
+        type:'POST',
+        data: $(e.parentNode).serialize()
+    }).done(function(response){
+        $('#loader').remove()
+        console.log(response)
+        $('#preview').append(response)
+    })
+}
+
+</script>
+
+{% endblock %}
+

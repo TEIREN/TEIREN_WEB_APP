@@ -1,0 +1,45 @@
+.tabs {
+    &.tabs-center {
+        margin: auto;
+    }
+    &.tabs-justify {
+        width: 100%;
+        table-layout: fixed;
+    }
+    a.tab {
+        position: relative;
+        display: table-cell;
+        transition: all ease .3s;
+        padding: 1em 1.6em;
+        transform: translate3d(0, 0, 0);
+        color: #636d84;
+        white-space: nowrap;
+        cursor: pointer;
+        font-size:15px;
+        &:hover {
+            color: #24b6d4;
+        }
+        &:after {
+            transition: all .3s cubic-bezier(1, 0, 0, 1);
+            will-change: transform, box-shadow, opacity;
+            position: absolute;
+            content: '';
+            height: 3px;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            border-radius: 3px 3px 0px 0px;
+            background:  #24b6d4;
+            box-shadow: 0px 4px 10px 3px rgba(36, 182, 212, .15);
+            opacity: 0;
+            transform: scale(0, 1);
+        }
+        &.active {
+            color: #24b6d4;
+            &:after {
+                opacity: 1;
+                transform: scale(1, 1);
+            }
+        }
+    }
+}

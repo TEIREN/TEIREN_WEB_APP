@@ -1,0 +1,84 @@
+{% load static %}
+{% load custom_filter %}
+<div class="card shadow mb-4 mr-1" style="width:15%; height:100vh;">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-teiren">Log Property Filtering</h6>
+    </div>
+    <div class="card-body" style="font-size:15px; overflow:scroll;">
+        <form id="filter_form" onchange="filterChange(this)" onsubmit="return false;">
+            {% for property in log_properties %}
+                {% for key, values in property.items %}
+                    <div class="row">
+                        <h5 class="text-teiren font-weight-bold">
+                            {{key|title}}
+                        </h5>
+                        <button id="toggle_{{key}}" class="btn ml-auto p-0" onclick="filterToggle(this)">
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div id="filter_{{key}}" style="display:none;">
+                        {% for value in values %}
+                            <div>
+                                <input id="{{value}}" name="{{key}}" value="{{value}}" type="checkbox">
+                                <label for="{{value}}">{{value}}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </form>
+    </div>
+</div>
+<script>
+    function filterToggle(e){
+        var prop_id = $(e).attr('id').split('_').slice(1).join('_')
+        var toggle = $(e).find('i')
+        if(toggle.hasClass('fa-chevron-down')){
+            toggle.removeClass('fa-chevron-down')
+            toggle.addClass('fa-chevron-up')
+            $(`#filter_${prop_id}`).slideDown()
+        } else {
+            toggle.removeClass('fa-chevron-up')
+            toggle.addClass('fa-chevron-down')
+            $(`#filter_${prop_id}`).slideUp()
+        }
+    }
+
+    function filterChange(e){
+        var data = $(e).serialize()
+        if($('form#search').serializeArray()[0].value != ''){
+            data += '&'+$('form#search').serialize()
+        }
+        $.ajax({
+            url: '',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: data,
+            type: 'get'
+        }).done(function(response){
+            $('#log_table').html(response)
+            $('.page-item a').each(function(){
+                $(this).attr('filter', data)
+            })
+        })
+    }
+
+    function filterPage(e){
+        var data = $(e).attr('filter')
+        $.ajax({
+            url: '',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: data+'&'+$(e).attr('page'),
+            type: 'get'
+        }).done(function(response){
+            $('#log_table').html(response)
+            $('.page-item a').each(function(){
+                $(this).attr('filter', data)
+            })
+        })
+    }
+</script>
