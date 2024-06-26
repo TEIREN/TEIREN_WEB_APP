@@ -89,6 +89,39 @@ class RuleSet:
                 "rule_type": "custom"  # Add the rule_type property
             }
 
+            # 이름 중복 확인
+            name_search_query = {
+                "query": {
+                    "term": {
+                        "name": rule_name.strip()
+                    }
+                }
+            }
+
+            name_search_url = f"http://3.35.81.217:9200/{index_name}/_search"
+            name_search_response = requests.get(name_search_url, headers={"Content-Type": "application/json"}, json=name_search_query)
+
+            if name_search_response.status_code == 200:
+                name_hits = name_search_response.json()['hits']['hits']
+                if name_hits:
+                    return HttpResponse(f"Rule with name '{rule_name}' already exists.", status=400)
+
+            # 쿼리 중복 확인
+            query_search_query = {
+                "query": {
+                    "match_all": {}
+                }
+            }
+
+            query_search_url = f"http://3.35.81.217:9200/{index_name}/_search"
+            query_search_response = requests.get(query_search_url, headers={"Content-Type": "application/json"}, json=query_search_query)
+
+            if query_search_response.status_code == 200:
+                query_hits = query_search_response.json()['hits']['hits']
+                for hit in query_hits:
+                    if json.dumps(hit['_source']['query'], sort_keys=True) == json.dumps(query, sort_keys=True):
+                        return HttpResponse("A rule with the same query already exists.", status=400)
+
             # Logging 룰셋 정보
             logger.info(f"Adding ruleset: {json.dumps(ruleset, indent=4)}")
 
@@ -114,7 +147,7 @@ class RuleSet:
                     "rule_type": "custom"  # Add the rule_type property to the output
                 }
                 logger.info(f"Successfully added ruleset: {json.dumps(output, indent=4)}")
-                return JsonResponse(json.dumps(output, indent=4), status=201, content_type='application/json')
+                return JsonResponse(output, status=201)
             else:
                 logger.error(f"Failed to add ruleset. Status code: {response.status_code}, Response: {response.text}")
                 return HttpResponse(f"Failed to add ruleset. Status code: {response.status_code}", status=400)

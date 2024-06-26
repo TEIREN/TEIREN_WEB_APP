@@ -11,9 +11,17 @@ def search_all_logs(index_name):
             "match_all": {}
         }
     }
-    
+#     query = {
+#     "query": {
+#         "bool": {
+#             "must": [
+#                 {"match": {"detected_by_rule": "det_test3"}},
+#             ]
+#         }
+#     }
+# }
     try:
-        result = es.search(index=index_name, body=query, size=10)  
+        result = es.search(index=index_name, body=query, size=10000)  
         
         # 검색 결과 출력
         for hit in result['hits']['hits']:
@@ -24,5 +32,5 @@ def search_all_logs(index_name):
 # 함수 실행
 if __name__ == "__main__":
     # search_all_logs('test_genian_syslog')
-    search_all_logs('genian_ruleset')
-    # search_all_logs('genian_detected_log')
+    search_all_logs('linux_ruleset')
+    # search_all_logs('linux_detected_log')

@@ -133,5 +133,5 @@ def run_detector(system):
         time.sleep(60)  # 60초마다 로그를 체크
 
 if __name__ == "__main__":
-    system = "genian"  # 또는 "linux", "windows", "fortigate" 중 하나를 선택
+    system = "linux"  # 또는 "linux", "windows", "fortigate" 중 하나를 선택
     run_detector(system)
