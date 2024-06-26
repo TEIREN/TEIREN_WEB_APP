@@ -30,15 +30,10 @@ class RuleSet:
             must_property_name = request.POST.getlist('must_property_name')
             must_property_value = request.POST.getlist('must_property_value')
             must_property_operator = request.POST.getlist('must_property_operator')
-            not_property_name = request.POST.getlist('not_property_key')
-            not_property_value = request.POST.getlist('not_property_val')
-            not_property_operator = request.POST.getlist('not_property_operator')
             system = self.system
 
             logger.info(f"Parsed data: name={rule_name}, severity={severity}, must_property_name={must_property_name}, "
-                        f"must_property_value={must_property_value}, must_property_operator={must_property_operator}, "
-                        f"not_property_name={not_property_name}, not_property_value={not_property_value}, "
-                        f"not_property_operator={not_property_operator}, system={system}")
+                        f"must_property_value={must_property_value}, must_property_operator={must_property_operator}, system={system}")
 
             # Elasticsearch 인덱스 설정
             index_mapping = {
@@ -53,10 +48,7 @@ class RuleSet:
                 return HttpResponse("Invalid system choice.", status=400)
 
             must_conditions = []
-            must_not_conditions = []
-
             should_conditions = {}
-            not_should_conditions = {}
 
             # must 조건 생성
             for m_name, m_value, m_operator in zip(must_property_name, must_property_value, must_property_operator):
@@ -64,33 +56,17 @@ class RuleSet:
                     if m_name not in should_conditions:
                         should_conditions[m_name] = []
                     should_conditions[m_name].append({"match": {m_name.strip(): m_value.strip()}})
-                else:
-                    must_not_conditions.append({"match": {m_name.strip(): m_value.strip()}})
-
-            # not 조건 생성
-            for n_name, n_value, n_operator in zip(not_property_name, not_property_value, not_property_operator):
-                if n_name.strip() and n_value.strip():  # Ensure the name and value are not empty
-                    if n_operator == '=':
-                        if n_name not in not_should_conditions:
-                            not_should_conditions[n_name] = []
-                        not_should_conditions[n_name].append({"match": {n_name.strip(): n_value.strip()}})
-                    else:
-                        must_not_conditions.append({"match": {n_name.strip(): n_value.strip()}})
+                elif m_operator == '!=':
+                    must_conditions.append({"bool": {"must_not": {"match": {m_name.strip(): m_value.strip()}}}})
 
             # should_conditions를 must_conditions로 변환
             for key, conditions in should_conditions.items():
                 must_conditions.append({"bool": {"should": conditions, "minimum_should_match": 1}})
 
-            # not_should_conditions를 must_not_conditions로 변환
-            for key, conditions in not_should_conditions.items():
-                must_not_conditions.append({"bool": {"should": conditions, "minimum_should_match": 1}})
-
             # must 및 must_not 조건이 비어 있을 수 있도록 처리
             bool_query = {}
             if must_conditions:
                 bool_query['must'] = must_conditions
-            if must_not_conditions:
-                bool_query['must_not'] = must_not_conditions
 
             query = {
                 "query": {
@@ -157,9 +133,6 @@ class RuleSet:
                     "must_property_name": must_property_name,
                     "must_property_value": must_property_value,
                     "must_property_operator": must_property_operator,
-                    "not_property_name": not_property_name,
-                    "not_property_value": not_property_value,
-                    "not_property_operator": not_property_operator,
                     "system": system,
                     "rule_type": "custom"  # Add the rule_type property to the output
                 }
