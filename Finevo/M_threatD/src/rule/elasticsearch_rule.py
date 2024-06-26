@@ -44,10 +44,10 @@ class RuleSet:
             index_mapping = {
                 "linux": "linux_ruleset",
                 "windows": "window_ruleset",
-                "genian": "genian_ruleset",
-                "fortigate": "fortigate_ruleset"
+                "genians": "genian_ruleset",
+                "fortinet": "fortigate_ruleset"
             }
-
+            print(system)
             index_name = index_mapping.get(system)
             if not index_name:
                 return HttpResponse("Invalid system choice.", status=400)
@@ -134,6 +134,7 @@ def rule_config_page(request, system):
 def rule_config_action(request, resourceType, system, action_type):
     if request.method == 'POST':
         try:
+            system = system.split('_')[0]
             rule_set = RuleSet(system=system)
             return HttpResponse(getattr(rule_set, action_type)(request=request))
         except Exception as e:
