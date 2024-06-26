@@ -42,38 +42,14 @@ def get_index_choice(system):
         'detected_log_index': detected_log_mapping[system]
     }
 
-# Bool 쿼리 생성 함수
-def construct_bool_query(rule_query):
-    bool_query = {
-        "bool": {
-            "must": [],
-            "must_not": []
-        }
-    }
-
-    for clause in rule_query["query"]["bool"].get("must", []):
-        for field, value in clause.get("match", {}).items():
-            bool_query["bool"]["must"].append({
-                "bool": {
-                    "should": [
-                        {"match": {field: value}}
-                    ],
-                    "minimum_should_match": 1
-                }
-            })
-    
-    for clause in rule_query["query"]["bool"].get("must_not", []):
-        for field, value in clause.get("match", {}).items():
-            bool_query["bool"]["must_not"].append({
-                "bool": {
-                    "should": [
-                        {"match": {field: value}}
-                    ],
-                    "minimum_should_match": 1
-                }
-            })
-    
-    return bool_query
+# 쿼리를 소문자로 변환
+def lowercase_query(query):
+    if isinstance(query, dict):
+        return {k.lower(): lowercase_query(v) if isinstance(v, (dict, list)) else v.lower() if isinstance(v, str) else v for k, v in query.items()}
+    elif isinstance(query, list):
+        return [lowercase_query(item) for item in query]
+    else:
+        return query
 
 # 로그 체크 함수
 def check_logs(system):
@@ -94,37 +70,51 @@ def check_logs(system):
             rule_name = rule["_source"]["name"]
             rule_type = rule["_source"].get("rule_type", "custom")  # Default to 'custom' if not present
 
-            logger.info(f"Applying rule: {rule_name}, Query: {json.dumps(rule_query)}")
+            # 쿼리를 소문자로 변환
+            rule_query = lowercase_query(rule_query)
 
-            bool_query = construct_bool_query(rule_query)
+            logger.info(f"Applying rule: {rule_name}, Query: {json.dumps(rule_query, indent=4)}")
 
-            logger.info(f"Constructed Bool Query: {json.dumps(bool_query, ensure_ascii=False)}")
+            # 페이지네이션 설정
+            size = 10000
+            scroll = '2m'
+            result = es.search(index=log_index_name, body={"query": rule_query["query"]}, size=size, scroll=scroll)
 
-            log_res = es.search(index=log_index_name, body={"query": bool_query})
-            logs_found = log_res['hits']['total']['value']
+            sid = result['_scroll_id']
+            scroll_size = len(result['hits']['hits'])
 
-            logger.info(f"Found {logs_found} logs for rule: {rule_name}")
+            if scroll_size == 0:
+                logger.info(f"No logs found for rule: {rule_name}")
+                continue
 
-            if logs_found > 0:
-                for log in log_res['hits']['hits']:
+            logger.info(f"Found {scroll_size} logs for rule: {rule_name}")
+
+            while scroll_size > 0:
+                logger.info(f"Scrolling through {scroll_size} logs for rule: {rule_name}")
+
+                for log in result['hits']['hits']:
+                    log_id = log["_id"]
                     log_doc = log["_source"]
                     log_doc["detected_by_rule"] = rule_name
                     log_doc["severity"] = severity
                     log_doc["rule_type"] = rule_type  # Add rule_type to the detected log
 
-                    log_id = f"{rule_name}_{log['_id']}"
                     try:
                         es.get(index=detected_log_index, id=log_id)
                         logger.info(f"Log with id {log_id} already exists in {detected_log_index}")
                     except NotFoundError:
                         es.index(index=detected_log_index, id=log_id, body=log_doc)
                         logger.info(f"Indexed log with id {log_id} into {detected_log_index}")
-            else:
-                logger.info(f"No logs found for rule: {rule_name}")
+
+                result = es.scroll(scroll_id=sid, scroll=scroll)
+                sid = result['_scroll_id']
+                scroll_size = len(result['hits']['hits'])
+
+            es.clear_scroll(scroll_id=sid)
     except ConnectionError as e:
         logger.error(f"Connection error: {e}")
     except Exception as e:
-        logger.error(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}", exc_info=True)
 
 # 시스템 선택에 따른 로그 체크 실행
 def run_detector(system):
@@ -133,5 +123,5 @@ def run_detector(system):
         time.sleep(60)  # 60초마다 로그를 체크
 
 if __name__ == "__main__":
-    system = "linux"  # 또는 "linux", "windows", "fortigate" 중 하나를 선택
+    system = "linux"  # 또는 "windows", "genian", "fortigate" 중 하나를 선택
     run_detector(system)

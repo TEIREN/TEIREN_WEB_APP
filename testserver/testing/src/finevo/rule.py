@@ -52,28 +52,45 @@ class RuleSet:
             if not index_name:
                 return HttpResponse("Invalid system choice.", status=400)
 
-            must_clauses = []
-            not_clauses = []
+            must_conditions = []
+            must_not_conditions = []
 
+            should_conditions = {}
+            not_should_conditions = {}
+
+            # must 조건 생성
             for m_name, m_value, m_operator in zip(must_property_name, must_property_value, must_property_operator):
                 if m_operator == '=':
-                    must_clauses.append({"match": {m_name.strip(): m_value.strip()}})
+                    if m_name not in should_conditions:
+                        should_conditions[m_name] = []
+                    should_conditions[m_name].append({"match": {m_name.strip(): m_value.strip()}})
                 else:
-                    must_clauses.append({"bool": {"must_not": {"match": {m_name.strip(): m_value.strip()}}}})
+                    must_not_conditions.append({"match": {m_name.strip(): m_value.strip()}})
 
+            # not 조건 생성
             for n_name, n_value, n_operator in zip(not_property_name, not_property_value, not_property_operator):
                 if n_name.strip() and n_value.strip():  # Ensure the name and value are not empty
                     if n_operator == '=':
-                        not_clauses.append({"match": {n_name.strip(): n_value.strip()}})
+                        if n_name not in not_should_conditions:
+                            not_should_conditions[n_name] = []
+                        not_should_conditions[n_name].append({"match": {n_name.strip(): n_value.strip()}})
                     else:
-                        not_clauses.append({"bool": {"must_not": {"match": {n_name.strip(): n_value.strip()}}}})
+                        must_not_conditions.append({"match": {n_name.strip(): n_value.strip()}})
+
+            # should_conditions를 must_conditions로 변환
+            for key, conditions in should_conditions.items():
+                must_conditions.append({"bool": {"should": conditions, "minimum_should_match": 1}})
+
+            # not_should_conditions를 must_not_conditions로 변환
+            for key, conditions in not_should_conditions.items():
+                must_not_conditions.append({"bool": {"should": conditions, "minimum_should_match": 1}})
 
             # must 및 must_not 조건이 비어 있을 수 있도록 처리
             bool_query = {}
-            if must_clauses:
-                bool_query['must'] = must_clauses
-            if not_clauses:
-                bool_query['must_not'] = not_clauses
+            if must_conditions:
+                bool_query['must'] = must_conditions
+            if must_not_conditions:
+                bool_query['must_not'] = must_not_conditions
 
             query = {
                 "query": {
@@ -123,7 +140,7 @@ class RuleSet:
                         return HttpResponse("A rule with the same query already exists.", status=400)
 
             # Logging 룰셋 정보
-            logger.info(f"Adding ruleset: {json.dumps(ruleset, indent=4)}")
+            logger.info(f"Adding ruleset: {json.dumps(ruleset, indent=4, ensure_ascii=False)}")
 
             # Elasticsearch에 룰셋 추가
             url = f"http://3.35.81.217:9200/{index_name}/_doc"
@@ -146,7 +163,7 @@ class RuleSet:
                     "system": system,
                     "rule_type": "custom"  # Add the rule_type property to the output
                 }
-                logger.info(f"Successfully added ruleset: {json.dumps(output, indent=4)}")
+                logger.info(f"Successfully added ruleset: {json.dumps(output, indent=4, ensure_ascii=False)}")
                 return JsonResponse(output, status=201)
             else:
                 logger.error(f"Failed to add ruleset. Status code: {response.status_code}, Response: {response.text}")

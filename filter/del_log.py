@@ -7,7 +7,7 @@ delete_query = {
     "query": {
         "bool": {
             "must": [
-                {"match": {"name": "duplication_test2"}},
+                {"match": {"name": "rule_test"}},
             ]
         }
     }
