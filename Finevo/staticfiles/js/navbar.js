@@ -3,11 +3,18 @@ $('.topbar .nav-link').on('click',function(){
     $($(this).parent().find('.collapse')[0]).addClass('open')
 })
 
-$('.sidebar .nav-link').on('click', function(){
+// $('.sidebar .nav-link').on('click', function(){
+//     $('.nav-link').removeClass('focus')
+//     $('.sidebar .collapse').removeClass('open')
+//     $($(this).parent().find('.collapse')[0]).addClass("open")
+//     $(this).addClass('focus')
+// })
+
+$('.sidebar .nav-link .tippy').on('click', function(){
     $('.nav-link').removeClass('focus')
     $('.sidebar .collapse').removeClass('open')
-    $($(this).parent().find('.collapse')[0]).addClass("open")
-    $(this).addClass('focus')
+    $($(this).parent().parent().find('.collapse')[0]).addClass("open")
+    $(this).parent().addClass('focus')
 })
 
 $('.sidebar .collapse-hide-btn').on('click', function(){
@@ -33,7 +40,7 @@ $('.sidebar .item-toggle .item-header').on('click',function(){
 
 $(document).click(function(event) {
     var target = $(event.target);
-    if (!target.closest(".sidebar .collapse").length & !target.closest(".sidebar .material-symbols-outlined").length) {
+    if (!target.closest(".sidebar .collapse").length & !target.closest(".sidebar .tippy").length) {
         $(".sidebar .nav-link").removeClass('focus')
         $(".sidebar .collapse").removeClass('open');
         $(".sidebar .item-toggle a").hide();

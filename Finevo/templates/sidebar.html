@@ -4,16 +4,28 @@
         <ul class="navbar-icon">
             <li>
                 <a id="dashboard_side" class="nav-link" href="/">
-                    <span class="material-symbols-outlined">
+                    {% comment %} <span class="material-symbols-outlined">
                         space_dashboard
-                    </span>
+                    </span> {% endcomment %}
+                    <div class="tippy row">
+                        <span style="font-size:18px; color: #fff; margin-right: 22px;"> Dashboard </span>
+                        <span class="material-symbols-outlined">
+                            space_dashboard
+                        </span>
+                    </div>
                 </a>
             </li>
             <li>
                 <a id="log_side" class="nav-link">
-                    <span class="material-symbols-outlined">
+                    {% comment %} <span class="material-symbols-outlined">
                         list_alt
-                    </span>
+                    </span> {% endcomment %}
+                    <div class="tippy row">
+                        <span style="font-size:18px; color: #fff; margin-right: 22px;"> Log Management </span>
+                        <span class="material-symbols-outlined">
+                            list_alt
+                        </span>
+                    </div>
                 </a>
                 <div class="collapse shadow" style="overflow:scroll">
                     <button class="collapse-hide-btn">
@@ -131,9 +143,15 @@
             </li>
             <li>
                 <a id="integration_side" class="nav-link">
-                    <span class="material-symbols-outlined">
+                    {% comment %} <span class="material-symbols-outlined">
                         library_add
-                    </span>
+                    </span> {% endcomment %}
+                    <div class="tippy row">
+                        <span style="font-size:18px; color: #fff; margin-right: 22px;"> Resource Management </span>
+                        <span class="material-symbols-outlined">
+                            library_add
+                        </span>
+                    </div>
                 </a>
                 <div class="collapse shadow" style="overflow:scroll">
                     <button class="collapse-hide-btn">
@@ -167,9 +185,15 @@
             </li>
             <li>
                 <a id="threat_side" class="nav-link">
-                    <span class="material-symbols-outlined">
+                    <!-- <span class="material-symbols-outlined">
                         notification_important
-                    </span>
+                    </span> -->
+                    <div class="tippy row">
+                        <span style="font-size:18px; color: #fff; margin-right: 22px;"> Threat Management </span>
+                        <span class="material-symbols-outlined">
+                            notification_important
+                        </span>
+                    </div>
                 </a>
                 <div class="collapse shadow" style="overflow:scroll">
                     <button class="collapse-hide-btn">
@@ -256,9 +280,12 @@
             </li>
             <li>
                 <a id="compliance_side" class="nav-link">
-                    <span class="material-symbols-outlined">
-                        assured_workload
-                    </span>
+                    <div class="tippy row">
+                        <span style="font-size:18px; color: #fff; margin-right: 22px;"> Compliance Management </span>
+                        <span class="material-symbols-outlined">
+                            assured_workload
+                        </span>
+                    </div>
                 </a>
                 <div class="collapse shadow" style="overflow:scroll">
                     <button class="collapse-hide-btn">
@@ -378,3 +405,12 @@
     </div> {% endcomment %}
 </div>
 <script src="{% static '/js/navbar.js' %}"></script>
+<script>
+    $('.sidebar .navbar-icon .nav-link .tippy')
+        .on('mouseenter', function(e){
+            $(this).css('margin-left', `${2*$($(this).find('span')[0]).outerWidth()-200}px`)
+        })
+        .on('mouseleave', function(){
+            $(this).css('margin-left', `-250px`)
+        })
+</script>
