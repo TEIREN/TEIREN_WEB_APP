@@ -45,9 +45,11 @@ class RuleSet:
                 "linux": "linux_ruleset",
                 "windows": "window_ruleset",
                 "genians": "genian_ruleset",
-                "fortinet": "fortigate_ruleset"
+                "fortinet": "fortigate_ruleset",
+                "mssql": "mssql_ruleset",
+                "transmission": "transmission_ruleset",
             }
-            print(system)
+            
             index_name = index_mapping.get(system)
             if not index_name:
                 return HttpResponse("Invalid system choice.", status=400)
