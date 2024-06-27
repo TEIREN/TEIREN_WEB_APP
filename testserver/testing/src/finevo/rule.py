@@ -159,4 +159,3 @@ def rule_config_action(request, system, action_type):
             return HttpResponse('Wrong Request. Please Try Again.', status=400)
     else:
         return HttpResponse('Wrong Request. Please Try Again.', status=400)
-z
