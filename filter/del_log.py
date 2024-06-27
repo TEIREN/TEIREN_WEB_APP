@@ -7,13 +7,13 @@ delete_query = {
     "query": {
         "bool": {
             "must": [
-                {"match": {"severity": "4"}},
+                {"match": {"name": "rule_test"}},
             ]
         }
     }
 }
 
 # delete_by_query API 호출
-response = es.delete_by_query(index='genian_ruleset', body=delete_query)
+response = es.delete_by_query(index='linux_ruleset', body=delete_query)
 
 print(response)

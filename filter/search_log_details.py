@@ -6,16 +6,20 @@ ELASTICSEARCH_URL = 'http://localhost:9200'
 es = Elasticsearch(ELASTICSEARCH_URL)
 
 def search_all_logs(index_name):
+
     query = {
-        "query": {
-            "match_all": {}
+    "query": {
+        "bool": {
+            "must": [
+                {"match": {"detected_by_rule": "rule_test2"}},
+            ]
         }
     }
-
+}
     try:
-        result = es.search(index=index_name, body=query, size=10000)
+        result = es.search(index=index_name, body=query, size=10000)  
         
-        # 검색 결과 출력 및 로그 개수 세기
+        # 검색 결과 출력
         log_count = 0
         for hit in result['hits']['hits']:
             print(json.dumps(hit['_source'], indent=4, ensure_ascii=False))
@@ -28,5 +32,5 @@ def search_all_logs(index_name):
 # 함수 실행
 if __name__ == "__main__":
     # search_all_logs('test_genian_syslog')
-    search_all_logs('linux_ruleset')
-    # search_all_logs('linux_detected_log')
+    # search_all_logs('linux_ruleset')
+    search_all_logs('linux_detected_log')
