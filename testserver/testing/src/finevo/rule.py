@@ -17,8 +17,7 @@ class RuleSet:
         self.system = system
 
     def add_property(self, request):
-        prop_type = request.POST.get('prop_type', '')
-        return render(request, f"testing/finevo/rules/add/property_slot.html", context={"prop_type": prop_type})
+        return render(request, f"testing/finevo/rules/add/property_slot.html")
 
     def add_ruleset(self, request):
         try:
@@ -159,4 +158,3 @@ def rule_config_action(request, system, action_type):
             return HttpResponse('Wrong Request. Please Try Again.', status=400)
     else:
         return HttpResponse('Wrong Request. Please Try Again.', status=400)
-z
