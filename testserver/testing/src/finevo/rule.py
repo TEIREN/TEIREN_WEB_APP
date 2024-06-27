@@ -16,6 +16,35 @@ class RuleSet:
     def __init__(self, system):
         self.system = system
 
+    def get_ruleset_list(self, rule_type:str):
+        try:
+            es.indices.put_settings(index=f"{self.system}_ruleset", body={"index.max_result_window": 1000000})
+            _search = es.search(index=f"{self.system}_ruleset", body={
+                "query": {
+                    "match": {
+                        "rule_type": f"{rule_type}"
+                    }
+                }
+            })
+            hits = _search['hits']['hits']
+            response = [hit['_source'] for hit in hits]
+            color_list = ['success', 'warning', 'caution', 'danger']
+            severity_list = ['LOW', 'MID', 'HIGH', 'CRITICAL']
+            for rule in response:
+                num = int(rule['severity'])
+                rule['severity'] = [color_list[num-1], severity_list[num-1]]
+        except Exception as e:
+            print(e)
+            response = []
+        finally:
+            return response
+    def get_detail_page(self, request):
+        context = request.POST.dict()
+        print(context['query'])
+        print(type(context['query']))
+        context['query'] = json.dumps(json.loads(context['query'].replace("'", '"')), indent=4)
+        return render(request, f"testing/finevo/rules/custom/details.html", context=context)
+    
     def add_property(self, request):
         return render(request, f"testing/finevo/rules/add/property_slot.html")
 
@@ -144,15 +173,27 @@ class RuleSet:
         except Exception as e:
             logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse("Failed to add ruleset. Please try again.", status=500)
+        
+    def edit_ruleset(self, request):
+        pass
+    
+    def delete_ruleset(self, request):
+        pass
 
 def rule_config_page(request, system):
-    return render(request, 'testing/finevo/rules/rule.html', context={'system': system})
+    ruleset = RuleSet(system=system)
+    context = {
+        'system': system,
+        'custom_ruleset': ruleset.get_ruleset_list(rule_type='custom'),
+        'default_ruleset': ruleset.get_ruleset_list(rule_type='default')
+    }
+    return render(request, 'testing/finevo/rules/rule.html', context=context)
 
 def rule_config_action(request, system, action_type):
     if request.method == 'POST':
         try:
-            rule_set = RuleSet(system=system)
-            return HttpResponse(getattr(rule_set, action_type)(request=request))
+            ruleset = RuleSet(system=system)
+            return HttpResponse(getattr(ruleset, action_type)(request=request))
         except Exception as e:
             logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse('Wrong Request. Please Try Again.', status=400)

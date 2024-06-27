@@ -33,31 +33,31 @@
             </form>
             <div style="margin-left:64px; margin-top:8px">
                 <h5 class="m-0 font-weight-bold text-teiren" style="text-align:center">
-                    {{custom.ruleName}}
+                    {{name}}
                 </h5>
             </div>
         </div>
         <div class="card-body">
             <div class="table-responsive" style="overflow:hidden;">
                 <table class="table table-bordered" id="dataTable" width="auto" cellspacing="0"
-                    style="table-layout:fixed;text-align:center;overflow:scroll;font-size:0.7rem">
+                    style="table-layout:fixed;text-align:center;overflow:scroll;font-size:1rem">
                     <thead></thead>
                     <tbody>
                         <tr>
-                            <td class="font-weight-bold">No</td>
-                            <td>{{custom.id}}</td>
-                        <tr>
-                        <tr>
-                            <td class="font-weight-bold">Rule Type</td>
-                            <td>{{custom.type}}</td>
-                        <tr>
-                        <tr>
                             <td class="font-weight-bold">Rule Name</td>
-                            <td>{{custom.ruleName}}</td>
+                            <td class="font-weight-bold">Rule Type</td>
                         </tr>
                         <tr>
-                            <td class="font-weight-bold">Rule Comment</td>
-                            <td>{{custom.ruleComment}}</td>
+                            <td class="font-weight-bold text-teiren">{{name}}</td>    
+                            <td class="font-weight-bold text-teiren">{{rule_type}}</td>
+                        <tr>
+                        <tr>
+                            <td colspan="2" class="font-weight-bold">Rule Query</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="text-align:left;">
+                                <pre>{{query}}</pre>
+                            </td>
                         </tr>
                         {% for key, value in custom.details.items %}
                             {% if value %}

@@ -4,7 +4,6 @@
             <th>No</th>
             <th>Rule Type</th>
             <th>Rule Name</th>
-            <th>Comment</th>
             <th>Severity</th>
             <th>On/Off</th>
             <th>Details</th>
@@ -13,21 +12,19 @@
             <th>No</th>
             <th>Rule Type</th>
             <th>Rule Name</th>
-            <th>Comment</th>
             <th>Severity</th>
             <th>On/Off</th>
             <th>Details</th>
         </tfoot>
         <tbody>
-            {% if custom %}
-                {% for rule in custom %}
+            {% if custom_ruleset %}
+                {% for rule in custom_ruleset %}
                 <tr>
                     <td style="width: 4%">{{ forloop.counter }}</td>
-                    <td style="width: 8%">{{ rule.type }}</td>                
-                    <td style="width: 10%">{{ rule.name }}</td>
-                    <td align="left">{{ rule.comment }}</td>
-                    <td style="width: 10%">
-                        <div class="color-box color-box-{{rule.level.1}}">{{rule.level.0}}</div>
+                    <td style="width: 8%">{{ rule.rule_type }}</td>                
+                    <td style="width: 13%">{{ rule.name|default:'-' }}</td>
+                    <td style="width: 7%">
+                        <div class="color-box color-box-{{rule.severity.0}}">{{rule.severity.1}}</div>
                     </td>
                     <td style="width: 7%">
                         <form>
@@ -47,12 +44,10 @@
                     </td>
                     <td style="width: 7%">
                         <form>
-                            <input type='hidden' name='address' value="custom/details/">
-                            <input type='hidden' name='rule_name' value="{{ rule.name }}">
-                            <input type='hidden' name='rule_type' value="{{ rule.type }}">
-                            <input type='hidden' name='rule_id' value="{{ rule.id }}">
-                            <input type='hidden' name='log_type' value="{{logType}}">
-                            <input type='hidden' name='on_off' value="{{ rule.on_off }}">
+                            <input type="hidden" name="address" value="get_detail_page/">
+                            <input type='hidden' name='name' value="{{ rule.name }}">
+                            <input type='hidden' name='rule_type' value="{{ rule.rule_type }}">
+                            <input type='hidden' name='query' value="{{rule.query}}">
                             <input type='button' onclick="ruleDetails(this.parentNode)"
                                 class="btn btn-teiren btn-md" style="overflow:hidden;"
                                 value='Details' data-toggle='modal' data-target='#detail-modal'>
@@ -103,4 +98,21 @@
             ordering: true,
         });
     });
+
+    function ruleDetails(e) {
+        var url = e.address.value
+        var data = $(e).serialize()
+        $.ajax({
+            url: url,
+            headers:{
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            data: data,
+            type: 'post'
+        }).done(function(data) {
+            $('#detail_body').html(data)
+        }).fail(function(){
+            $('#detail_body').html('fail')
+        })
+    }
 </script>
