@@ -25,7 +25,7 @@ class RuleSet:
             # 입력 데이터 로깅
             logger.info(f"Request POST data: {request.POST}")
 
-            rule_name = request.POST.get('name')
+            rule_name = request.POST.get('name').strip()
             severity = int(request.POST.get('severity', 1))
             must_property_name = request.POST.getlist('must_property_name')
             must_property_value = request.POST.getlist('must_property_value')
@@ -55,15 +55,15 @@ class RuleSet:
                 if m_operator == '=':
                     if m_name not in should_conditions:
                         should_conditions[m_name] = []
-                    should_conditions[m_name].append({"match": {m_name.strip(): m_value.strip()}})
+                    should_conditions[m_name].append({"match": {m_name.strip().lower(): m_value.strip().lower()}})
                 elif m_operator == '!=':
-                    must_conditions.append({"bool": {"must_not": {"match": {m_name.strip(): m_value.strip()}}}})
+                    must_conditions.append({"bool": {"must_not": {"match": {m_name.strip().lower(): m_value.strip().lower()}}}})
 
             # should_conditions를 must_conditions로 변환
             for key, conditions in should_conditions.items():
                 must_conditions.append({"bool": {"should": conditions, "minimum_should_match": 1}})
 
-            # must 및 must_not 조건이 비어 있을 수 있도록 처리
+            # must 조건이 비어 있을 수 있도록 처리
             bool_query = {}
             if must_conditions:
                 bool_query['must'] = must_conditions
@@ -75,7 +75,7 @@ class RuleSet:
             }
 
             ruleset = {
-                "name": rule_name.strip(),  # Ensure the name field is assigned correctly and stripped of whitespace
+                "name": rule_name,
                 "system": system,
                 "query": query,
                 "severity": severity,
@@ -86,7 +86,7 @@ class RuleSet:
             name_search_query = {
                 "query": {
                     "term": {
-                        "name": rule_name.strip()
+                        "name": rule_name
                     }
                 }
             }
@@ -128,7 +128,7 @@ class RuleSet:
 
             if response.status_code == 201:
                 output = {
-                    "name": rule_name.strip(),  # Ensure the name field is returned correctly and stripped of whitespace
+                    "name": rule_name,
                     "severity": severity,
                     "must_property_name": must_property_name,
                     "must_property_value": must_property_value,
@@ -159,3 +159,4 @@ def rule_config_action(request, system, action_type):
             return HttpResponse('Wrong Request. Please Try Again.', status=400)
     else:
         return HttpResponse('Wrong Request. Please Try Again.', status=400)
+z
