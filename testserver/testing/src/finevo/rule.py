@@ -177,7 +177,7 @@ class RuleSet:
             logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse("Failed to add ruleset. Please try again.", status=500)
         
-    def remove_rule(self, request):
+    def remove_ruleset(self, request):
         try:
             rule_name = request.POST.get('name', '').strip()
 
