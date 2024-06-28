@@ -43,8 +43,71 @@
     </div>
 </div>
 <!-- Modal -->
+<!-- Rule Detail Modal -->
+<div class="modal fade card-body" id="detail-modal" role="dialog" style='overflow-y:auto' aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p-1" style='width:1000px; height:auto'>
+            <div class='d-flex justify-content-end p-3'>
+                <button type="button" class=close data-dismiss="modal" aria-label="Close">x</button>
+            </div>
+            <div class="modal-body justify-content-center" id='detail_body'>
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-md btn-teiren" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Add Modal -->
 {% include './add/modal.html' %}
+
+<!-- Edit Modal -->
+<div class="modal hide fade card-body" id="edit" role="dialog" style='overflow-y:auto' aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p-1" style='width:1000px; height:auto'>
+            <button type="button" class="btn btn-teiren btn-md text-center mt-3 mr-3" style='margin-left:auto'
+                data-dismiss='modal' data-toggle='modal' data-target='#detail-modal' onclick="$('#edit_body').html(''); setTimeout(function(){$('#edit_message').show();},500)">
+                <span class="icon text-white-50"><i class='fas fa-arrow-left'></i></span>
+            </button>
+            <div class="modal-body card-body">
+                <div class="align-items-center flex-column text-teiren px-5" id="edit_message" style="display:flex;">
+                    <h5>Detected Alerts Will Be Deleted If Edited</h5>
+                    <h5>We Suggest You To Turn Off The Corresponding Rule</h5>
+                    <br>
+                    <h5 class="text-danger">Will You Still Edit?</h5>
+                    <div class="ml-auto">
+                        <button class="btn btn-outline-teiren btn-md" onclick="editRuleModal()">Edit</button>
+                        <button class="btn btn-outline-danger btn-md" data-dismiss='modal' data-toggle='modal' data-target='#detail-modal'>Cancel</button>
+                    </div>
+                </div>
+                <div id="edit_body"></div>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-teiren" value="Close" data-dismiss='modal'>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal hide fade card-body" id="del" role="dialog" style='overflow-y:auto' aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p-1" style='width:1000px; height:auto; border-color:red'>
+            <div class="modal-body card-body" id='del_body'>
+                <h4 class="text-center text-danger font-weight-bold"><span class='h3 text-center text-danger font-weight-bold p-3' id='rule_name'></span><br>정책을 삭제하시겠습니까?</h4>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <form>
+                    <div id='del_form' method='post'></div>
+                    <input type='button' class="btn btn-md btn-outline-teiren" value="Delete" onclick='deleteRuleAction(this.parentNode)'>
+                    <input type='button' class="btn btn-md btn-outline-danger" value="Cancel" data-dismiss='modal' data-toggle='modal' data-target='#detail-modal'>
+                </form>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 {% block script %}

@@ -16,9 +16,37 @@ class RuleSet:
     def __init__(self, system):
         self.system = system
 
+    def get_ruleset_list(self, rule_type:str):
+        try:
+            es.indices.put_settings(index=f"{self.system}_ruleset", body={"index.max_result_window": 1000000})
+            _search = es.search(index=f"{self.system}_ruleset", body={
+                "query": {
+                    "match": {
+                        "rule_type": f"{rule_type}"
+                    }
+                }
+            })
+            hits = _search['hits']['hits']
+            response = [hit['_source'] for hit in hits]
+            color_list = ['success', 'warning', 'caution', 'danger']
+            severity_list = ['LOW', 'MID', 'HIGH', 'CRITICAL']
+            for rule in response:
+                num = int(rule['severity'])
+                rule['severity'] = [color_list[num-1], severity_list[num-1]]
+        except Exception as e:
+            print(e)
+            response = []
+        finally:
+            return response
+    def get_detail_page(self, request):
+        context = request.POST.dict()
+        print(context['query'])
+        print(type(context['query']))
+        context['query'] = json.dumps(json.loads(context['query'].replace("'", '"')), indent=4)
+        return render(request, f"testing/finevo/rules/custom/details.html", context=context)
+    
     def add_property(self, request):
-        prop_type = request.POST.get('prop_type', '')
-        return render(request, f"testing/finevo/rules/add/property_slot.html", context={"prop_type": prop_type})
+        return render(request, f"testing/finevo/rules/add/property_slot.html")
 
     def add_ruleset(self, request):
         try:
@@ -148,6 +176,154 @@ class RuleSet:
         except Exception as e:
             logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse("Failed to add ruleset. Please try again.", status=500)
+        
+    def edit_ruleset(self, request):
+        pass
+    
+    def delete_ruleset(self, request):
+        pass
+
+    def remove_rule(self, request):
+        try:
+            rule_name = request.POST.get('name', '').strip()
+
+            if not rule_name:
+                return HttpResponse("Rule name cannot be empty.", status=400)
+
+            logger.info(f"Removing rule with name: {rule_name}")
+
+            # Elasticsearch 인덱스 설정
+            index_mapping = {
+                "linux": "linux_ruleset",
+                "windows": "window_ruleset",
+                "genian": "genian_ruleset",
+                "fortigate": "fortigate_ruleset"
+            }
+
+            # 모든 시스템의 인덱스에서 룰셋을 삭제
+            for system, index_name in index_mapping.items():
+                delete_query = {
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {"match": {"name": rule_name}}
+                            ]
+                        }
+                    }
+                }
+
+                delete_url = f"http://3.35.81.217:9200/{index_name}/_delete_by_query"
+                delete_response = requests.post(delete_url, headers={"Content-Type": "application/json"}, json=delete_query)
+
+                if delete_response.status_code == 200:
+                    logger.info(f"Successfully removed rule: {rule_name} from {system} ruleset")
+                else:
+                    logger.error(f"Failed to remove rule from {system} ruleset. Status code: {delete_response.status_code}, Response: {delete_response.text}")
+
+            return HttpResponse(f"Successfully removed rule: {rule_name}", status=200)
+
+        except Exception as e:
+            logger.error(f"Exception occurred: {e}", exc_info=True)
+            return HttpResponse("Failed to remove rule. Please try again.", status=500)
+
+    def update_ruleset(self, request):
+        try:
+            rule_name = request.POST.get('name', '').strip()
+            severity = int(request.POST.get('severity', 1))
+            must_property_name = request.POST.getlist('must_property_name')
+            must_property_value = request.POST.getlist('must_property_value')
+            must_property_operator = request.POST.getlist('must_property_operator')
+            system = self.system
+
+            if not rule_name:
+                return HttpResponse("Rule name cannot be empty.", status=400)
+
+            logger.info(f"Parsed data for update: name={rule_name}, severity={severity}, must_property_name={must_property_name}, "
+                        f"must_property_value={must_property_value}, must_property_operator={must_property_operator}, system={system}")
+
+            # Elasticsearch 인덱스 설정
+            index_mapping = {
+                "linux": "linux_ruleset",
+                "windows": "window_ruleset",
+                "genian": "genian_ruleset",
+                "fortigate": "fortigate_ruleset"
+            }
+
+            index_name = index_mapping.get(system)
+            if not index_name:
+                return HttpResponse("Invalid system choice.", status=400)
+
+            must_conditions = []
+            should_conditions = {}
+
+            # must 조건 생성
+            for m_name, m_value, m_operator in zip(must_property_name, must_property_value, must_property_operator):
+                if m_operator == '=':
+                    if m_name not in should_conditions:
+                        should_conditions[m_name] = []
+                    should_conditions[m_name].append({"match": {m_name.strip().lower(): m_value.strip().lower()}})
+                elif m_operator == '!=':
+                    must_conditions.append({"bool": {"must_not": {"match": {m_name.strip().lower(): m_value.strip().lower()}}}})
+
+            # should_conditions를 must_conditions로 변환
+            for key, conditions in should_conditions.items():
+                must_conditions.append({"bool": {"should": conditions, "minimum_should_match": 1}})
+
+            # must 조건이 비어 있을 수 있도록 처리
+            bool_query = {}
+            if must_conditions:
+                bool_query['must'] = must_conditions
+
+            query = {
+                "query": {
+                    "bool": bool_query
+                }
+            }
+
+            updated_ruleset = {
+                "name": rule_name,
+                "system": system,
+                "query": query,
+                "severity": severity,
+                "rule_type": "custom"  # Add the rule_type property
+            }
+
+            # 기존 룰셋 업데이트
+            search_query = {
+                "query": {
+                    "term": {
+                        "name": rule_name
+                    }
+                }
+            }
+
+            search_url = f"http://3.35.81.217:9200/{index_name}/_search"
+            search_response = requests.get(search_url, headers={"Content-Type": "application/json"}, json=search_query)
+
+            if search_response.status_code == 200:
+                search_hits = search_response.json()['hits']['hits']
+                if not search_hits:
+                    return HttpResponse(f"Rule with name '{rule_name}' does not exist.", status=404)
+
+                for hit in search_hits:
+                    doc_id = hit["_id"]
+                    update_url = f"http://3.35.81.217:9200/{index_name}/_update/{doc_id}"
+                    update_response = requests.post(update_url, headers={"Content-Type": "application/json"}, json={"doc": updated_ruleset})
+
+                    if update_response.status_code == 200:
+                        logger.info(f"Successfully updated rule: {rule_name} in {index_name}")
+                    else:
+                        logger.error(f"Failed to update rule. Status code: {update_response.status_code}, Response: {update_response.text}")
+                        return HttpResponse(f"Failed to update rule. Status code: {update_response.status_code}", status=400)
+
+                return HttpResponse(f"Successfully updated rule: {rule_name}", status=200)
+            else:
+                logger.error(f"Failed to search for rule to update. Status code: {search_response.status_code}, Response: {search_response.text}")
+                return HttpResponse(f"Failed to search for rule to update. Status code: {search_response.status_code}", status=400)
+
+        except Exception as e:
+            logger.error(f"Exception occurred: {e}", exc_info=True)
+            return HttpResponse("Failed to update ruleset. Please try again.", status=500)
 
     def remove_rule(self, request):
         try:
@@ -292,13 +468,19 @@ class RuleSet:
             return HttpResponse("Failed to update ruleset. Please try again.", status=500)
 
 def rule_config_page(request, system):
-    return render(request, 'testing/finevo/rules/rule.html', context={'system': system})
+    ruleset = RuleSet(system=system)
+    context = {
+        'system': system,
+        'custom_ruleset': ruleset.get_ruleset_list(rule_type='custom'),
+        'default_ruleset': ruleset.get_ruleset_list(rule_type='default')
+    }
+    return render(request, 'testing/finevo/rules/rule.html', context=context)
 
 def rule_config_action(request, system, action_type):
     if request.method == 'POST':
         try:
-            rule_set = RuleSet(system=system)
-            return HttpResponse(getattr(rule_set, action_type)(request=request))
+            ruleset = RuleSet(system=system)
+            return HttpResponse(getattr(ruleset, action_type)(request=request))
         except Exception as e:
             logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse('Wrong Request. Please Try Again.', status=400)
