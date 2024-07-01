@@ -51,10 +51,9 @@
                 <button type="button" class=close data-dismiss="modal" aria-label="Close">x</button>
             </div>
             <div class="modal-body justify-content-center" id='detail_body'>
-                
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-md btn-teiren" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-md btn-outline-danger" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -84,7 +83,7 @@
                 <div id="edit_body"></div>
             </div>
             <div class="modal-footer" id="modal_footer">
-                <input type='button' class="btn btn-md btn-teiren" value="Close" data-dismiss='modal'>
+                <input type='button' class="btn btn-md btn-outline-danger" value="Close" data-dismiss='modal'>
             </div>
         </div>
     </div>
@@ -95,14 +94,14 @@
     <div class="modal-dialog">
         <div class="modal-content p-1" style='width:1000px; height:auto; border-color:red'>
             <div class="modal-body card-body" id='del_body'>
-                <h4 class="text-center text-danger font-weight-bold"><span class='h3 text-center text-danger font-weight-bold p-3' id='rule_name'></span><br>정책을 삭제하시겠습니까?</h4>
+                <h4 class="text-center text-danger font-weight-bold"><span class='h3 text-center text-danger font-weight-bold p-3' id='delete_rule_name'></span><br>정책을 삭제하시겠습니까?</h4>
             </div>
             <div class="modal-footer" id="modal_footer">
-                <form>
-                    <div id='del_form' method='post'></div>
+                <form id='del_form' method='post'>
+                    <input type="hidden" name="name" value="">
                     <input type='button' class="btn btn-md btn-outline-teiren" value="Delete" onclick='deleteRuleAction(this.parentNode)'>
-                    <input type='button' class="btn btn-md btn-outline-danger" value="Cancel" data-dismiss='modal' data-toggle='modal' data-target='#detail-modal'>
                 </form>
+                <input type='button' class="btn btn-md btn-outline-danger" value="Cancel" data-dismiss='modal' data-toggle='modal' data-target='#detail-modal'>
             </div>
             </form>
         </div>
