@@ -51,9 +51,14 @@ async def receive_log(request: Request):
 @app.post('/win_log')
 async def win_log(request: Request):
     log_request = await request.json()
+    client_ip = request.client.host
+
     for log in log_request:
-        log['teiren_request_ip'] = request.client.host
+        # Convert all keys to lowercase
+        log = {k.lower(): v for k, v in log.items()}
+        log['teiren_request_ip'] = client_ip
         await elasticsearch_input(log, 'window')
+
     return {"message": "Log received successfully"}
 
 @app.post('/genian_log')

@@ -7,7 +7,7 @@ delete_query = {
     "query": {
         "bool": {
             "must": [
-                {"match": {"name": "rule_test"}},
+                {"match": {"name": "앙기모찌"}},
             ]
         }
     }
