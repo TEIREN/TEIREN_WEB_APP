@@ -31,6 +31,18 @@ class LogManagement():
             "mssql": "",
             "snmp": ""
         }
+        # # Define the mapping for your index
+        # mapping = {
+        #     "properties": {
+        #         timestamp_mapping[self.system]: {
+        #             "type": "scaled_float",
+        #             "scaling_factor": 100000000
+        #         }
+        #     }
+        # }
+
+        # # Create or update the mapping for your index
+        # es.indices.put_mapping(index=f"{self.system}_detected_log", body=mapping)
         return timestamp_mapping[self.system]
         
     # 로그 검색 함수
@@ -45,19 +57,16 @@ class LogManagement():
                 log = hit['_source']
                 try:
                     # detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=1000)
-                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"range": {f"{self.timestamp}": {"gte": log[f'{self.timestamp}'] - 0.000001,"lte": log[f'{self.timestamp}'] + 0.000001}}}}, size=1)
+                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"range": {self.timestamp: { "gte": (log[self.timestamp]-0.000000000001), "lte": (log[self.timestamp]+0.00000000000000001) }}}}, size=1)
                     if len(detected_response['hits']['hits']) > 0:
                         detected_rules = set()  # 중복을 제거하기 위해 set 사용
                         severities = []
                         for detect_hit in detected_response['hits']['hits']:
                             detected_log = detect_hit['_source']
-                            
-                            print(f"{self.timestamp}")
-                            print(hit['_source'][self.timestamp])
-                            print(type(log[self.timestamp]))
-                            print(detected_log[self.timestamp])
-                            print(type(detected_log[self.timestamp]))
+                            print(log[self.timestamp])
+                            print(detected_log['date'])
                             print('#'*50)
+                            print('\n')
                             if self.is_rule_match(detected_log, log):  # 매칭 조건 확인
                                 detected_by_rules = detected_log.get('detected_by_rule', '')
                                 if detected_by_rules:
