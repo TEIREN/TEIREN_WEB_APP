@@ -2,7 +2,7 @@ import json
 import logging
 from .tableProperty import get_property_key
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
 from elasticsearch import Elasticsearch, ConnectionError
 
@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch, ConnectionError
 es = Elasticsearch(hosts=["http://3.35.81.217:9200/"])
 
 # Docker 로그에 기록되도록 로깅 설정
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+# # logging.basicConfig(level=# logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # 로그 관리 클래스
 class LogManagement():
@@ -36,29 +36,39 @@ class LogManagement():
     # 로그 검색 함수
     def search_logs(self):
         try:
-            self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 1000000})
+            self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 100000})
+            self.es.indices.put_settings(index=f"{self.system}_detected_log", body={"index.max_result_window": 100000})
             response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit, "query": self.query, "sort": {f"{self.timestamp}": "desc"}, "from": ((self.page_number-1)*self.limit)})
             hits = response['hits']['hits']
             log_list = []
             for hit in hits:
                 log = hit['_source']
                 try:
-                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=1000)
+                    # detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=1000)
+                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"range": {f"{self.timestamp}": {"gte": log[f'{self.timestamp}'] - 0.000001,"lte": log[f'{self.timestamp}'] + 0.000001}}}}, size=1)
                     if len(detected_response['hits']['hits']) > 0:
                         detected_rules = set()  # 중복을 제거하기 위해 set 사용
                         severities = []
                         for detect_hit in detected_response['hits']['hits']:
                             detected_log = detect_hit['_source']
+                            
+                            print(f"{self.timestamp}")
+                            print(hit['_source'][self.timestamp])
+                            print(type(log[self.timestamp]))
+                            print(detected_log[self.timestamp])
+                            print(type(detected_log[self.timestamp]))
+                            print('#'*50)
                             if self.is_rule_match(detected_log, log):  # 매칭 조건 확인
                                 detected_by_rules = detected_log.get('detected_by_rule', '')
                                 if detected_by_rules:
-                                    detected_rules.update(detected_by_rules.split(','))
+                                    detected_rules.add(detected_by_rules)
                                 rule_info = self.es.search(index=f"{self.system}_ruleset", body={"query": {"bool": {"must": [{"match": {"name": detected_by_rules}}]}}})
                                 severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
                         log['detected_by_rules'] = list(detected_rules)  # set을 list로 변환
                         log['severities'] = severities
-                        logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
+                        # logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
                 except Exception as e:
+                    print(e)
                     logging.error(f"Error searching logs: {e}")
                 finally:
                     log_list.append(log)
@@ -186,8 +196,8 @@ class LogManagement():
         else:
             self.query = {"match_all": {}}
 
-        logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
-        logging.debug(f"Filters Applied: {parsed_filters}")
+        # logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
+        # logging.debug(f"Filters Applied: {parsed_filters}")
         return self.search_logs()
 
     # 페이지네이션 적용 함수
@@ -203,8 +213,8 @@ class LogManagement():
         start_page = max(int(self.page_number)-5, 1)
         end_page = min(int(self.page_number)+5, self.total_page)
         page_range = range(start_page, end_page+1)
-        print(self.page_number)
-        print(page_range)
+        # print(self.page_number)
+        # print(page_range)
         return {
             'has_previous': False if self.page_number == 1 else True,
             'has_next': False if self.page_number == self.total_page else True,
@@ -246,11 +256,11 @@ class LogManagement():
 
 # 시스템 로그 리스트를 보여주는 함수
 def list_logs(request, system):
-    # logging.basicConfig(level=logging.DEBUG)
+    # # logging.basicConfig(level=# logging.DEBUG)
     page_number = int(request.GET.get('page', 1))
     system_log = LogManagement(system=system, page=page_number)    
     filters = dict(request.GET)
-    print(filters)
+    
     if 'page' in filters:
         del filters['page']
     if 'query' in filters and filters['query'][0] == '':
@@ -296,7 +306,7 @@ def list_logs(request, system):
         return render(request, 'testing/finevo/elasticsearch.html', context=context)
 
     except ConnectionError as e:
-        logging.error(f"Connection error: {e}")
+        # logging.error(f"Connection error: {e}")
         context = {
             'total_count': 0,
             'log_list': [],
@@ -306,7 +316,7 @@ def list_logs(request, system):
             'log_properties': []
         }
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        # logging.error(f"An error occurred: {e}")
         context = {
             'total_count': 0,
             'log_list': [],

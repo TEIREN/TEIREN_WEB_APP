@@ -9,7 +9,7 @@ from elasticsearch import Elasticsearch
 es = Elasticsearch(hosts=["http://3.35.81.217:9200/"])  # 올바른 Elasticsearch 서버 IP 주소로 변경
 
 # Logging 설정
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class RuleSet:
