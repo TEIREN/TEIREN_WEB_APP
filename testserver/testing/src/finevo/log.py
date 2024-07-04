@@ -37,22 +37,27 @@ class LogManagement():
     def search_logs(self):
         try:
             self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 1000000})
-            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit,"query": self.query, "sort":{f"{self.timestamp}": "desc"}, "from":((self.page_number-1)*self.limit)})
+            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit, "query": self.query, "sort": {f"{self.timestamp}": "desc"}, "from": ((self.page_number-1)*self.limit)})
             hits = response['hits']['hits']
             log_list = []
             for hit in hits:
                 log = hit['_source']
                 try:
-                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query":{"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=1000)
+                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=1000)
                     if len(detected_response['hits']['hits']) > 0:
-                        detected_rules = []
+                        detected_rules = set()  # 중복을 제거하기 위해 set 사용
                         severities = []
                         for detect_hit in detected_response['hits']['hits']:
-                            detected_rules.append(detect_hit['_source']['detected_by_rule'])
-                            rule_info = self.es.search(index= f"{self.system}_ruleset", body={"query":{"bool": {"must": [{"match": {"name": detect_hit['_source']['detected_by_rule']}}]}}})
-                            severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
-                        log['detected_by_rules'] = detected_rules
+                            detected_log = detect_hit['_source']
+                            if self.is_rule_match(detected_log, log):  # 매칭 조건 확인
+                                detected_by_rules = detected_log.get('detected_by_rule', '')
+                                if detected_by_rules:
+                                    detected_rules.update(detected_by_rules.split(','))
+                                rule_info = self.es.search(index=f"{self.system}_ruleset", body={"query": {"bool": {"must": [{"match": {"name": detected_by_rules}}]}}})
+                                severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
+                        log['detected_by_rules'] = list(detected_rules)  # set을 list로 변환
                         log['severities'] = severities
+                        logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
                 except Exception as e:
                     logging.error(f"Error searching logs: {e}")
                 finally:
@@ -65,6 +70,24 @@ class LogManagement():
             self.total_page = 1
             logging.error(f"Error searching logs: {e}")
         return total_count, log_list
+
+    def is_rule_match(self, detected_log, actual_log):
+        # 룰셋의 조건이 실제 로그에 맞는지 확인하는 로직 추가
+        # 예시: detected_log의 eventtype과 actual_log의 eventtype이 같은지 확인
+        match_conditions = detected_log.get("query", {}).get("bool", {}).get("must", [])
+        for condition in match_conditions:
+            should_conditions = condition.get("bool", {}).get("should", [])
+            for should_condition in should_conditions:
+                if "match" in should_condition:
+                    key, value = list(should_condition["match"].items())[0]
+                    if key in actual_log and actual_log[key] != value:
+                        return False
+                if "bool" in should_condition and "must_not" in should_condition["bool"]:
+                    must_not_condition = should_condition["bool"]["must_not"]
+                    for key, value in must_not_condition.items():
+                        if key in actual_log and actual_log[key] == value:
+                            return False
+        return True
 
     # 쿼리 문자열을 파싱하는 함수
     def parse_query_string(self, query_string):
@@ -204,7 +227,7 @@ class LogManagement():
         response = self.es.search(index=f"test_{self.system}_syslog", body=query)
         hits = response['hits']['hits']
         
-        exclude_keys = {'@timestamp', 'message', 'timegenerated', '@version', 'date', 'eventtime','teiren_@timestamp', 'teiren_ddd', 'teiren_timestamp', 'Message', 'TimeGenerated', 'TimeWritten', 'RecordNumber'} # 제외할 로그 프라퍼티
+        exclude_keys = {'@timestamp', 'message', 'timegenerated', '@version', 'date', 'eventtime', 'teiren_@timestamp', 'teiren_ddd', 'teiren_timestamp', 'Message', 'TimeGenerated', 'TimeWritten', 'RecordNumber'} # 제외할 로그 프라퍼티
         
         properties = {}
         for hit in hits:
@@ -312,14 +335,19 @@ def logs_by_ruleset(request, system, ruleset_name):
 
         # 각 로그 항목에 detected_by_rules 필드를 추가
         for log in log_list:
-            log['detected_by_rules'] = [ruleset_name]
-        
+            matched_rules = []
+            for rule in res['hits']['hits']:
+                rule_query = rule['_source']["query"]["query"]
+                rule_match_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 1, "terminate_after": 1})
+                if rule_match_res['hits']['total']['value'] > 0:
+                    matched_rules.append(rule['_source']['name'])
+            log['detected_by_rules'] = matched_rules
+
         log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
 
         # Apply pagination
         system_log = LogManagement(system=system, page=page_number)
         page_obj = system_log.paginate_logs(log_list, page_number)
-
 
         context = {
             'total_count': len(log_list),

@@ -29,5 +29,6 @@ def search_all_logs(index_name):
 if __name__ == "__main__":
     # search_all_logs('test_window_syslog')
     # search_all_logs('window_ruleset')
-    search_all_logs('window_detected_log')
+    # search_all_logs('window_detected_log')
+    search_all_logs('fortigate_user_api')
     # search_all_logs('test_fortigate_syslog')

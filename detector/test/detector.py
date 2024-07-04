@@ -7,7 +7,7 @@ from elasticsearch import Elasticsearch, NotFoundError, ConnectionError
 es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
 
 # Logging 설정
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # 인덱스 매핑 설정
@@ -67,7 +67,7 @@ def check_logs(system):
             size = 10000
             scroll = '2m'
             try:
-                result = es.search(index=log_index_name, body={"query": rule_query["query"]}, scroll=scroll, size=size)
+                result = es.search(index=log_index_name, body=rule_query, scroll=scroll, size=size)
             except Exception as e:
                 logger.error(f"Search query failed: {e}")
                 continue
@@ -91,21 +91,27 @@ def check_logs(system):
                     # 로그 아이디를 룰셋 이름과 결합하여 중복 체크
                     unique_log_id = f"{log_id}_{rule_name}"
 
-                    log_doc["detected_by_rule"] = [rule_name]
+                    # 이전에 탐지된 기록이 있는지 확인
+                    try:
+                        existing_log = es.get(index=detected_log_index, id=unique_log_id)
+                        existing_detected_by_rules = existing_log['_source'].get("detected_by_rule", "")
+                        existing_detected_by_rules_list = existing_detected_by_rules.split(",") if existing_detected_by_rules else []
+                    except NotFoundError:
+                        existing_detected_by_rules_list = []
+
+                    if rule_name not in existing_detected_by_rules_list:
+                        existing_detected_by_rules_list.append(rule_name)
+
+                    log_doc["detected_by_rule"] = ",".join(existing_detected_by_rules_list)
                     log_doc["severity"] = severity
                     log_doc["rule_type"] = rule_type  # Add rule_type to the detected log
 
                     try:
-                        es.get(index=detected_log_index, id=unique_log_id)
-                        logger.info(f"Log with id {unique_log_id} already exists in {detected_log_index}")
-                    except NotFoundError:
-                        # Try inserting the log and log the response
-                        try:
-                            response = es.index(index=detected_log_index, id=unique_log_id, body=log_doc)
-                            logger.info(f"Indexed log with id {unique_log_id} into {detected_log_index}")
-                        except Exception as e:
-                            logger.error(f"Failed to index log with id {unique_log_id}: {e}")
-                            logger.error(f"Log document: {json.dumps(log_doc, indent=4)}")
+                        es.index(index=detected_log_index, id=unique_log_id, body=log_doc)
+                        logger.info(f"Indexed log with id {unique_log_id} into {detected_log_index}")
+                    except Exception as e:
+                        logger.error(f"Failed to index log with id {unique_log_id}: {e}")
+                        logger.error(f"Log document: {json.dumps(log_doc, indent=4)}")
 
                 try:
                     result = es.scroll(scroll_id=sid, scroll=scroll)
@@ -133,5 +139,5 @@ def run_detector(system):
         time.sleep(60)  # 60초마다 로그를 체크
 
 if __name__ == "__main__":
-    system = "linux"  # 또는 "linux", "genian", "fortigate" 중 하나를 선택
+    system = "window"  # 또는 "linux", "genian", "fortigate" 중 하나를 선택
     run_detector(system)
