@@ -7,13 +7,13 @@ delete_query = {
     "query": {
         "bool": {
             "must": [
-                {"match": {"name": "앙기모찌"}},
+                {"match": {"name": "중첩테스트"}},
             ]
         }
     }
 }
 
 # delete_by_query API 호출
-response = es.delete_by_query(index='linux_ruleset', body=delete_query)
+response = es.delete_by_query(index='window_ruleset', body=delete_query)
 
 print(response)

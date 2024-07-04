@@ -10,8 +10,10 @@ def search_all_logs(index_name):
     query = {
     "query": {
         "bool": {
-            "should": [
-                {"match": {"EventType": "FailureAudit"}},
+            "must": [
+                # {"match": {"detected_by_rule": "last_test"}},
+                {"match": {"date": "1719897502.826186"}},
+
             ]
         }
     }

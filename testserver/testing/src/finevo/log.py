@@ -55,7 +55,7 @@ class LogManagement():
                                     detected_rules.update(detected_by_rules.split(','))
                                 rule_info = self.es.search(index=f"{self.system}_ruleset", body={"query": {"bool": {"must": [{"match": {"name": detected_by_rules}}]}}})
                                 severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
-                        log['detected_by_rules'] = list(detected_rules)  # set을 list로 변환
+                        log['detected_by_rules'] = ",".join(detected_rules)  # set을 콤마로 구분된 문자열로 변환
                         log['severities'] = severities
                         logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
                 except Exception as e:
@@ -335,13 +335,13 @@ def logs_by_ruleset(request, system, ruleset_name):
 
         # 각 로그 항목에 detected_by_rules 필드를 추가
         for log in log_list:
-            matched_rules = []
+            matched_rules = set()
             for rule in res['hits']['hits']:
                 rule_query = rule['_source']["query"]["query"]
                 rule_match_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 1, "terminate_after": 1})
                 if rule_match_res['hits']['total']['value'] > 0:
-                    matched_rules.append(rule['_source']['name'])
-            log['detected_by_rules'] = matched_rules
+                    matched_rules.add(rule['_source']['name'])
+            log['detected_by_rules'] = ",".join(matched_rules)
 
         log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
 

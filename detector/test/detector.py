@@ -95,14 +95,13 @@ def check_logs(system):
                     try:
                         existing_log = es.get(index=detected_log_index, id=unique_log_id)
                         existing_detected_by_rules = existing_log['_source'].get("detected_by_rule", "")
-                        existing_detected_by_rules_list = existing_detected_by_rules.split(",") if existing_detected_by_rules else []
                     except NotFoundError:
-                        existing_detected_by_rules_list = []
+                        existing_detected_by_rules = ""
 
-                    if rule_name not in existing_detected_by_rules_list:
-                        existing_detected_by_rules_list.append(rule_name)
+                    detected_by_rules_set = set(existing_detected_by_rules.split(",")) if existing_detected_by_rules else set()
+                    detected_by_rules_set.add(rule_name)
 
-                    log_doc["detected_by_rule"] = ",".join(existing_detected_by_rules_list)
+                    log_doc["detected_by_rule"] = ",".join(detected_by_rules_set)
                     log_doc["severity"] = severity
                     log_doc["rule_type"] = rule_type  # Add rule_type to the detected log
 
@@ -139,5 +138,5 @@ def run_detector(system):
         time.sleep(60)  # 60초마다 로그를 체크
 
 if __name__ == "__main__":
-    system = "window"  # 또는 "linux", "genian", "fortigate" 중 하나를 선택
+    system = "linux"  # 또는 "linux", "genian", "fortigate" 중 하나를 선택
     run_detector(system)

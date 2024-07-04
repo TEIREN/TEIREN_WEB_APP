@@ -14,8 +14,18 @@ import time
 import json
 
 es = Elasticsearch("http://3.35.81.217:9200/")
-should_stop = False
-log_collection_started = False
+should_stop = {
+    "genian": False,
+    "fortigate": False,
+    "linux": False,
+    "window": False,
+}
+log_collection_started = {
+    "genian": False,
+    "fortigate": False,
+    "linux": False,
+    "window": False,
+}
 
 app = FastAPI()
 
@@ -78,13 +88,12 @@ async def genian_log(request: Request):
     return {"message": "Log received successfully"}
 
 # Genian API 로그 수집 엔드포인트
-#curl -X GET "http://localhost:8088/genian_api_send?api_key=b17eeffd-f8ca-4443-baf4-c4376ed48a9e"
 @app.get("/genian_api_send")
 async def get_genian_logs(api_key: str = None, page: int = 1, page_size: int = 30, background_tasks: BackgroundTasks = None):
     if not api_key:
         return {"error": "API 키가 필요합니다."}
     global log_collection_started
-    log_collection_started = True
+    log_collection_started["genian"] = True
     logs = []
     while True:
         new_logs = get_logs(api_key, page, page_size)
@@ -93,45 +102,33 @@ async def get_genian_logs(api_key: str = None, page: int = 1, page_size: int = 3
         logs.extend(new_logs)
         page += 1
 
-    background_tasks.add_task(continue_log_collection, api_key)
+    background_tasks.add_task(continue_log_collection, api_key, "genian")
     await save_api_key("genian_user_api", api_key)
 
     return {"message": "로그 수집이 진행 중입니다."}
 
 # 로그 수집을 계속하는 함수
-def continue_log_collection(api_key):
-    while not should_stop:
-        send_genian_logs(api_key)
+def continue_log_collection(api_key, system):
+    while not should_stop[system]:
+        if system == "genian":
+            send_genian_logs(api_key)
+        elif system == "fortigate":
+            send_fortigate_logs(api_key)
         time.sleep(5)
 
 # Genian API 로그 수집 중지 엔드포인트
-# 전체적으로 조금 기다려야 함 
-# api_key: b17eeffd-f8ca-4443-baf4-c4376ed48a9e
-# curl -X GET http://localhost:8088/stop_genian_api_send 
 @app.get("/stop_genian_api_send")
 async def stop_genian_api_send():
     global should_stop
-    should_stop = True
+    should_stop["genian"] = True
     return {"message": "Genian API 전송 중지 요청이 접수되었습니다."}
-
-# 로그 수집 상태 확인 엔드포인트
-# curl http://localhost:8088/log_collection_status
-
-@app.get("/log_collection_status")
-async def get_log_collection_status():
-    return {"log_collection_started": log_collection_started, "log_collection_stopped": should_stop}
-# started가 TRUE면 수집중 FALSE면 수집 안되는중 
-# STOPPED가 TRUE면 수집중지 FALSE면 수잡 재개
 
 # Genian API 로그 수집 재개 엔드포인트
 @app.get("/resume_genian_api_send")
 async def resume_genian_api_send():
     global should_stop
-    should_stop = False
+    should_stop["genian"] = False
     return {"message": "Genian API 전송이 재개되었습니다."}
-# 전송 재개 후 조금 기다리면 다시 전송 됨
-
-# 얘도 상태 확인 멈춤 재개 만들면 됨
 
 @app.post('/fortigate_log')
 async def fortigate_log(request: Request):
@@ -148,12 +145,36 @@ async def get_fortigate_log(api_key: str = None, background_tasks: BackgroundTas
         return {"error": "API 키가 필요합니다."}
 
     global log_collection_started
-    log_collection_started = True
+    log_collection_started["fortigate"] = True
 
-    background_tasks.add_task(send_fortigate_logs, api_key)
+    background_tasks.add_task(continue_log_collection, api_key, "fortigate")
     await save_api_key("fortigate_user_api", api_key)
 
     return {"message": "FortiGate 로그 수집이 진행 중입니다."}
+
+# Fortigate API 로그 수집 중지 엔드포인트
+@app.get("/stop_fortigate_api_send")
+async def stop_fortigate_api_send():
+    global should_stop
+    should_stop["fortigate"] = True
+    return {"message": "FortiGate API 전송 중지 요청이 접수되었습니다."}
+
+# Fortigate API 로그 수집 재개 엔드포인트
+@app.get("/resume_fortigate_api_send")
+async def resume_fortigate_api_send():
+    global should_stop
+    should_stop["fortigate"] = False
+    return {"message": "FortiGate API 전송이 재개되었습니다."}
+
+# 시스템별 로그 수집 상태 확인 엔드포인트
+@app.get("/log_collection_status/{system}")
+async def get_log_collection_status(system: str):
+    if system not in log_collection_started:
+        raise HTTPException(status_code=400, detail="Invalid system")
+    return {
+        "log_collection_started": log_collection_started[system],
+        "log_collection_stopped": should_stop[system]
+    }
 
 @app.post('/mssql_log')
 async def mssql_log(request: Request):
@@ -174,7 +195,6 @@ async def start_mssql_collection(
     table_name: str = Form(...),
     background_tasks: BackgroundTasks = None
 ):
-    # 이 부분에서 백그라운드 태스크를 시작하고 사용자 정보를 넘김
     background_tasks.add_task(send_mssql_logs, server, database, username, password, table_name)
     return {"message": "MSSQL 로그 수집이 시작되었습니다."}
 
