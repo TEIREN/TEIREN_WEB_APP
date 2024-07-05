@@ -2,7 +2,7 @@ import json
 import logging
 from .tableProperty import get_property_key
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
 from elasticsearch import Elasticsearch, ConnectionError
 
@@ -36,24 +36,31 @@ class LogManagement():
     # 로그 검색 함수
     def search_logs(self):
         try:
-            self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 1000000})
-            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit,"query": self.query, "sort":{f"{self.timestamp}": "desc"}, "from":((self.page_number-1)*self.limit)})
+            self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 100000})
+            self.es.indices.put_settings(index=f"{self.system}_detected_log", body={"index.max_result_window": 100000})
+            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit, "query": self.query, "sort": {f"{self.timestamp}": "desc"}, "from": ((self.page_number-1)*self.limit)})
             hits = response['hits']['hits']
             log_list = []
             for hit in hits:
                 log = hit['_source']
                 try:
-                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query":{"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=1000)
+                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=100000)
                     if len(detected_response['hits']['hits']) > 0:
-                        detected_rules = []
+                        detected_rules = set()  # 중복을 제거하기 위해 set 사용
                         severities = []
                         for detect_hit in detected_response['hits']['hits']:
-                            detected_rules.append(detect_hit['_source']['detected_by_rule'])
-                            rule_info = self.es.search(index= f"{self.system}_ruleset", body={"query":{"bool": {"must": [{"match": {"name": detect_hit['_source']['detected_by_rule']}}]}}})
-                            severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
-                        log['detected_by_rules'] = detected_rules
+                            detected_log = detect_hit['_source']
+                            if self.is_rule_match(detected_log, log):  # 매칭 조건 확인
+                                detected_by_rules = detected_log.get('detected_by_rule', '')
+                                if detected_by_rules:
+                                    detected_rules.add(detected_by_rules)
+                                rule_info = self.es.search(index=f"{self.system}_ruleset", body={"query": {"bool": {"must": [{"match": {"name": detected_by_rules}}]}}})
+                                severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
+                        log['detected_by_rules'] = list(detected_rules)  # set을 list로 변환
                         log['severities'] = severities
+                        # logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
                 except Exception as e:
+                    print(e)
                     logging.error(f"Error searching logs: {e}")
                 finally:
                     log_list.append(log)
@@ -65,6 +72,24 @@ class LogManagement():
             self.total_page = 1
             logging.error(f"Error searching logs: {e}")
         return total_count, log_list
+
+    def is_rule_match(self, detected_log, actual_log):
+        # 룰셋의 조건이 실제 로그에 맞는지 확인하는 로직 추가
+        # 예시: detected_log의 eventtype과 actual_log의 eventtype이 같은지 확인
+        match_conditions = detected_log.get("query", {}).get("bool", {}).get("must", [])
+        for condition in match_conditions:
+            should_conditions = condition.get("bool", {}).get("should", [])
+            for should_condition in should_conditions:
+                if "match" in should_condition:
+                    key, value = list(should_condition["match"].items())[0]
+                    if key in actual_log and actual_log[key] != value:
+                        return False
+                if "bool" in should_condition and "must_not" in should_condition["bool"]:
+                    must_not_condition = should_condition["bool"]["must_not"]
+                    for key, value in must_not_condition.items():
+                        if key in actual_log and actual_log[key] == value:
+                            return False
+        return True
 
     # 쿼리 문자열을 파싱하는 함수
     def parse_query_string(self, query_string):
@@ -163,15 +188,15 @@ class LogManagement():
         else:
             self.query = {"match_all": {}}
 
-        logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
-        logging.debug(f"Filters Applied: {parsed_filters}")
+        # logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
+        # logging.debug(f"Filters Applied: {parsed_filters}")
         return self.search_logs()
 
     # 페이지네이션 적용 함수
-    def paginate_logs(self, log_list, page_number, logs_per_page=25):
-        paginator = Paginator(log_list, logs_per_page)
-        page_obj = paginator.get_page(page_number)
-        return page_obj
+    # def paginate_logs(self, log_list, page_number, logs_per_page=25):
+    #     paginator = Paginator(log_list, logs_per_page)
+    #     page_obj = paginator.get_page(page_number)
+    #     return page_obj
     
     def paginate(self):
         #page_range
@@ -180,8 +205,8 @@ class LogManagement():
         start_page = max(int(self.page_number)-5, 1)
         end_page = min(int(self.page_number)+5, self.total_page)
         page_range = range(start_page, end_page+1)
-        print(self.page_number)
-        print(page_range)
+        # print(self.page_number)
+        # print(page_range)
         return {
             'has_previous': False if self.page_number == 1 else True,
             'has_next': False if self.page_number == self.total_page else True,
@@ -204,7 +229,7 @@ class LogManagement():
         response = self.es.search(index=f"test_{self.system}_syslog", body=query)
         hits = response['hits']['hits']
         
-        exclude_keys = {'@timestamp', 'message', 'timegenerated', '@version', 'date', 'eventtime','teiren_@timestamp', 'teiren_ddd', 'teiren_timestamp', 'Message', 'TimeGenerated', 'TimeWritten', 'RecordNumber'} # 제외할 로그 프라퍼티
+        exclude_keys = {'@timestamp', 'message', 'timegenerated', '@version', 'date', 'eventtime', 'teiren_@timestamp', 'teiren_ddd', 'teiren_timestamp', 'Message', 'TimeGenerated', 'TimeWritten', 'RecordNumber'} # 제외할 로그 프라퍼티
         
         properties = {}
         for hit in hits:
@@ -223,11 +248,11 @@ class LogManagement():
 
 # 시스템 로그 리스트를 보여주는 함수
 def list_logs(request, system):
-    # logging.basicConfig(level=logging.DEBUG)
+    # # logging.basicConfig(level=# logging.DEBUG)
     page_number = int(request.GET.get('page', 1))
     system_log = LogManagement(system=system, page=page_number)    
     filters = dict(request.GET)
-    print(filters)
+    
     if 'page' in filters:
         del filters['page']
     if 'query' in filters and filters['query'][0] == '':
@@ -273,7 +298,7 @@ def list_logs(request, system):
         return render(request, 'testing/finevo/elasticsearch.html', context=context)
 
     except ConnectionError as e:
-        logging.error(f"Connection error: {e}")
+        # logging.error(f"Connection error: {e}")
         context = {
             'total_count': 0,
             'log_list': [],
@@ -283,7 +308,7 @@ def list_logs(request, system):
             'log_properties': []
         }
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        # logging.error(f"An error occurred: {e}")
         context = {
             'total_count': 0,
             'log_list': [],
@@ -298,37 +323,43 @@ def list_logs(request, system):
 # 룰셋에 따른 로그 리스트를 보여주는 함수
 def logs_by_ruleset(request, system, ruleset_name):
     try:
-        page_number = request.GET.get('page', 1)
-
+        page_number = int(request.GET.get('page', 1))
         res = es.search(index=f"{system}_ruleset", body={"query": {"match": {"name": ruleset_name}}})
         if res['hits']['total']['value'] == 0:
             return render(request, 'testing/finevo/error_page.html', {'error': f"No ruleset found with name {ruleset_name}"})
         
+        # LogMangement 클래스 생성 후 rule query 지정
+        system_log = LogManagement(system=system, page=page_number)
         rule = res['hits']['hits'][0]['_source']
         rule_query = rule["query"]["query"]
+        system_log.query = rule_query
 
-        log_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 10000})
-        log_list = [hit['_source'] for hit in log_res['hits']['hits']]
-
-        # 각 로그 항목에 detected_by_rules 필드를 추가
-        for log in log_list:
-            log['detected_by_rules'] = [ruleset_name]
-        
-        log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
-
-        # Apply pagination
-        system_log = LogManagement(system=system, page=page_number)
-        page_obj = system_log.paginate_logs(log_list, page_number)
-
-
+        # 필요한 값 받아서 보내주기
+        total_count, log_list = system_log.search_logs()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            # Apply pagination
+            page_obj = system_log.paginate()
+            context = {
+                'total_count': total_count,
+                'log_list': log_list,
+                'page_obj': page_obj,
+                'page': page_obj['number'],
+                'system': system.title(),
+                'log_properties': system_log.fetch_log_properties(), # 로그 프로퍼티 추출
+                'table_properties': get_property_key(system)
+            }
+            return render(request, 'testing/finevo/log_table.html', context=context)
+        page_obj = system_log.paginate()
         context = {
-            'total_count': len(log_list),
-            'log_list': page_obj.object_list,
-            'page_obj': page_obj,
+            'total_count': total_count,
             'system': system.title(),
+            'page_obj': page_obj,
+            'log_list': log_list,
             'ruleset_name': ruleset_name,
+            'ruleset': json.dumps(rule, indent=4),  # 룰셋 세부 정보를 prettified JSON으로 추가
             'page': page_number,
-            'ruleset': json.dumps(rule, indent=4)  # 룰셋 세부 정보를 prettified JSON으로 추가
+            'log_properties': system_log.fetch_log_properties(), # 로그 프로퍼티 추출
+            'table_properties': get_property_key(system)
         }
         return render(request, 'testing/finevo/logs_by_ruleset.html', context=context)
 

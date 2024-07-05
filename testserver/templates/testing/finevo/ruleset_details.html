@@ -1,0 +1,16 @@
+<div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <div class="row">
+        <span class="h4 text-teiren font-weight-bold">Ruleset Details</span>
+        <button onclick="toggleRulesetDetails(this)" class="btn btn-lg ml-auto p-0"><i class="fa-solid fa-chevron-down"></i></button>
+    </div>
+    <div id="ruleset-details" class="my-3 h6" style="display:none;">
+        <pre>{{ ruleset|safe }}</pre>
+    </div>
+</div>
+<script>
+    function toggleRulesetDetails(e){
+        $(e).find('i').toggleClass('fa-chevron-down')
+        $(e).find('i').toggleClass('fa-chevron-up')
+        $('#ruleset-details').slideToggle()
+    }
+</script>

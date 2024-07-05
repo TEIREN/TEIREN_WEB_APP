@@ -7,27 +7,27 @@ from elasticsearch import Elasticsearch, NotFoundError, ConnectionError
 es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
 
 # Logging 설정
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # 인덱스 매핑 설정
 log_index = {
     "linux": "test_linux_syslog",
-    "windows": "test_window_syslog",
+    "window": "test_window_syslog",
     "genian": "test_genian_syslog",
     "fortigate": "test_fortigate_syslog"
 }
 
 ruleset_mapping = {
     "linux": "linux_ruleset",
-    "windows": "window_ruleset",
+    "window": "window_ruleset",
     "genian": "genian_ruleset",
     "fortigate": "fortigate_ruleset"
 }
 
 detected_log_mapping = {
     "linux": "linux_detected_log",
-    "windows": "window_detected_log",
+    "window": "window_detected_log",
     "genian": "genian_detected_log",
     "fortigate": "fortigate_detected_log"
 }
@@ -41,15 +41,6 @@ def get_index_choice(system):
         'ruleset_index': ruleset_mapping[system],
         'detected_log_index': detected_log_mapping[system]
     }
-
-# 쿼리를 소문자로 변환
-def lowercase_query(query):
-    if isinstance(query, dict):
-        return {k.lower(): lowercase_query(v) if isinstance(v, (dict, list)) else v.lower() if isinstance(v, str) else v for k, v in query.items()}
-    elif isinstance(query, list):
-        return [lowercase_query(item) for item in query]
-    else:
-        return query
 
 # 로그 체크 함수
 def check_logs(system):
@@ -70,17 +61,18 @@ def check_logs(system):
             rule_name = rule["_source"]["name"]
             rule_type = rule["_source"].get("rule_type", "custom")  # Default to 'custom' if not present
 
-            # 쿼리를 소문자로 변환
-            rule_query = lowercase_query(rule_query)
-
             logger.info(f"Applying rule: {rule_name}, Query: {json.dumps(rule_query, indent=4)}")
 
             # 페이지네이션 설정
             size = 10000
             scroll = '2m'
-            result = es.search(index=log_index_name, body={"query": rule_query["query"]}, size=size, scroll=scroll)
+            try:
+                result = es.search(index=log_index_name, body=rule_query, scroll=scroll, size=size)
+            except Exception as e:
+                logger.error(f"Search query failed: {e}")
+                continue
 
-            sid = result['_scroll_id']
+            sid = result.get('_scroll_id', None)
             scroll_size = len(result['hits']['hits'])
 
             if scroll_size == 0:
@@ -95,22 +87,46 @@ def check_logs(system):
                 for log in result['hits']['hits']:
                     log_id = log["_id"]
                     log_doc = log["_source"]
-                    log_doc["detected_by_rule"] = rule_name
+
+                    # 로그 아이디를 룰셋 이름과 결합하여 중복 체크
+                    unique_log_id = f"{log_id}_{rule_name}"
+
+                    # 이전에 탐지된 기록이 있는지 확인
+                    try:
+                        existing_log = es.get(index=detected_log_index, id=unique_log_id)
+                        existing_detected_by_rules = existing_log['_source'].get("detected_by_rule", "")
+                        existing_detected_by_rules_list = existing_detected_by_rules.split(",") if existing_detected_by_rules else []
+                    except NotFoundError:
+                        existing_detected_by_rules_list = []
+
+                    if rule_name not in existing_detected_by_rules_list:
+                        existing_detected_by_rules_list.append(rule_name)
+
+                    log_doc["detected_by_rule"] = ",".join(existing_detected_by_rules_list)
                     log_doc["severity"] = severity
                     log_doc["rule_type"] = rule_type  # Add rule_type to the detected log
 
                     try:
-                        es.get(index=detected_log_index, id=log_id)
-                        logger.info(f"Log with id {log_id} already exists in {detected_log_index}")
-                    except NotFoundError:
-                        es.index(index=detected_log_index, id=log_id, body=log_doc)
-                        logger.info(f"Indexed log with id {log_id} into {detected_log_index}")
+                        es.index(index=detected_log_index, id=unique_log_id, body=log_doc)
+                        logger.info(f"Indexed log with id {unique_log_id} into {detected_log_index}")
+                    except Exception as e:
+                        logger.error(f"Failed to index log with id {unique_log_id}: {e}")
+                        logger.error(f"Log document: {json.dumps(log_doc, indent=4)}")
 
-                result = es.scroll(scroll_id=sid, scroll=scroll)
-                sid = result['_scroll_id']
-                scroll_size = len(result['hits']['hits'])
+                try:
+                    result = es.scroll(scroll_id=sid, scroll=scroll)
+                    sid = result.get('_scroll_id', None)
+                    scroll_size = len(result['hits']['hits'])
+                except Exception as e:
+                    logger.error(f"Scrolling failed: {e}")
+                    break
 
-            es.clear_scroll(scroll_id=sid)
+            if sid:
+                try:
+                    es.clear_scroll(scroll_id=sid)
+                except Exception as e:
+                    logger.error(f"Clearing scroll failed: {e}")
+
     except ConnectionError as e:
         logger.error(f"Connection error: {e}")
     except Exception as e:
@@ -123,5 +139,5 @@ def run_detector(system):
         time.sleep(60)  # 60초마다 로그를 체크
 
 if __name__ == "__main__":
-    system = "linux"  # 또는 "windows", "genian", "fortigate" 중 하나를 선택
+    system = "window"  # 또는 "linux", "genian", "fortigate" 중 하나를 선택
     run_detector(system)

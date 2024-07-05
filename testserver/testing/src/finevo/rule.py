@@ -16,7 +16,7 @@ class RuleSet:
     def __init__(self, system):
         self.system = system
 
-    def get_ruleset_list(self, rule_type:str):
+    def get_ruleset_list(self, rule_type: str):
         try:
             es.indices.put_settings(index=f"{self.system}_ruleset", body={"index.max_result_window": 1000000})
             _search = es.search(index=f"{self.system}_ruleset", body={
@@ -32,23 +32,17 @@ class RuleSet:
             severity_list = ['LOW', 'MID', 'HIGH', 'CRITICAL']
             for rule in response:
                 num = int(rule['severity'])
-                rule['severity'] = [color_list[num-1], severity_list[num-1]]
+                rule['severity'] = [color_list[num - 1], severity_list[num - 1]]
         except Exception as e:
             print(e)
             response = []
         finally:
             return response
-        
     def get_detail_page(self, request):
         context = request.POST.dict()
         context['severity'] = json.loads(context['severity'].replace("'", '"'))
         context['query'] = json.dumps(json.loads(context['query'].replace("'", '"')), indent=4)
         return render(request, f"testing/finevo/rules/custom/details.html", context=context)
-    
-    def get_edit_page(self, request):
-        context = request.POST.dict()
-        context['query'] = json.loads(context['query'])
-        return render(request, f"testing/finevo/rules/edit/modal.html", context=context)
     
     def add_property(self, request):
         return render(request, f"testing/finevo/rules/add/property_slot.html")
@@ -68,13 +62,14 @@ class RuleSet:
             if not rule_name:
                 return HttpResponse("Rule name cannot be empty.", status=400)
 
-            logger.info(f"Parsed data: name={rule_name}, severity={severity}, must_property_name={must_property_name}, "
-                        f"must_property_value={must_property_value}, must_property_operator={must_property_operator}, system={system}")
+            logger.info(
+                f"Parsed data: name={rule_name}, severity={severity}, must_property_name={must_property_name}, "
+                f"must_property_value={must_property_value}, must_property_operator={must_property_operator}, system={system}")
 
             # Elasticsearch 인덱스 설정
             index_mapping = {
                 "linux": "linux_ruleset",
-                "windows": "window_ruleset",
+                "window": "window_ruleset",
                 "genian": "genian_ruleset",
                 "fortigate": "fortigate_ruleset"
             }
@@ -84,19 +79,26 @@ class RuleSet:
                 return HttpResponse("Invalid system choice.", status=400)
 
             must_conditions = []
-            should_conditions = {}
 
             # must 조건 생성
+            property_conditions = {}
             for m_name, m_value, m_operator in zip(must_property_name, must_property_value, must_property_operator):
-                if m_operator == '=':
-                    if m_name not in should_conditions:
-                        should_conditions[m_name] = []
-                    should_conditions[m_name].append({"match": {m_name.strip().lower(): m_value.strip().lower()}})
-                elif m_operator == '!=':
-                    must_conditions.append({"bool": {"must_not": {"match": {m_name.strip().lower(): m_value.strip().lower()}}}})
+                m_name = m_name.strip().lower()
+                m_value = m_value.strip().lower()
 
-            # should_conditions를 must_conditions로 변환
-            for key, conditions in should_conditions.items():
+                condition = None
+                if m_operator == '=':
+                    condition = {"match": {m_name: m_value}}
+                elif m_operator == '!=':
+                    condition = {"bool": {"must_not": {"match": {m_name: m_value}}}}
+
+                if m_name not in property_conditions:
+                    property_conditions[m_name] = []
+
+                property_conditions[m_name].append(condition)
+
+            # 각 프라퍼티 조건들을 OR 조건으로 묶어 AND 조건으로 결합
+            for prop, conditions in property_conditions.items():
                 must_conditions.append({"bool": {"should": conditions, "minimum_should_match": 1}})
 
             # must 조건이 비어 있을 수 있도록 처리
@@ -252,19 +254,26 @@ class RuleSet:
                 return HttpResponse("Invalid system choice.", status=400)
 
             must_conditions = []
-            should_conditions = {}
 
             # must 조건 생성
+            property_conditions = {}
             for m_name, m_value, m_operator in zip(must_property_name, must_property_value, must_property_operator):
-                if m_operator == '=':
-                    if m_name not in should_conditions:
-                        should_conditions[m_name] = []
-                    should_conditions[m_name].append({"match": {m_name.strip().lower(): m_value.strip().lower()}})
-                elif m_operator == '!=':
-                    must_conditions.append({"bool": {"must_not": {"match": {m_name.strip().lower(): m_value.strip().lower()}}}})
+                m_name = m_name.strip().lower()
+                m_value = m_value.strip().lower()
 
-            # should_conditions를 must_conditions로 변환
-            for key, conditions in should_conditions.items():
+                condition = None
+                if m_operator == '=':
+                    condition = {"match": {m_name: m_value}}
+                elif m_operator == '!=':
+                    condition = {"bool": {"must_not": {"match": {m_name: m_value}}}}
+
+                if m_name not in property_conditions:
+                    property_conditions[m_name] = []
+
+                property_conditions[m_name].append(condition)
+
+            # 각 프라퍼티 조건들을 OR 조건으로 묶어 AND 조건으로 결합
+            for prop, conditions in property_conditions.items():
                 must_conditions.append({"bool": {"should": conditions, "minimum_should_match": 1}})
 
             # must 조건이 비어 있을 수 있도록 처리
