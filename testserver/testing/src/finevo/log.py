@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch, ConnectionError
 es = Elasticsearch(hosts=["http://3.35.81.217:9200/"])
 
 # Docker 로그에 기록되도록 로깅 설정
-# # logging.basicConfig(level=# logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # 로그 관리 클래스
 class LogManagement():
@@ -31,18 +31,6 @@ class LogManagement():
             "mssql": "",
             "snmp": ""
         }
-        # # Define the mapping for your index
-        # mapping = {
-        #     "properties": {
-        #         timestamp_mapping[self.system]: {
-        #             "type": "scaled_float",
-        #             "scaling_factor": 100000000
-        #         }
-        #     }
-        # }
-
-        # # Create or update the mapping for your index
-        # es.indices.put_mapping(index=f"{self.system}_detected_log", body=mapping)
         return timestamp_mapping[self.system]
         
     # 로그 검색 함수
@@ -56,17 +44,12 @@ class LogManagement():
             for hit in hits:
                 log = hit['_source']
                 try:
-                    # detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=1000)
-                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"range": {self.timestamp: { "gte": (log[self.timestamp]-0.000000000001), "lte": (log[self.timestamp]+0.00000000000000001) }}}}, size=1)
+                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=100000)
                     if len(detected_response['hits']['hits']) > 0:
                         detected_rules = set()  # 중복을 제거하기 위해 set 사용
                         severities = []
                         for detect_hit in detected_response['hits']['hits']:
                             detected_log = detect_hit['_source']
-                            print(log[self.timestamp])
-                            print(detected_log['date'])
-                            print('#'*50)
-                            print('\n')
                             if self.is_rule_match(detected_log, log):  # 매칭 조건 확인
                                 detected_by_rules = detected_log.get('detected_by_rule', '')
                                 if detected_by_rules:
@@ -210,10 +193,10 @@ class LogManagement():
         return self.search_logs()
 
     # 페이지네이션 적용 함수
-    def paginate_logs(self, log_list, page_number, logs_per_page=25):
-        paginator = Paginator(log_list, logs_per_page)
-        page_obj = paginator.get_page(page_number)
-        return page_obj
+    # def paginate_logs(self, log_list, page_number, logs_per_page=25):
+    #     paginator = Paginator(log_list, logs_per_page)
+    #     page_obj = paginator.get_page(page_number)
+    #     return page_obj
     
     def paginate(self):
         #page_range
@@ -340,42 +323,43 @@ def list_logs(request, system):
 # 룰셋에 따른 로그 리스트를 보여주는 함수
 def logs_by_ruleset(request, system, ruleset_name):
     try:
-        page_number = request.GET.get('page', 1)
-
+        page_number = int(request.GET.get('page', 1))
         res = es.search(index=f"{system}_ruleset", body={"query": {"match": {"name": ruleset_name}}})
         if res['hits']['total']['value'] == 0:
             return render(request, 'testing/finevo/error_page.html', {'error': f"No ruleset found with name {ruleset_name}"})
         
+        # LogMangement 클래스 생성 후 rule query 지정
+        system_log = LogManagement(system=system, page=page_number)
         rule = res['hits']['hits'][0]['_source']
         rule_query = rule["query"]["query"]
+        system_log.query = rule_query
 
-        log_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 10000})
-        log_list = [hit['_source'] for hit in log_res['hits']['hits']]
-
-        # 각 로그 항목에 detected_by_rules 필드를 추가
-        for log in log_list:
-            matched_rules = []
-            for rule in res['hits']['hits']:
-                rule_query = rule['_source']["query"]["query"]
-                rule_match_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 1, "terminate_after": 1})
-                if rule_match_res['hits']['total']['value'] > 0:
-                    matched_rules.append(rule['_source']['name'])
-            log['detected_by_rules'] = matched_rules
-
-        log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
-
-        # Apply pagination
-        system_log = LogManagement(system=system, page=page_number)
-        page_obj = system_log.paginate_logs(log_list, page_number)
-
+        # 필요한 값 받아서 보내주기
+        total_count, log_list = system_log.search_logs()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            # Apply pagination
+            page_obj = system_log.paginate()
+            context = {
+                'total_count': total_count,
+                'log_list': log_list,
+                'page_obj': page_obj,
+                'page': page_obj['number'],
+                'system': system.title(),
+                'log_properties': system_log.fetch_log_properties(), # 로그 프로퍼티 추출
+                'table_properties': get_property_key(system)
+            }
+            return render(request, 'testing/finevo/log_table.html', context=context)
+        page_obj = system_log.paginate()
         context = {
-            'total_count': len(log_list),
-            'log_list': page_obj.object_list,
-            'page_obj': page_obj,
+            'total_count': total_count,
             'system': system.title(),
+            'page_obj': page_obj,
+            'log_list': log_list,
             'ruleset_name': ruleset_name,
+            'ruleset': json.dumps(rule, indent=4),  # 룰셋 세부 정보를 prettified JSON으로 추가
             'page': page_number,
-            'ruleset': json.dumps(rule, indent=4)  # 룰셋 세부 정보를 prettified JSON으로 추가
+            'log_properties': system_log.fetch_log_properties(), # 로그 프로퍼티 추출
+            'table_properties': get_property_key(system)
         }
         return render(request, 'testing/finevo/logs_by_ruleset.html', context=context)
 
