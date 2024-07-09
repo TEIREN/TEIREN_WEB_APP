@@ -53,59 +53,62 @@
         <pre>{{ ruleset|safe }}</pre>
     </div>
     {% include "./search_filter.html" %}
-    <div class="card shadow mb-4" id="log_table">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-teiren">Log Total: {{total_count}} | Page: {{page}}</h6>
-        </div>
-        <div class="card-body" style="font-size:15px;">
-            <div class="table-responsive" style="overflow:hidden;">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
-                       style="table-layout:fixed;text-align:center;font-size:15px;">
-                    <thead>
-                        <tr>
-                            <th width='5%'>No.</th>
-                            <th>Log (Json)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for log in log_list %}
-                        <tr>
-                            <td style="vertical-align: middle;">{{forloop.counter}}</td>
-                            <td style="text-align:left;" class="log-entry">
-                                <pre>{{log|pprint}}</pre>
-                                {% if 'detected_by_rules' in log %}
-                                    {% with log.detected_by_rules as detected_by_rules %}
-                                    <div>
-                                    {% for rule in detected_by_rules %}
-                                        <form action="{% url 'logs_by_ruleset' system.lower rule %}" method="GET" style="display:inline;">
-                                            <input type="submit" value="{{rule}}" class="detected-button btn btn-sm mb-1"/>
-                                        </form>
-                                    {% endfor %}
-                                    </div>
-                                    {% endwith %}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="row justify-content-between">
+        {% include "./filter_sidebar.html" %}
+        <div class="card shadow mb-4 ml-auto" id="log_table" style="width:84%;">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-teiren">Log Total: {{total_count}} | Page: {{page}}</h6>
             </div>
-            <div class="pagination">
-                <span class="step-links">
-                    {% if page_obj.has_previous %}
-                        <a href="?page=1">&laquo; first</a>
-                        <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-                    {% endif %}
+            <div class="card-body" style="font-size:15px;">
+                <div class="table-responsive" style="overflow:hidden;">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0"
+                           style="table-layout:fixed;text-align:center;font-size:15px;">
+                        <thead>
+                            <tr>
+                                <th width='5%'>No.</th>
+                                <th>Log (Json)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in log_list %}
+                            <tr>
+                                <td style="vertical-align: middle;">{{forloop.counter}}</td>
+                                <td style="text-align:left;" class="log-entry">
+                                    <pre>{{log|pprint}}</pre>
+                                    {% if 'detected_by_rules' in log %}
+                                        {% with log.detected_by_rules as detected_by_rules %}
+                                        <div>
+                                        {% for rule in detected_by_rules %}
+                                            <form action="{% url 'logs_by_ruleset' system.lower rule %}" method="GET" style="display:inline;">
+                                                <input type="submit" value="{{rule}}" class="detected-button btn btn-sm mb-1"/>
+                                            </form>
+                                        {% endfor %}
+                                        </div>
+                                        {% endwith %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <span class="step-links">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1">&laquo; first</a>
+                            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                        {% endif %}
 
-                    <span class="current">
-                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                        <span class="current">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                        </span>
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}">next</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                        {% endif %}
                     </span>
-
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}">next</a>
-                        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-                    {% endif %}
-                </span>
+                </div>
             </div>
         </div>
     </div>

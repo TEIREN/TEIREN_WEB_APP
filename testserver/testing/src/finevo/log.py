@@ -321,17 +321,32 @@ def list_logs(request, system):
 # 룰셋에 따른 로그 리스트를 보여주는 함수
 def logs_by_ruleset(request, system, ruleset_name):
     try:
-        page_number = request.GET.get('page', 1)
+        page_number = int(request.GET.get('page', 1))
+        system_log = LogManagement(system=system, page=page_number)
 
+        # 룰셋 쿼리
         res = es.search(index=f"{system}_ruleset", body={"query": {"match": {"name": ruleset_name}}})
         if res['hits']['total']['value'] == 0:
             return render(request, 'testing/finevo/error_page.html', {'error': f"No ruleset found with name {ruleset_name}"})
-        
+
         rule = res['hits']['hits'][0]['_source']
         rule_query = rule["query"]["query"]
 
-        log_res = es.search(index=f"test_{system}_syslog", body={"query": rule_query, "size": 10000})
-        log_list = [hit['_source'] for hit in log_res['hits']['hits']]
+        # 필터링 로직 추가
+        filters = dict(request.GET)
+        if 'page' in filters:
+            del filters['page']
+        if 'query' in filters and filters['query'][0] == '':
+            del filters['query']
+        if 'query' not in filters:
+            total_count, log_list = system_log.filter_query(filters)
+        elif 'query' in filters:
+            query_string = filters.pop('query')[0]
+            parsed_must, parsed_must_not, parsed_filters = system_log.parse_query_string(query_string)
+            filters.update(parsed_filters)
+            total_count, log_list = system_log.filter_query(filters)
+        else:
+            total_count, log_list = system_log.search_logs()
 
         # 각 로그 항목에 detected_by_rules 필드를 추가
         for log in log_list:
@@ -346,7 +361,6 @@ def logs_by_ruleset(request, system, ruleset_name):
         log_list.sort(key=lambda x: x.get('@timestamp', x.get('timestamp', '')))
 
         # Apply pagination
-        system_log = LogManagement(system=system, page=page_number)
         page_obj = system_log.paginate_logs(log_list, page_number)
 
         context = {
@@ -356,7 +370,9 @@ def logs_by_ruleset(request, system, ruleset_name):
             'system': system.title(),
             'ruleset_name': ruleset_name,
             'page': page_number,
-            'ruleset': json.dumps(rule, indent=4)  # 룰셋 세부 정보를 prettified JSON으로 추가
+            'ruleset': json.dumps(rule, indent=4),  # 룰셋 세부 정보를 prettified JSON으로 추가
+            'log_properties': system_log.fetch_log_properties(),  # 로그 프로퍼티 추출
+            'table_properties': get_property_key(system)
         }
         return render(request, 'testing/finevo/logs_by_ruleset.html', context=context)
 
@@ -364,3 +380,4 @@ def logs_by_ruleset(request, system, ruleset_name):
         return JsonResponse({"error": f"Connection error: {e}"}, status=500)
     except Exception as e:
         return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
+
