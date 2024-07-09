@@ -365,7 +365,7 @@ class StartMSSQLCollectionRequest(BaseModel):
     username: str
     password: str
     table_name: str
-    TAG_NAME: str
+    TAG_NAME: str # 현재 프론트에 없음
 
 @app.post("/start_mssql_collection")
 async def start_mssql_collection(request: StartMSSQLCollectionRequest, background_tasks: BackgroundTasks = None):
@@ -407,6 +407,7 @@ async def delete_mssql_api_key(request: DeleteAPIKeyRequest):
     response = await delete_api_key("mssql", request.TAG_NAME)
     return {"result": response['result']}
 
+# Fluentd 설정 추가 엔드포인트
 class FluentdConfig(BaseModel):
     new_protocol: str
     new_source_ip: str
@@ -415,7 +416,7 @@ class FluentdConfig(BaseModel):
 
 @app.post("/add_config/")
 async def add_config(config: FluentdConfig):
-    new_endpoint = f"http://localhost:8000/{config.new_log_tag}"
+    new_endpoint = f"http://localhost:8088/{config.new_log_tag}"
     
     new_conf_text = f"""
 <source>
@@ -461,16 +462,9 @@ async def add_config(config: FluentdConfig):
         logging.error(f"Failed to restart Fluentd service: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
 
-@app.post("/delete_tag/")
-async def delete_tag(request: DeleteAPIKeyRequest):
-    tag_to_delete = request.TAG_NAME
-    
-    if not os.path.isfile(conf_file_path):
-        raise HTTPException(status_code=404, detail=f"File not found: {conf_file_path}")
-    
-    section_start_pattern = re.compile(r'<(source|match)[^>]*>')
-    section_end_pattern = re.compile(r'</(source|match)>')
-    tag_pattern = re.compile(r'\b{}\b'.format(re.escape(tag_to_delete)))
+@app.post("/stop_fluentd_api_send")
+async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
+    tag_to_stop = request.TAG_NAME
     
     try:
         with open(conf_file_path, 'r') as file:
@@ -479,27 +473,32 @@ async def delete_tag(request: DeleteAPIKeyRequest):
         raise HTTPException(status_code=500, detail=f"Failed to read the configuration file: {e}")
     
     new_lines = []
-    section_lines = []
-    in_section = False
-    delete_section = False
+    in_source_section = False
+    in_match_section = False
     
     for line in lines:
-        if section_start_pattern.match(line):
-            in_section = True
-            section_lines = [line]
-            delete_section = False
+        if f'<source>' in line and tag_to_stop in line:
+            in_source_section = True
+            new_lines.append(f"# {line}")
             continue
         
-        if in_section:
-            section_lines.append(line)
-            if tag_pattern.search(line):
-                delete_section = True
-            
-            if section_end_pattern.match(line):
-                in_section = False
-                if not delete_section:
-                    new_lines.extend(section_lines)
-                section_lines = []
+        if in_source_section and '</source>' in line:
+            new_lines.append(f"# {line}")
+            in_source_section = False
+            continue
+        
+        if f'<match {tag_to_stop}>' in line:
+            in_match_section = True
+            new_lines.append(f"# {line}")
+            continue
+        
+        if in_match_section and '</match>' in line:
+            new_lines.append(f"# {line}")
+            in_match_section = False
+            continue
+        
+        if in_source_section or in_match_section:
+            new_lines.append(f"# {line}")
         else:
             new_lines.append(line)
     
@@ -516,43 +515,70 @@ async def delete_tag(request: DeleteAPIKeyRequest):
             'ubuntu@3.35.81.217',
             'sudo systemctl restart fluentd'
         ], check=True)
-        await delete_api_key("fluentd", tag_to_delete)
-        return {"status": "success", "message": "Fluentd service restarted successfully"}
+        return {"status": "success", "message": f"{tag_to_stop} 로그 수집이 중지되었습니다."}
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart Fluentd service: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
 
-@app.post("/stop_fluentd_api_send")
-async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
-    global should_stop
-    if request.TAG_NAME in should_stop:
-        should_stop[request.TAG_NAME] = True
-        return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
-    else:
-        raise HTTPException(status_code=404, detail="TAG_NAME not found")
-
 @app.post("/resume_fluentd_api_send")
 async def resume_fluentd_api_send(request: DeleteAPIKeyRequest):
-    global should_stop
-    if request.TAG_NAME in should_stop:
-        should_stop[request.TAG_NAME] = False
-        return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
-    else:
-        raise HTTPException(status_code=404, detail="TAG_NAME not found")
+    tag_to_resume = request.TAG_NAME
+    
+    try:
+        with open(conf_file_path, 'r') as file:
+            lines = file.readlines()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read the configuration file: {e}")
+    
+    new_lines = []
+    in_source_section = False
+    in_match_section = False
+    
+    for line in lines:
+        if f"# <source>" in line and tag_to_resume in line:
+            in_source_section = True
+            new_lines.append(line[2:])
+            continue
+        
+        if in_source_section and f"# </source>" in line:
+            new_lines.append(line[2:])
+            in_source_section = False
+            continue
+        
+        if f"# <match {tag_to_resume}>" in line:
+            in_match_section = True
+            new_lines.append(line[2:])
+            continue
+        
+        if in_match_section and f"# </match>" in line:
+            new_lines.append(line[2:])
+            in_match_section = False
+            continue
+        
+        if in_source_section or in_match_section:
+            new_lines.append(line[2:])
+        else:
+            new_lines.append(line)
+    
+    try:
+        with open(conf_file_path, 'w') as file:
+            file.writelines(new_lines)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
+    
+    try:
+        subprocess.run([
+            'ssh', '-i', '/app/teiren-test.pem',
+            '-o', 'StrictHostKeyChecking=no',
+            'ubuntu@3.35.81.217',
+            'sudo systemctl restart fluentd'
+        ], check=True)
+        return {"status": "success", "message": f"{tag_to_resume} 로그 수집이 재개되었습니다."}
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Failed to restart Fluentd service: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
 
-@app.post("/update_fluentd_api_key")
-async def update_fluentd_api_key(request: FluentdConfig):
-    tag_to_update = request.new_log_tag
-    config = {
-        "new_protocol": request.new_protocol,
-        "new_source_ip": request.new_source_ip,
-        "new_dst_port": request.new_dst_port,
-        "new_log_tag": request.new_log_tag
-    }
-    await update_api_key("fluentd", tag_to_update, config)
-    return {"status": "success", "message": f"{tag_to_update} 설정이 업데이트 되었습니다."}
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
