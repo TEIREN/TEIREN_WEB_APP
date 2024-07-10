@@ -38,14 +38,12 @@ class RuleSet:
             response = []
         finally:
             return response
-
     def get_detail_page(self, request):
         context = request.POST.dict()
-        print(context['query'])
-        print(type(context['query']))
+        context['severity'] = json.loads(context['severity'].replace("'", '"'))
         context['query'] = json.dumps(json.loads(context['query'].replace("'", '"')), indent=4)
         return render(request, f"testing/finevo/rules/custom/details.html", context=context)
-
+    
     def add_property(self, request):
         return render(request, f"testing/finevo/rules/add/property_slot.html")
 
@@ -203,25 +201,24 @@ class RuleSet:
                 "fortigate": "fortigate_ruleset"
             }
 
-            # 모든 시스템의 인덱스에서 룰셋을 삭제
-            for system, index_name in index_mapping.items():
-                delete_query = {
-                    "query": {
-                        "bool": {
-                            "must": [
-                                {"match": {"name": rule_name}}
-                            ]
-                        }
+            index_name = index_mapping[self.system]
+            delete_query = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"match": {"name": rule_name}}
+                        ]
                     }
                 }
+            }
 
-                delete_url = f"http://3.35.81.217:9200/{index_name}/_delete_by_query"
-                delete_response = requests.post(delete_url, headers={"Content-Type": "application/json"}, json=delete_query)
+            delete_url = f"http://3.35.81.217:9200/{index_name}/_delete_by_query"
+            delete_response = requests.post(delete_url, headers={"Content-Type": "application/json"}, json=delete_query)
 
-                if delete_response.status_code == 200:
-                    logger.info(f"Successfully removed rule: {rule_name} from {system} ruleset")
-                else:
-                    logger.error(f"Failed to remove rule from {system} ruleset. Status code: {delete_response.status_code}, Response: {delete_response.text}")
+            if delete_response.status_code == 200:
+                logger.info(f"Successfully removed rule: {rule_name} from {self.system} ruleset")
+            else:
+                logger.error(f"Failed to remove rule from {self.system} ruleset. Status code: {delete_response.status_code}, Response: {delete_response.text}")
 
             return HttpResponse(f"Successfully removed rule: {rule_name}", status=200)
 

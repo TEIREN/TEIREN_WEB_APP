@@ -28,9 +28,10 @@
                     </td>
                     <td style="width: 7%">
                         <form>
-                            <input type="hidden" name="rule_name" value="{{ rule.name }}">
-                            <input type="hidden" name="rule_type" value="{{ rule.type }}">
-                            <input type='hidden' name='log_type' value='{{logType}}'>
+                            <input type='hidden' name='name' value="{{ rule.name }}">
+                            <input type='hidden' name='rule_type' value="{{ rule.rule_type }}">
+                            <input type='hidden' name='query' value="{{rule.query}}">
+                            <input type='hidden' name='severity' value="{{rule.severity}}">
                             <input type="hidden" name="on_off" value="{{ rule.on_off }}">
                             {% if rule.on_off == 1 %}
                             <input type="button" value="  On  " class="btn btn-teiren btn-md text-center"
@@ -48,6 +49,7 @@
                             <input type='hidden' name='name' value="{{ rule.name }}">
                             <input type='hidden' name='rule_type' value="{{ rule.rule_type }}">
                             <input type='hidden' name='query' value="{{rule.query}}">
+                            <input type='hidden' name='severity' value="{{rule.severity}}">
                             <input type='button' onclick="ruleDetails(this.parentNode)"
                                 class="btn btn-teiren btn-md" style="overflow:hidden;"
                                 value='Details' data-toggle='modal' data-target='#detail-modal'>
@@ -115,4 +117,48 @@
             $('#detail_body').html('fail')
         })
     }
+
+    function editRuleModal() {
+        var data = $('#edit_modal_form').serialize()
+        $('#edit_message').slideUp('normal')
+        $.ajax({
+            url: 'get_edit_page/',
+            headers:{
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            data: data,
+            type: 'post'
+        }).done(function(data) {
+            $('#edit_body').html(data)
+            $('#edit_body').hide().fadeIn()
+        })
+    }
+
+    function deleteRuleModal(event) {
+        $('#delete_rule_name').html(event.name.value)
+        $($('#del_form').find('input[name="name"]')[0]).val(event.name.value)
+    }
+
+    function deleteRuleAction(event) {
+        var data = $(event).serialize()
+        $.ajax({
+            url: 'remove_ruleset/',
+            headers:{
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            data: data,
+            type: 'post'
+        }).done(function(data) {
+            if (data.startsWith('Successfully removed rule')) {
+                $('.modal').modal('hide')
+                alert(data)
+                window.location.reload()
+            } else {
+                alert(data)
+            }
+        }).fail(function() {
+            alert('Failed To Delete. Please Try Again')
+        })
+    }
+    
 </script>

@@ -7,10 +7,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 text-center">
             <form>
-                <input type="hidden" name="ruleClass" value="{{custom.type}}">
-                <input type="hidden" name="rule_name" value="{{custom.ruleName}}">
-                <input type=hidden name="rule_id" value="{{custom.id}}">
-                <input type="hidden" name="log_type" value="{{custom.logType}}">
+                <input type="hidden" name="name" value="{{name}}">
                 <button type='button' class="btn btn-danger btn-sm btn-teiren" style="overflow:hidden; float: right;"
                     data-dismiss='modal' data-toggle='modal' data-target='#del' onclick='deleteRuleModal(this.parentNode)'>
                     <span class="icon text-white-50">
@@ -19,11 +16,10 @@
                 </button>
             </form>
             <form id="edit_modal_form">
-                <input type="hidden" name="ruleClass" value="{{custom.type}}">
-                <input type="hidden" name="rule_name" value="{{custom.ruleName}}">
-                <input type="hidden" name="log_type" value="{{custom.logType}}">
-                <input type=hidden name="rule_id" value="{{custom.id}}">
-                <input type=hidden name="on_off" value="{{custom.on_off}}">
+                <input type="hidden" name="name" value="{{name}}">
+                <input type="hidden" name="rule_type" value="{{rule_type}}">
+                <input type="hidden" name="severity" value="{{severity.1}}">
+                <input type="hidden" name="query" value="{{query}}">
                 <button type='button' class="btn btn-sm btn-teiren" style="overflow:hidden; float:right; margin-right:2px"
                     data-dismiss='modal' data-toggle='modal' data-target='#edit'>
                     <span class="icon text-white-50">
@@ -32,9 +28,9 @@
                 </button>
             </form>
             <div style="margin-left:64px; margin-top:8px">
-                <h5 class="m-0 font-weight-bold text-teiren" style="text-align:center">
+                <h3 class="m-0 font-weight-bold text-teiren" style="text-align:center">
                     {{name}}
-                </h5>
+                </h3>
             </div>
         </div>
         <div class="card-body">
@@ -46,16 +42,20 @@
                         <tr>
                             <td class="font-weight-bold">Rule Name</td>
                             <td class="font-weight-bold">Rule Type</td>
+                            <td class="font-weight-bold">Severity</td>
                         </tr>
                         <tr>
                             <td class="font-weight-bold text-teiren">{{name}}</td>    
                             <td class="font-weight-bold text-teiren">{{rule_type}}</td>
+                            <td>
+                                <div class="color-box color-box-{{severity.0}}">{{severity.1}}</div>
+                            </td>
                         <tr>
                         <tr>
-                            <td colspan="2" class="font-weight-bold">Rule Query</td>
+                            <td colspan="3" class="font-weight-bold">Rule Query</td>
                         </tr>
                         <tr>
-                            <td colspan="2" style="text-align:left;">
+                            <td colspan="3" style="text-align:left;">
                                 <pre>{{query}}</pre>
                             </td>
                         </tr>

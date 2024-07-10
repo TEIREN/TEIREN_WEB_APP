@@ -52,7 +52,7 @@
                                     </div>
                                 </div>
                                 <div class="px-2">
-                                    <button type="button" class="btn btn-outline-teiren btn-block" onclick="addProperty('')">Add Property</button>
+                                    <button type="button" class="btn btn-outline-teiren btn-block" onclick="addProperty()">Add Property</button>
                                 </div>
                             </div>
                         </div>
@@ -68,7 +68,6 @@
 </div>
 
 <script>
-
     function addProperty(){
         $.ajax({
             url: 'add_property/',
@@ -94,6 +93,5 @@
         }).done(function(response){
             alert(response)
         })
-
     }
 </script>
