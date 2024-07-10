@@ -267,7 +267,7 @@ def list_logs(request, system):
         print(filters)
         total_count, log_list = system_log.filter_query(filters)
     else:
-        total_count, log_list = system_log.search_logs()
+        total_count, log_list = system_log.search_logs() # 이 쿼리가 있는 상태에서 쿼리한번 더 not match all
 
     # Ajax 요청 처리: Ajax 요청인 경우, 필터링된 로그 리스트와 기타 정보를 JsonResponse로 반환
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
