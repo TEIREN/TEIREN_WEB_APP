@@ -56,7 +56,7 @@ class LogManagement():
                                     detected_rules.add(detected_by_rules)
                                 rule_info = self.es.search(index=f"{self.system}_ruleset", body={"query": {"bool": {"must": [{"match": {"name": detected_by_rules}}]}}})
                                 severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
-                        log['detected_by_rules'] = list(detected_rules)  # set을 list로 변환
+                        log['detected_by_rules'] = ",".join(detected_rules)  # set을 콤마로 구분된 문자열로 변환
                         log['severities'] = severities
                         # logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
                 except Exception as e:
@@ -267,7 +267,7 @@ def list_logs(request, system):
         print(filters)
         total_count, log_list = system_log.filter_query(filters)
     else:
-        total_count, log_list = system_log.search_logs()
+        total_count, log_list = system_log.search_logs() # 이 쿼리가 있는 상태에서 쿼리한번 더 not match all
 
     # Ajax 요청 처리: Ajax 요청인 경우, 필터링된 로그 리스트와 기타 정보를 JsonResponse로 반환
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -367,3 +367,4 @@ def logs_by_ruleset(request, system, ruleset_name):
         return JsonResponse({"error": f"Connection error: {e}"}, status=500)
     except Exception as e:
         return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
+
