@@ -39,22 +39,18 @@ class LogManagement():
     # 로그 검색 함수
     def search_logs(self):
         try:
-            self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={
-                                         "index.max_result_window": 100000})
+            self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 100000})
             try:
-                self.es.indices.put_settings(index=f"{self.system}_detected_log", body={
-                                            "index.max_result_window": 100000})
+                self.es.indices.put_settings(index=f"{self.system}_detected_log", body={"index.max_result_window": 100000})
             except NotFoundError:
                 pass
-            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit, "query": self.query, "sort": {
-                                      f"{self.timestamp}": "desc"}, "from": ((self.page_number-1)*self.limit)})
+            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit, "query": self.query, "sort": {f"{self.timestamp}": "desc"}, "from": ((self.page_number-1)*self.limit)})
             hits = response['hits']['hits']
             log_list = []
             for hit in hits:
                 log = hit['_source']
                 try:
-                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"bool": {
-                                                       "must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=100000)
+                    detected_response = self.es.search(index=f"{self.system}_detected_log", body={"query": {"bool": {"must": [{"match": {f"{self.timestamp}": hit['_source'][f'{self.timestamp}']}}]}}}, size=100000)
                     if len(detected_response['hits']['hits']) > 0:
                         detected_rules = set()  # 중복을 제거하기 위해 set 사용
                         severities = []

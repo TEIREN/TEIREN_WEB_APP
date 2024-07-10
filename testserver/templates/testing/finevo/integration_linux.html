@@ -21,6 +21,9 @@
         <div class="card-body" style="font-size:12px">
             <form method="POST" id='account_form' action="/test/integration/linux/" target="_blank">
                 {% csrf_token %}
+                <div class="form-group text-dark">
+                    <input type='text' class="form-control" name="tag_name" placeholder="Tag Name">
+                </div>
                 <input type="submit" class="btn btn-outline-primary" id='form-check' value="Download Linux Integration File"/>
             </form>
             </div>
