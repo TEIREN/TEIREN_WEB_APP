@@ -59,14 +59,14 @@ class LogManagement():
                                 detected_by_rules = detected_log.get('detected_by_rule', '')
                                 if detected_by_rules:
                                     detected_rules.add(detected_by_rules)
-                                rule_info = self.es.search(index=f"{self.system}_ruleset", body={"query": {"bool": {"must": [{"match": {"name": detected_by_rules}}]}}})
+                                rule_info = self.es.search(index=f"{self.system}_ruleset", body={"query": {"bool": {"must": [{"match": {"name": detected_by_rules}}]}}}, size=1)
                                 severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
                         log['detected_by_rules'] = list(detected_rules)
                         log['severities'] = severities
-                        logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
+                        # logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
                 except Exception as e:
                     print(e)
-                    logging.error(f"Error searching logs: {e}")
+                    # logging.error(f"Error searching logs: {e}")
                 finally:
                     log_list.append(log)
             total_count = self.es.count(
@@ -76,7 +76,7 @@ class LogManagement():
             total_count = 0
             log_list = []
             self.total_page = 1
-            logging.error(f"Error searching logs: {e}")
+            # logging.error(f"Error searching logs: {e}")
         return total_count, log_list
 
     def is_rule_match(self, detected_log, actual_log):
@@ -317,7 +317,7 @@ def list_logs(request, system):
         return render(request, 'testing/finevo/elasticsearch.html', context=context)
 
     except ConnectionError as e:
-        logging.error(f"Connection error: {e}")
+        # logging.error(f"Connection error: {e}")
         context = {
             'total_count': 0,
             'log_list': [],
@@ -327,7 +327,7 @@ def list_logs(request, system):
             'log_properties': []
         }
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        # logging.error(f"An error occurred: {e}")
         context = {
             'total_count': 0,
             'log_list': [],
@@ -399,7 +399,7 @@ def logs_by_ruleset(request, system, ruleset_name):
             }
             system_log.query = combined_query
 
-        logging.debug(f"Constructed Bool Query: {json.dumps(system_log.query, indent=4)}")
+        # logging.debug(f"Constructed Bool Query: {json.dumps(system_log.query, indent=4)}")
         total_count, log_list = system_log.search_logs()
 
         # Ajax 요청 처리: Ajax 요청인 경우, 필터링된 로그 리스트와 기타 정보를 JsonResponse로 반환
@@ -433,9 +433,9 @@ def logs_by_ruleset(request, system, ruleset_name):
         return render(request, 'testing/finevo/logs_by_ruleset.html', context=context)
 
     except ConnectionError as e:
-        logging.error(f"Connection error: {e}")
+        # logging.error(f"Connection error: {e}")
         return JsonResponse({"error": f"Connection error: {e}"}, status=500)
     except Exception as e:
-        logging.error(f"An error occurred: {e}")
+        # logging.error(f"An error occurred: {e}")
         return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
 
