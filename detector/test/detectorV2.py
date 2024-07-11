@@ -66,14 +66,11 @@ def check_logs(system):
             rule_name = rule["_source"]["name"]
             rule_type = rule["_source"].get("rule_type", "custom")  # Default to 'custom' if not present
 
-            # rule_query = lowercase_query(rule_query) # 혹시 모를 소문자 변환 처리
- 
-
             logger.info(f"Applying rule: {rule_name}, Query: {json.dumps(rule_query, indent=4)}")
 
             # 페이지네이션 설정
-            size = 100000
-            scroll = '1m'
+            size = 1000  # 한번에 가져올 문서 수를 줄임
+            scroll = '5m'  # 스크롤 유지 시간을 늘림
             try:
                 result = es.search(index=log_index_name, body=rule_query, scroll=scroll, size=size)
             except Exception as e:
@@ -104,10 +101,14 @@ def check_logs(system):
                     except NotFoundError:
                         existing_detected_by_rules = ""
 
-                    if isinstance(existing_detected_by_rules, list):
-                        existing_detected_by_rules = ",".join(existing_detected_by_rules)
+                    if isinstance(existing_detected_by_rules, str):
+                        existing_detected_by_rules = existing_detected_by_rules.split(",")
+                    elif isinstance(existing_detected_by_rules, list):
+                        pass
+                    else:
+                        existing_detected_by_rules = []
 
-                    detected_by_rules_set = set(existing_detected_by_rules.split(",")) if existing_detected_by_rules else set()
+                    detected_by_rules_set = set(filter(None, existing_detected_by_rules))  # 빈 문자열 제거
                     detected_by_rules_set.add(rule_name)
 
                     log_doc["detected_by_rule"] = ",".join(detected_by_rules_set)
@@ -124,13 +125,18 @@ def check_logs(system):
                     result = es.scroll(scroll_id=sid, scroll=scroll)
                     sid = result.get('_scroll_id', None)
                     scroll_size = len(result['hits']['hits'])
-                except Exception as e:
+                except NotFoundError as e:
                     logger.error(f"Scrolling failed: {e}")
+                    break
+                except Exception as e:
+                    logger.error(f"An error occurred during scrolling: {e}")
                     break
 
             if sid:
                 try:
                     es.clear_scroll(scroll_id=sid)
+                except NotFoundError:
+                    logger.warning(f"Scroll ID {sid} not found when clearing scroll")
                 except Exception as e:
                     logger.error(f"Clearing scroll failed: {e}")
 

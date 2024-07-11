@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch, ConnectionError, NotFoundError
 es = Elasticsearch(hosts=["http://3.35.81.217:9200/"])
 
 # Docker 로그에 기록되도록 로깅 설정
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # 로그 관리 클래스
 
@@ -63,7 +63,7 @@ class LogManagement():
                                 severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
                         log['detected_by_rules'] = list(detected_rules)
                         log['severities'] = severities
-                        # logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
+                        logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
                 except Exception as e:
                     print(e)
                     logging.error(f"Error searching logs: {e}")
@@ -199,8 +199,8 @@ class LogManagement():
         else:
             self.query = {"match_all": {}}
         
-        # logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
-        # logging.debug(f"Filters Applied: {parsed_filters}")
+        logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
+        logging.debug(f"Filters Applied: {parsed_filters}")
         return self.search_logs()
 
     # 페이지네이션 적용 함수
@@ -265,7 +265,7 @@ class LogManagement():
 
 # 시스템 로그 리스트를 보여주는 함수
 def list_logs(request, system):
-    # # logging.basicConfig(level=# logging.DEBUG)
+    # logging.basicConfig(level=# logging.DEBUG)
     page_number = int(request.GET.get('page', 1))
     system_log = LogManagement(system=system, page=page_number)
     filters = dict(request.GET)
@@ -337,24 +337,68 @@ def list_logs(request, system):
     return render(request, 'testing/finevo/elasticsearch.html', context=context)
 
 # 룰셋에 따른 로그 리스트를 보여주는 함수
-
-
 def logs_by_ruleset(request, system, ruleset_name):
     try:
         page_number = int(request.GET.get('page', 1))
         res = es.search(index=f"{system}_ruleset", body={
-                        "query": {"match": {"name": ruleset_name}}})
+            "query": {"match": {"name": ruleset_name}}
+        })
         if res['hits']['total']['value'] == 0:
             return render(request, 'testing/finevo/error_page.html', {'error': f"No ruleset found with name {ruleset_name}"})
 
-        # LogMangement 클래스 생성 후 rule query 지정
+        # LogManagement 클래스 생성 후 rule query 지정
         system_log = LogManagement(system=system, page=page_number)
         rule = res['hits']['hits'][0]['_source']
         rule_query = rule["query"]["query"]
+
+        # 기존 rule_query를 필터링 쿼리로 지정
         system_log.query = rule_query
 
-        # 필요한 값 받아서 보내주기
+        # 필터링 로직 추가
+        filters = dict(request.GET)
+        if 'page' in filters:
+            del filters['page']
+        if 'query' in filters and filters['query'][0] == '':
+            del filters['query']
+
+        # 필터 쿼리와 rule_query를 결합
+        if filters:
+            parsed_must, parsed_must_not, parsed_filters = system_log.parse_query_string('&'.join([f'{key}:{value[0]}' for key, value in filters.items()]))
+            
+            # 기존 룰셋 쿼리의 must 조건과 결합
+            must_conditions = rule_query.get("bool", {}).get("must", [])
+            must_not_conditions = rule_query.get("bool", {}).get("must_not", [])
+
+            # 필터 쿼리를 OR 조건으로 묶음
+            should_conditions = {}
+            for condition in parsed_must:
+                for field, value in condition.get("match", {}).items():
+                    if field not in should_conditions:
+                        should_conditions[field] = []
+                    should_conditions[field].append({"match": {field: value}})
+
+            for field, conditions in should_conditions.items():
+                must_conditions.append({
+                    "bool": {
+                        "should": conditions,
+                        "minimum_should_match": 1
+                    }
+                })
+
+            must_not_conditions.extend(parsed_must_not)
+
+            combined_query = {
+                "bool": {
+                    "must": must_conditions,
+                    "must_not": must_not_conditions
+                }
+            }
+            system_log.query = combined_query
+
+        logging.debug(f"Constructed Bool Query: {json.dumps(system_log.query, indent=4)}")
         total_count, log_list = system_log.search_logs()
+
+        # Ajax 요청 처리: Ajax 요청인 경우, 필터링된 로그 리스트와 기타 정보를 JsonResponse로 반환
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             # Apply pagination
             page_obj = system_log.paginate()
@@ -368,6 +412,7 @@ def logs_by_ruleset(request, system, ruleset_name):
                 'table_properties': get_property_key(system)
             }
             return render(request, 'testing/finevo/log_table.html', context=context)
+
         page_obj = system_log.paginate()
         context = {
             'total_count': total_count,
@@ -375,8 +420,7 @@ def logs_by_ruleset(request, system, ruleset_name):
             'page_obj': page_obj,
             'log_list': log_list,
             'ruleset_name': ruleset_name,
-            # 룰셋 세부 정보를 prettified JSON으로 추가
-            'ruleset': json.dumps(rule, indent=4),
+            'ruleset': json.dumps(rule, indent=4),  # 룰셋 세부 정보를 prettified JSON으로 추가
             'page': page_number,
             'log_properties': system_log.fetch_log_properties(),  # 로그 프로퍼티 추출
             'table_properties': get_property_key(system)
@@ -384,6 +428,9 @@ def logs_by_ruleset(request, system, ruleset_name):
         return render(request, 'testing/finevo/logs_by_ruleset.html', context=context)
 
     except ConnectionError as e:
+        logging.error(f"Connection error: {e}")
         return JsonResponse({"error": f"Connection error: {e}"}, status=500)
     except Exception as e:
+        logging.error(f"An error occurred: {e}")
         return JsonResponse({"error": f"An error occurred: {e}"}, status=500)
+
