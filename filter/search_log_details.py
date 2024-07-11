@@ -12,7 +12,7 @@ def search_all_logs(index_name):
         "bool": {
             "must": [
                 # {"match": {"detected_by_rule": "last_test"}},
-                {"match": {"date": "1719897502.826186"}},
+                {"match": {"name": "severity_test"}},
 
             ]
         }
@@ -35,4 +35,4 @@ def search_all_logs(index_name):
 if __name__ == "__main__":
     # search_all_logs('test_window_syslog')
     # search_all_logs('window_ruleset')
-    search_all_logs('window_detected_log')
+    search_all_logs('linux_detected_log')
