@@ -10,7 +10,7 @@ from elasticsearch import Elasticsearch, ConnectionError, NotFoundError
 es = Elasticsearch(hosts=["http://3.35.81.217:9200/"])
 
 # Docker 로그에 기록되도록 로깅 설정
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # 로그 관리 클래스
 
@@ -201,6 +201,8 @@ class LogManagement():
         
         logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
         logging.debug(f"Filters Applied: {parsed_filters}")
+        # logging.debug(f"Constructed Bool Query: {json.dumps(self.query, indent=4)}")
+        # logging.debug(f"Filters Applied: {parsed_filters}")
         return self.search_logs()
 
     # 페이지네이션 적용 함수
@@ -337,6 +339,8 @@ def list_logs(request, system):
     return render(request, 'testing/finevo/elasticsearch.html', context=context)
 
 # 룰셋에 따른 로그 리스트를 보여주는 함수
+
+
 def logs_by_ruleset(request, system, ruleset_name):
     try:
         page_number = int(request.GET.get('page', 1))
@@ -346,7 +350,7 @@ def logs_by_ruleset(request, system, ruleset_name):
         if res['hits']['total']['value'] == 0:
             return render(request, 'testing/finevo/error_page.html', {'error': f"No ruleset found with name {ruleset_name}"})
 
-        # LogManagement 클래스 생성 후 rule query 지정
+        # LogMangement 클래스 생성 후 rule query 지정
         system_log = LogManagement(system=system, page=page_number)
         rule = res['hits']['hits'][0]['_source']
         rule_query = rule["query"]["query"]
@@ -420,7 +424,8 @@ def logs_by_ruleset(request, system, ruleset_name):
             'page_obj': page_obj,
             'log_list': log_list,
             'ruleset_name': ruleset_name,
-            'ruleset': json.dumps(rule, indent=4),  # 룰셋 세부 정보를 prettified JSON으로 추가
+            # 룰셋 세부 정보를 prettified JSON으로 추가
+            'ruleset': json.dumps(rule, indent=4),
             'page': page_number,
             'log_properties': system_log.fetch_log_properties(),  # 로그 프로퍼티 추출
             'table_properties': get_property_key(system)

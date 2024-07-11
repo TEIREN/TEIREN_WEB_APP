@@ -225,7 +225,34 @@ class RuleSet:
         except Exception as e:
             logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse("Failed to remove rule. Please try again.", status=500)
-
+    
+    def get_edit_page(self, request):
+        context = request.POST.dict()
+        context['query'] = json.loads(context['query'])
+        query = context['query']['query']['bool']['must']
+        properties = []
+        for bool_query in query:
+            prop = bool_query['bool']['should'][0]
+            for key, val in prop.items():
+                if key == 'match':
+                    prop_key = next(iter(val))
+                    properties.append({
+                        'property_key': prop_key,
+                        'property_value': val[prop_key],
+                        'prop_op': '='
+                    })
+                elif key == 'bool':
+                    prop_key = next(iter(val['must_not']['match']))
+                    properties.append({
+                        'property_key': prop_key,
+                        'property_value': val['must_not']['match'][prop_key],
+                        'prop_op': '!='
+                    })
+                else:
+                    continue
+        context['query'] = properties
+        return render(request, f"testing/finevo/rules/edit/modal.html", context=context)
+    
     def update_ruleset(self, request):
         try:
             rule_name = request.POST.get('name', '').strip()
