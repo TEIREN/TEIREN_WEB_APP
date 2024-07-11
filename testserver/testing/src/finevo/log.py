@@ -342,8 +342,7 @@ def list_logs(request, system):
 def logs_by_ruleset(request, system, ruleset_name):
     try:
         page_number = int(request.GET.get('page', 1))
-        res = es.search(index=f"{system}_ruleset", body={
-                        "query": {"match": {"name": ruleset_name}}})
+        res = es.search(index=f"{system}_ruleset", body={"query": {"match": {"name": ruleset_name}}})
         if res['hits']['total']['value'] == 0:
             return render(request, 'testing/finevo/error_page.html', {'error': f"No ruleset found with name {ruleset_name}"})
 
