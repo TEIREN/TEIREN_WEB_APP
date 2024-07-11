@@ -7,13 +7,13 @@ delete_query = {
     "query": {
         "bool": {
             "must": [
-                {"match": {"api_name": "fortigate_api"}},
+                {"match": {"system": "window"}},
             ]
         }
     }
 }
 
 # delete_by_query API 호출
-response = es.delete_by_query(index='test_fortigate_syslog', body=delete_query)
+response = es.delete_by_query(index='userinfo', body=delete_query)
 
 print(response)

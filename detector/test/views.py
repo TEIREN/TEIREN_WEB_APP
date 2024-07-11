@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .detector import check_logs
+from .detectorV2 import check_logs
 from .input_ruleset import create_ruleset
 
 # 모델 정의

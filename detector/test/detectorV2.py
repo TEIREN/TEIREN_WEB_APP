@@ -1,13 +1,14 @@
 import json
 import time
 import logging
+import threading
 from elasticsearch import Elasticsearch, NotFoundError, ConnectionError
 
 # Elasticsearch 클라이언트를 설정합니다.
 es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
 
 # Logging 설정
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 인덱스 매핑 설정
@@ -32,6 +33,10 @@ detected_log_mapping = {
     "fortigate": "fortigate_detected_log"
 }
 
+# Elasticsearch 라이브러리의 디버그 로그를 비활성화
+logging.getLogger("elastic_transport.transport").setLevel(logging.CRITICAL)
+logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
+
 # 사용자 선택에 따라 인덱스 설정
 def get_index_choice(system):
     if system not in log_index:
@@ -55,7 +60,7 @@ def check_logs(system):
 
         logger.info(f"Found {len(rulesets)} rulesets in {ruleset_index}")
 
-        for rule in rulesets:
+        def process_rule(rule):
             rule_query = rule["_source"]["query"]
             severity = rule["_source"]["severity"]
             rule_name = rule["_source"]["name"]
@@ -64,26 +69,24 @@ def check_logs(system):
             logger.info(f"Applying rule: {rule_name}, Query: {json.dumps(rule_query, indent=4)}")
 
             # 페이지네이션 설정
-            size = 10000
-            scroll = '2m'
+            size = 1000  # 한번에 가져올 문서 수를 줄임
+            scroll = '5m'  # 스크롤 유지 시간을 늘림
             try:
                 result = es.search(index=log_index_name, body=rule_query, scroll=scroll, size=size)
             except Exception as e:
-                logger.error(f"Search query failed: {e}")
-                continue
+                logger.error(f"Search query failed for rule {rule_name}: {e}")
+                return
 
             sid = result.get('_scroll_id', None)
             scroll_size = len(result['hits']['hits'])
 
             if scroll_size == 0:
                 logger.info(f"No logs found for rule: {rule_name}")
-                continue
+                return
 
-            logger.info(f"Found {scroll_size} logs for rule: {rule_name}")
+            detected_logs_count = 0
 
             while scroll_size > 0:
-                logger.info(f"Scrolling through {scroll_size} logs for rule: {rule_name}")
-
                 for log in result['hits']['hits']:
                     log_id = log["_id"]
                     log_doc = log["_source"]
@@ -98,7 +101,14 @@ def check_logs(system):
                     except NotFoundError:
                         existing_detected_by_rules = ""
 
-                    detected_by_rules_set = set(existing_detected_by_rules.split(",")) if existing_detected_by_rules else set()
+                    if isinstance(existing_detected_by_rules, str):
+                        existing_detected_by_rules = existing_detected_by_rules.split(",")
+                    elif isinstance(existing_detected_by_rules, list):
+                        pass
+                    else:
+                        existing_detected_by_rules = []
+
+                    detected_by_rules_set = set(filter(None, existing_detected_by_rules))  # 빈 문자열 제거
                     detected_by_rules_set.add(rule_name)
 
                     log_doc["detected_by_rule"] = ",".join(detected_by_rules_set)
@@ -107,24 +117,39 @@ def check_logs(system):
 
                     try:
                         es.index(index=detected_log_index, id=unique_log_id, body=log_doc)
-                        logger.info(f"Indexed log with id {unique_log_id} into {detected_log_index}")
+                        detected_logs_count += 1
                     except Exception as e:
                         logger.error(f"Failed to index log with id {unique_log_id}: {e}")
-                        logger.error(f"Log document: {json.dumps(log_doc, indent=4)}")
 
                 try:
                     result = es.scroll(scroll_id=sid, scroll=scroll)
                     sid = result.get('_scroll_id', None)
                     scroll_size = len(result['hits']['hits'])
-                except Exception as e:
+                except NotFoundError as e:
                     logger.error(f"Scrolling failed: {e}")
+                    break
+                except Exception as e:
+                    logger.error(f"An error occurred during scrolling: {e}")
                     break
 
             if sid:
                 try:
                     es.clear_scroll(scroll_id=sid)
+                except NotFoundError:
+                    logger.warning(f"Scroll ID {sid} not found when clearing scroll")
                 except Exception as e:
                     logger.error(f"Clearing scroll failed: {e}")
+
+            logger.info(f"Rule {rule_name} detected {detected_logs_count} logs")
+
+        threads = []
+        for rule in rulesets:
+            thread = threading.Thread(target=process_rule, args=(rule,))
+            thread.start()
+            threads.append(thread)
+
+        for thread in threads:
+            thread.join()
 
     except ConnectionError as e:
         logger.error(f"Connection error: {e}")
@@ -138,5 +163,13 @@ def run_detector(system):
         time.sleep(60)  # 60초마다 로그를 체크
 
 if __name__ == "__main__":
-    system = "linux"  # 또는 "linux", "genian", "fortigate" 중 하나를 선택
-    run_detector(system)
+    systems = ["linux", "window", "genian", "fortigate"]
+
+    threads = []
+    for system in systems:
+        thread = threading.Thread(target=run_detector, args=(system,))
+        thread.start()
+        threads.append(thread)
+
+    for thread in threads:
+        thread.join()

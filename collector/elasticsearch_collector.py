@@ -50,6 +50,22 @@ async def elasticsearch_input(log, system, TAG_NAME):
 async def save_api_key(system, TAG_NAME, config):
     index_name = "userinfo"
     await create_index_if_not_exists(index_name)
+    
+    # TAG_NAME 중복 여부 확인
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"match": {"SYSTEM": system}},
+                    {"match": {"TAG_NAME": TAG_NAME}}
+                ]
+            }
+        }
+    }
+    res = es.search(index=index_name, body=query)
+    if res['hits']['total']['value'] > 0:
+        raise HTTPException(status_code=400, detail="TAG_NAME already exists")
+
     log = {
         "SYSTEM": system,
         "TAG_NAME": TAG_NAME,
@@ -157,79 +173,75 @@ async def receive_log(request: Request):
 @app.post("/stop_linux_log")
 async def stop_linux_log(request: DeleteAPIKeyRequest):
     global should_stop
-    if request.TAG_NAME in should_stop and should_stop[request.TAG_NAME]:
-        return {"message": f"{request.TAG_NAME} 로그 수집은 이미 중지 상태입니다."}
-    if request.TAG_NAME in log_collection_started and not log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = True
-        return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
-    else:
+    global log_collection_started
+    if request.TAG_NAME not in log_collection_started or log_collection_started[request.TAG_NAME] == False:
         raise HTTPException(status_code=404, detail="TAG_NAME not found or already stopped")
+    should_stop[request.TAG_NAME] = True
+    log_collection_started[request.TAG_NAME] = False
+    return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
 
 @app.post("/resume_linux_log")
 async def resume_linux_log(request: DeleteAPIKeyRequest):
     global should_stop
-    if request.TAG_NAME in should_stop and not should_stop[request.TAG_NAME]:
+    global log_collection_started
+    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME] == True:
         return {"message": f"{request.TAG_NAME} 로그 수집은 이미 재개 상태입니다."}
-    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = False
-        return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
-    else:
-        raise HTTPException(status_code=404, detail="TAG_NAME not found or already running")
+    should_stop[request.TAG_NAME] = False
+    log_collection_started[request.TAG_NAME] = True
+    return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
 
-@app.post('/win_log')
-async def win_log(request: Request):
-    log_request = await request.json()
-    client_ip = request.client.host
-    client_hostname = get_hostname(client_ip)
+# @app.post('/win_log')
+# async def win_log(request: Request):
+#     log_request = await request.json()
+#     client_ip = request.client.host
+#     client_hostname = get_hostname(client_ip)
 
-    # 인덱스 생성 시 매핑을 설정하도록 호출
-    await create_index_with_mapping("test_window_syslog", {
-        "properties": {
-            "date": {
-                "type": "scaled_float",
-                "scaling_factor": 10000000  # 7자리까지 인식 가능하도록 설정
-            }
-        }
-    })
+#     # 인덱스 생성 시 매핑을 설정하도록 호출
+#     await create_index_with_mapping("test_window_syslog", {
+#         "properties": {
+#             "date": {
+#                 "type": "scaled_float",
+#                 "scaling_factor": 10000000  # 7자리까지 인식 가능하도록 설정
+#             }
+#         }
+#     })
 
-    for log in log_request:
-        log = {k.lower(): v for k, v in log.items()}
-        log['teiren_request_ip'] = client_ip
-        log['client_hostname'] = client_hostname
-        # Convert 'date' field to scaled_float
-        if 'date' in log:
-            log['date'] = round(log['date'], 7)
-        await elasticsearch_input(log, 'window', client_hostname)
+#     for log in log_request:
+#         log = {k.lower(): v for k, v in log.items()}
+#         log['teiren_request_ip'] = client_ip
+#         log['client_hostname'] = client_hostname
+#         # Convert 'date' field to scaled_float
+#         if 'date' in log:
+#             log['date'] = round(log['date'], 7)
+#         await elasticsearch_input(log, 'window', client_hostname)
 
-    config = {
-        "client_ip": client_ip,
-        "client_hostname": client_hostname
-    }
-    await save_api_key("window", client_hostname, config)
+#     config = {
+#         "client_ip": client_ip,
+#         "client_hostname": client_hostname
+#     }
+#     await save_api_key("window", client_hostname, config)
 
-    return {"message": "Log received successfully"}
+#     return {"message": "Log received successfully"}
 
-@app.post("/stop_win_log")
-async def stop_win_log(request: DeleteAPIKeyRequest):
-    global should_stop
-    if request.TAG_NAME in should_stop and should_stop[request.TAG_NAME]:
-        return {"message": f"{request.TAG_NAME} 로그 수집은 이미 중지 상태입니다."}
-    if request.TAG_NAME in log_collection_started and not log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = True
-        return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
-    else:
-        raise HTTPException(status_code=404, detail="TAG_NAME not found or already stopped")
+# @app.post("/stop_win_log")
+# async def stop_win_log(request: DeleteAPIKeyRequest):
+#     global should_stop
+#     global log_collection_started
+#     if request.TAG_NAME not in log_collection_started or log_collection_started[request.TAG_NAME] == False:
+#         raise HTTPException(status_code=404, detail="TAG_NAME not found or already stopped")
+#     should_stop[request.TAG_NAME] = True
+#     log_collection_started[request.TAG_NAME] = False
+#     return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
 
-@app.post("/resume_win_log")
-async def resume_win_log(request: DeleteAPIKeyRequest):
-    global should_stop
-    if request.TAG_NAME in should_stop and not should_stop[request.TAG_NAME]:
-        return {"message": f"{request.TAG_NAME} 로그 수집은 이미 재개 상태입니다."}
-    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = False
-        return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
-    else:
-        raise HTTPException(status_code=404, detail="TAG_NAME not found or already running")
+# @app.post("/resume_win_log")
+# async def resume_win_log(request: DeleteAPIKeyRequest):
+#     global should_stop
+#     global log_collection_started
+#     if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME] == True:
+#         return {"message": f"{request.TAG_NAME} 로그 수집은 이미 재개 상태입니다."}
+#     should_stop[request.TAG_NAME] = False
+#     log_collection_started[request.TAG_NAME] = True
+#     return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
 
 @app.post('/genian_log')
 async def genian_log(request: Request):
@@ -247,6 +259,8 @@ async def get_genian_logs(api_key: str = None, TAG_NAME: str = None, page: int =
         return {"error": "API 키와 이름이 필요합니다."}
     global log_collection_started
     global should_stop
+    if TAG_NAME in log_collection_started and log_collection_started[TAG_NAME] == True:
+        return {"message": f"{TAG_NAME} 로그 수집은 이미 재개 상태입니다."}
     log_collection_started[TAG_NAME] = True
     should_stop[TAG_NAME] = False
     logs = []
@@ -285,24 +299,22 @@ def continue_log_collection(api_key, system, TAG_NAME):
 @app.post("/stop_genian_api_send")
 async def stop_genian_api_send(request: DeleteAPIKeyRequest):
     global should_stop
-    if request.TAG_NAME in should_stop and should_stop[request.TAG_NAME]:
-        return {"message": f"{request.TAG_NAME} 로그 수집은 이미 중지 상태입니다."}
-    if request.TAG_NAME in log_collection_started and not log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = True
-        return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
-    else:
+    global log_collection_started
+    if request.TAG_NAME not in log_collection_started or log_collection_started[request.TAG_NAME] == False:
         raise HTTPException(status_code=404, detail="TAG_NAME not found or already stopped")
+    should_stop[request.TAG_NAME] = True
+    log_collection_started[request.TAG_NAME] = False
+    return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
 
 @app.post("/resume_genian_api_send")
 async def resume_genian_api_send(request: DeleteAPIKeyRequest):
     global should_stop
-    if request.TAG_NAME in should_stop and not should_stop[request.TAG_NAME]:
+    global log_collection_started
+    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME] == True:
         return {"message": f"{request.TAG_NAME} 로그 수집은 이미 재개 상태입니다."}
-    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = False
-        return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
-    else:
-        raise HTTPException(status_code=404, detail="TAG_NAME not found or already running")
+    should_stop[request.TAG_NAME] = False
+    log_collection_started[request.TAG_NAME] = True
+    return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
 
 @app.post('/fortigate_log')
 async def fortigate_log(request: Request):
@@ -319,6 +331,8 @@ async def get_fortigate_log(api_key: str = None, TAG_NAME: str = None, backgroun
 
     global log_collection_started
     global should_stop
+    if TAG_NAME in log_collection_started and log_collection_started[TAG_NAME] == True:
+        return {"message": f"{TAG_NAME} 로그 수집은 이미 재개 상태입니다."}
     log_collection_started[TAG_NAME] = True
     should_stop[TAG_NAME] = False
 
@@ -340,24 +354,22 @@ async def delete_fortigate_api_key(request: DeleteAPIKeyRequest):
 @app.post("/stop_fortigate_api_send")
 async def stop_fortigate_api_send(request: DeleteAPIKeyRequest):
     global should_stop
-    if request.TAG_NAME in should_stop and should_stop[request.TAG_NAME]:
-        return {"message": f"{request.TAG_NAME} 로그 수집은 이미 중지 상태입니다."}
-    if request.TAG_NAME in log_collection_started and not log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = True
-        return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
-    else:
+    global log_collection_started
+    if request.TAG_NAME not in log_collection_started or log_collection_started[request.TAG_NAME] == False:
         raise HTTPException(status_code=404, detail="TAG_NAME not found or already stopped")
+    should_stop[request.TAG_NAME] = True
+    log_collection_started[request.TAG_NAME] = False
+    return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
 
 @app.post("/resume_fortigate_api_send")
 async def resume_fortigate_api_send(request: DeleteAPIKeyRequest):
     global should_stop
-    if request.TAG_NAME in should_stop and not should_stop[request.TAG_NAME]:
+    global log_collection_started
+    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME] == True:
         return {"message": f"{request.TAG_NAME} 로그 수집은 이미 재개 상태입니다."}
-    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = False
-        return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
-    else:
-        raise HTTPException(status_code=404, detail="TAG_NAME not found or already running")
+    should_stop[request.TAG_NAME] = False
+    log_collection_started[request.TAG_NAME] = True
+    return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
 
 @app.post("/log_collection_status")
 async def get_log_collection_status(request: DeleteAPIKeyRequest):
@@ -391,31 +403,29 @@ async def start_mssql_collection(request: StartMSSQLCollectionRequest, backgroun
         "username": request.username,
         "table_name": request.table_name
     }
-    background_tasks.add_task(send_mssql_logs, request.server, request.database, request.username, request.password, request.table_name)
     await save_api_key("mssql", request.TAG_NAME, config)
+    background_tasks.add_task(send_mssql_logs, request.server, request.database, request.username, request.password, request.table_name)
     return {"message": "MSSQL 로그 수집이 시작되었습니다."}
 
 @app.post("/stop_mssql_api_send")
 async def stop_mssql_api_send(request: DeleteAPIKeyRequest):
     global should_stop
-    if request.TAG_NAME in should_stop and should_stop[request.TAG_NAME]:
-        return {"message": f"{request.TAG_NAME} 로그 수집은 이미 중지 상태입니다."}
-    if request.TAG_NAME in log_collection_started and not log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = True
-        return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
-    else:
+    global log_collection_started
+    if request.TAG_NAME not in log_collection_started or log_collection_started[request.TAG_NAME] == False:
         raise HTTPException(status_code=404, detail="TAG_NAME not found or already stopped")
+    should_stop[request.TAG_NAME] = True
+    log_collection_started[request.TAG_NAME] = False
+    return {"message": f"{request.TAG_NAME} 로그 수집이 중지되었습니다."}
 
 @app.post("/resume_mssql_api_send")
 async def resume_mssql_api_send(request: DeleteAPIKeyRequest):
     global should_stop
-    if request.TAG_NAME in should_stop and not should_stop[request.TAG_NAME]:
+    global log_collection_started
+    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME] == True:
         return {"message": f"{request.TAG_NAME} 로그 수집은 이미 재개 상태입니다."}
-    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME]:
-        should_stop[request.TAG_NAME] = False
-        return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
-    else:
-        raise HTTPException(status_code=404, detail="TAG_NAME not found or already running")
+    should_stop[request.TAG_NAME] = False
+    log_collection_started[request.TAG_NAME] = True
+    return {"message": f"{request.TAG_NAME} 로그 수집이 재개되었습니다."}
 
 @app.post("/update_mssql_api_key")
 async def update_mssql_api_key(request: UpdateAPIKeyRequest):
@@ -485,10 +495,11 @@ async def add_config(config: FluentdConfig):
 @app.post("/stop_fluentd_api_send")
 async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
     tag_to_stop = request.TAG_NAME
+    global should_stop
+    global log_collection_started
+    if request.TAG_NAME not in log_collection_started or log_collection_started[request.TAG_NAME] == False:
+        raise HTTPException(status_code=404, detail="TAG_NAME not found or already stopped")
     
-    if tag_to_stop in should_stop and should_stop[tag_to_stop]:
-        return {"message": f"{tag_to_stop} 로그 수집은 이미 중지 상태입니다."}
-
     try:
         with open(conf_file_path, 'r') as file:
             lines = file.readlines()
@@ -530,8 +541,6 @@ async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
-    should_stop[tag_to_stop] = True
-    
     try:
         subprocess.run([
             'ssh', '-i', '/app/teiren-test.pem',
@@ -539,6 +548,8 @@ async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
             'ubuntu@3.35.81.217',
             'sudo systemctl restart fluentd'
         ], check=True)
+        should_stop[tag_to_stop] = True
+        log_collection_started[tag_to_stop] = False
         return {"status": "success", "message": f"{tag_to_stop} 로그 수집이 중지되었습니다."}
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart Fluentd service: {e}")
@@ -547,10 +558,11 @@ async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
 @app.post("/resume_fluentd_api_send")
 async def resume_fluentd_api_send(request: DeleteAPIKeyRequest):
     tag_to_resume = request.TAG_NAME
+    global should_stop
+    global log_collection_started
+    if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME] == True:
+        return {"message": f"{request.TAG_NAME} 로그 수집은 이미 재개 상태입니다."}
     
-    if tag_to_resume in should_stop and not should_stop[tag_to_resume]:
-        return {"message": f"{tag_to_resume} 로그 수집은 이미 재개 상태입니다."}
-
     try:
         with open(conf_file_path, 'r') as file:
             lines = file.readlines()
@@ -592,8 +604,6 @@ async def resume_fluentd_api_send(request: DeleteAPIKeyRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
-    should_stop[tag_to_resume] = False
-    
     try:
         subprocess.run([
             'ssh', '-i', '/app/teiren-test.pem',
@@ -601,6 +611,8 @@ async def resume_fluentd_api_send(request: DeleteAPIKeyRequest):
             'ubuntu@3.35.81.217',
             'sudo systemctl restart fluentd'
         ], check=True)
+        should_stop[tag_to_resume] = False
+        log_collection_started[tag_to_resume] = True
         return {"status": "success", "message": f"{tag_to_resume} 로그 수집이 재개되었습니다."}
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart Fluentd service: {e}")
