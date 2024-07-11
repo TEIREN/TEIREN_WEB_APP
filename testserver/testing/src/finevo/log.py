@@ -10,8 +10,7 @@ from elasticsearch import Elasticsearch, ConnectionError, NotFoundError
 es = Elasticsearch(hosts=["http://3.35.81.217:9200/"])
 
 # Docker 로그에 기록되도록 로깅 설정
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s %(message)s')
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # 로그 관리 클래스
 
@@ -39,9 +38,9 @@ class LogManagement():
     # 로그 검색 함수
     def search_logs(self):
         try:
-            self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 100000})
+            self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 1000000})
             try:
-                self.es.indices.put_settings(index=f"{self.system}_detected_log", body={"index.max_result_window": 100000})
+                self.es.indices.put_settings(index=f"{self.system}_detected_log", body={"index.max_result_window": 1000000})
             except NotFoundError:
                 pass
             response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit, "query": self.query, "sort": {f"{self.timestamp}": "desc"}, "from": ((self.page_number-1)*self.limit)})
@@ -57,13 +56,12 @@ class LogManagement():
                         for detect_hit in detected_response['hits']['hits']:
                             detected_log = detect_hit['_source']
                             if self.is_rule_match(detected_log, log):  # 매칭 조건 확인
-                                detected_by_rules = detected_log.get(
-                                    'detected_by_rule', '')
+                                detected_by_rules = detected_log.get('detected_by_rule', '')
                                 if detected_by_rules:
                                     detected_rules.add(detected_by_rules)
                                 rule_info = self.es.search(index=f"{self.system}_ruleset", body={"query": {"bool": {"must": [{"match": {"name": detected_by_rules}}]}}})
                                 severities.append(rule_info['hits']['hits'][0]['_source']['severity'])
-                        log['detected_by_rules'] = ",".join(detected_rules)  # set을 콤마로 구분된 문자열로 변환
+                        log['detected_by_rules'] = list(detected_rules)
                         log['severities'] = severities
                         # logging.debug(f"Log ID: {hit['_id']}, Detected by rules: {log['detected_by_rules']}")  # 디버깅용으로 로그에 기록
                 except Exception as e:
@@ -314,11 +312,10 @@ def list_logs(request, system):
             'log_properties': system_log.fetch_log_properties(),  # 로그 프로퍼티 추출
             'table_properties': get_property_key(system)
         }
-
         return render(request, 'testing/finevo/elasticsearch.html', context=context)
 
     except ConnectionError as e:
-        # logging.error(f"Connection error: {e}")
+        logging.error(f"Connection error: {e}")
         context = {
             'total_count': 0,
             'log_list': [],
@@ -328,7 +325,7 @@ def list_logs(request, system):
             'log_properties': []
         }
     except Exception as e:
-        # logging.error(f"An error occurred: {e}")
+        logging.error(f"An error occurred: {e}")
         context = {
             'total_count': 0,
             'log_list': [],
@@ -337,7 +334,6 @@ def list_logs(request, system):
             'page': page_number,
             'log_properties': []
         }
-
     return render(request, 'testing/finevo/elasticsearch.html', context=context)
 
 # 룰셋에 따른 로그 리스트를 보여주는 함수
