@@ -7,7 +7,7 @@ delete_query = {
     "query": {
         "bool": {
             "must": [
-                {"match": {"system": "window"}},
+                {"match": {"TAG_NAME": "genian_api"}},
             ]
         }
     }
