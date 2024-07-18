@@ -1,226 +1,175 @@
+import json
 import time
+import logging
+import threading
 from elasticsearch import Elasticsearch, NotFoundError, ConnectionError
 
 # Elasticsearch 클라이언트를 설정합니다.
 es = Elasticsearch(hosts=["http://3.35.81.217:9200"])
 
-# 탐지 대상 로그 인덱스
+# Logging 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# 인덱스 매핑 설정
 log_index = {
-    1: "test_linux_syslog",
-    2: "test_window_syslog",
-    3: "test_genian_syslog",
-    4: "test_fortigate_syslog"
+    "linux": "test_linux_syslog",
+    "window": "test_window_syslog",
+    "genian": "test_genian_syslog",
+    "fortigate": "test_fortigate_syslog"
 }
 
-# 룰셋 인덱스 이름 매핑
 ruleset_mapping = {
-    1: "linux_ruleset",
-    2: "window_ruleset",
-    3: "genian_ruleset",
-    4: "fortigate_ruleset"
+    "linux": "linux_ruleset",
+    "window": "window_ruleset",
+    "genian": "genian_ruleset",
+    "fortigate": "fortigate_ruleset"
 }
 
-# detected log 인덱스 이름 매핑
 detected_log_mapping = {
-    1: "linux_detected_log",
-    2: "window_detected_log",
-    3: "genian_detected_log",
-    4: "fortigate_detected_log"
+    "linux": "linux_detected_log",
+    "window": "window_detected_log",
+    "genian": "genian_detected_log",
+    "fortigate": "fortigate_detected_log"
 }
 
-# 사용자로부터 인덱스 선택을 입력받습니다.
-def get_user_choice():
-    print("Select the index to use:")
-    print("1. Linux")
-    print("2. Windows")
-    print("3. Genian")
-    print("4. Fortigate")
-    choice = int(input("Enter your choice (1-4): "))
-    if choice not in [1, 2, 3, 4]:
-        raise ValueError("Invalid choice, please select a number between 1 and 4.")
-    return choice
+# Elasticsearch 라이브러리의 디버그 로그를 비활성화
+logging.getLogger("elastic_transport.transport").setLevel(logging.CRITICAL)
+logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
-# 인덱스 선택
-user_choice = get_user_choice()
-log_index_name = log_index[user_choice]
+# 사용자 선택에 따라 인덱스 설정
+def get_index_choice(system):
+    if system not in log_index:
+        raise ValueError("Invalid system choice.")
+    return {
+        'log_index_name': log_index[system],
+        'ruleset_index': ruleset_mapping[system],
+        'detected_log_index': detected_log_mapping[system]
+    }
 
-# 매핑된 룰셋 인덱스와 디텍티드 로그 인덱스를 설정합니다.
-ruleset_index = ruleset_mapping[user_choice]
-detected_log_index = detected_log_mapping[user_choice]
+# 로그 체크 함수
+def check_logs(system):
+    index_data = get_index_choice(system)
+    log_index_name = index_data['log_index_name']
+    ruleset_index = index_data['ruleset_index']
+    detected_log_index = index_data['detected_log_index']
 
-def check_logs_linux():
     try:
-        # 모든 룰셋을 Elasticsearch에서 가져옵니다.
-        res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
+        res = es.search(index=ruleset_index, body={"query": {"term": {"status": 1}}})
         rulesets = res['hits']['hits']
-        print(f"Total rules found: {len(rulesets)}")
 
-        for rule in rulesets:
+        logger.info(f"Found {len(rulesets)} active rulesets in {ruleset_index}")
+
+        def process_rule(rule):
             rule_query = rule["_source"]["query"]
             severity = rule["_source"]["severity"]
             rule_name = rule["_source"]["name"]
-            
-            print(f"Checking rule: {rule_name} with severity {severity}")
-            
-            # 룰셋을 사용하여 로그를 탐지합니다.
-            log_res = es.search(index=log_index_name, body={**rule_query, "size": 10000})
-            logs_found = log_res['hits']['total']['value']
-            print(f"Logs found for rule {rule_name}: {logs_found}")
-                    
-            if logs_found > 0:
-                for log in log_res['hits']['hits']:
+            rule_type = rule["_source"].get("rule_type", "custom")  # Default to 'custom' if not present
+
+            logger.info(f"Applying rule: {rule_name}, Query: {json.dumps(rule_query, indent=4)}")
+
+            # 페이지네이션 설정
+            size = 1000  # 한번에 가져올 문서 수를 줄임
+            scroll = '5m'  # 스크롤 유지 시간을 늘림
+            try:
+                result = es.search(index=log_index_name, body=rule_query, scroll=scroll, size=size)
+            except Exception as e:
+                logger.error(f"Search query failed for rule {rule_name}: {e}")
+                return
+
+            sid = result.get('_scroll_id', None)
+            scroll_size = len(result['hits']['hits'])
+
+            if scroll_size == 0:
+                logger.info(f"No logs found for rule: {rule_name}")
+                return
+
+            detected_logs_count = 0
+
+            while scroll_size > 0:
+                for log in result['hits']['hits']:
+                    log_id = log["_id"]
                     log_doc = log["_source"]
-                    log_doc["detected_by_rule"] = rule_name
-                    log_doc["severity"] = severity
-                    
-                    # 탐지된 로그를 저장합니다 (중복 방지)
-                    log_id = f"{rule_name}_{log['_id']}"
+
+                    # 로그 아이디를 룰셋 이름과 결합하여 중복 체크
+                    unique_log_id = f"{log_id}_{rule_name}"
+
+                    # 이전에 탐지된 기록이 있는지 확인
                     try:
-                        # 이미 저장된 로그인지 확인합니다.
-                        es.get(index=detected_log_index, id=log_id)
+                        existing_log = es.get(index=detected_log_index, id=unique_log_id)
+                        existing_detected_by_rules = existing_log['_source'].get("detected_by_rule", "")
                     except NotFoundError:
-                        # 저장되지 않은 로그인 경우에만 저장합니다.
-                        es.index(index=detected_log_index, id=log_id, body=log_doc)
-                        print(f"Rule '{rule_name}' triggered and log stored with severity {severity}")
+                        existing_detected_by_rules = ""
+
+                    if isinstance(existing_detected_by_rules, str):
+                        existing_detected_by_rules = existing_detected_by_rules.split(",")
+                    elif isinstance(existing_detected_by_rules, list):
+                        pass
+                    else:
+                        existing_detected_by_rules = []
+
+                    detected_by_rules_set = set(filter(None, existing_detected_by_rules))  # 빈 문자열 제거
+                    detected_by_rules_set.add(rule_name)
+
+                    log_doc["detected_by_rule"] = ",".join(detected_by_rules_set)
+                    log_doc["severity"] = severity
+                    log_doc["rule_type"] = rule_type  # Add rule_type to the detected log
+
+                    try:
+                        es.index(index=detected_log_index, id=unique_log_id, body=log_doc)
+                        detected_logs_count += 1
                     except Exception as e:
-                        print(f"Error checking log existence: {e}")
-    except ConnectionError as e:
-        print(f"Connection error: {e}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+                        logger.error(f"Failed to index log with id {unique_log_id}: {e}")
 
-def check_logs_windows():
-    try:
-        # 모든 룰셋을 Elasticsearch에서 가져옵니다.
-        res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
-        rulesets = res['hits']['hits']
-        print(f"Total rules found: {len(rulesets)}")
+                try:
+                    result = es.scroll(scroll_id=sid, scroll=scroll)
+                    sid = result.get('_scroll_id', None)
+                    scroll_size = len(result['hits']['hits'])
+                except NotFoundError as e:
+                    logger.error(f"Scrolling failed: {e}")
+                    break
+                except Exception as e:
+                    logger.error(f"An error occurred during scrolling: {e}")
+                    break
 
+            if sid:
+                try:
+                    es.clear_scroll(scroll_id=sid)
+                except NotFoundError:
+                    logger.warning(f"Scroll ID {sid} not found when clearing scroll")
+                except Exception as e:
+                    logger.error(f"Clearing scroll failed: {e}")
+
+            logger.info(f"Rule {rule_name} detected {detected_logs_count} logs")
+
+        threads = []
         for rule in rulesets:
-            rule_query = rule["_source"]["query"]["query"]
-            severity = rule["_source"]["severity"]
-            rule_name = rule["_source"]["name"]
-            
-            print(f"Checking rule: {rule_name} with severity {severity}")
-            
-            # 룰셋을 사용하여 로그를 탐지합니다.
-            log_res = es.search(index=log_index_name, body={"query": rule_query, "size": 10000})
-            logs_found = log_res['hits']['total']['value']
-            print(f"Logs found for rule {rule_name}: {logs_found}")
-                    
-            if logs_found > 0:
-                for log in log_res['hits']['hits']:
-                    log_doc = log["_source"]
-                    log_doc["detected_by_rule"] = rule_name
-                    log_doc["severity"] = severity
-                    
-                    # 탐지된 로그를 저장합니다 (중복 방지)
-                   
-                    log_id = f"{rule_name}_{log['_id']}"
-                    try:
-                        # 이미 저장된 로그인지 확인합니다.
-                        es.get(index=detected_log_index, id=log_id)
-                    except NotFoundError:
-                        # 저장되지 않은 로그인 경우에만 저장합니다.
-                        es.index(index=detected_log_index, id=log_id, body=log_doc)
-                        print(f"Rule '{rule_name}' triggered and log stored with severity {severity}")
-                    except Exception as e:
-                        print(f"Error checking log existence: {e}")
+            thread = threading.Thread(target=process_rule, args=(rule,))
+            thread.start()
+            threads.append(thread)
+
+        for thread in threads:
+            thread.join()
+
     except ConnectionError as e:
-        print(f"Connection error: {e}")
+        logger.error(f"Connection error: {e}")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}", exc_info=True)
 
-def check_logs_genian():
-    try:
-        # 모든 룰셋을 Elasticsearch에서 가져옵니다.
-        res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
-        rulesets = res['hits']['hits']
-        print(f"Total rules found: {len(rulesets)}")
+# 시스템 선택에 따른 로그 체크 실행
+def run_detector(system):
+    while True:
+        check_logs(system)
+        time.sleep(60)  # 60초마다 로그를 체크
 
-        for rule in rulesets:
-            rule_query = rule["_source"]["query"]
-            severity = rule["_source"]["severity"]
-            rule_name = rule["_source"]["name"]
-            
-            print(f"Checking rule: {rule_name} with severity {severity}")
-            
-            # 룰셋을 사용하여 로그를 탐지합니다.
-            log_res = es.search(index=log_index_name, body={**rule_query, "size": 10000})
-            logs_found = log_res['hits']['total']['value']
-            print(f"Logs found for rule {rule_name}: {logs_found}")
-                    
-            if logs_found > 0:
-                for log in log_res['hits']['hits']:
-                    log_doc = log["_source"]
-                    log_doc["detected_by_rule"] = rule_name
-                    log_doc["severity"] = severity
-                    
-                    # 탐지된 로그를 저장합니다 (중복 방지)
-                    log_id = f"{rule_name}_{log['_id']}"
-                    try:
-                        # 이미 저장된 로그인지 확인합니다.
-                        es.get(index=detected_log_index, id=log_id)
-                    except NotFoundError:
-                        # 저장되지 않은 로그인 경우에만 저장합니다.
-                        es.index(index=detected_log_index, id=log_id, body=log_doc)
-                        print(f"Rule '{rule_name}' triggered and log stored with severity {severity}")
-                    except Exception as e:
-                        print(f"Error checking log existence: {e}")
-    except ConnectionError as e:
-        print(f"Connection error: {e}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+if __name__ == "__main__":
+    systems = ["linux", "window", "genian", "fortigate"]
 
-def check_logs_fortigate():
-    try:
-        # 모든 룰셋을 Elasticsearch에서 가져옵니다.
-        res = es.search(index=ruleset_index, body={"query": {"match_all": {}}, "size": 10000})
-        rulesets = res['hits']['hits']
-        print(f"Total rules found: {len(rulesets)}")
+    threads = []
+    for system in systems:
+        thread = threading.Thread(target=run_detector, args=(system,))
+        thread.start()
+        threads.append(thread)
 
-        for rule in rulesets:
-            rule_query = rule["_source"]["query"]["query"]
-            severity = rule["_source"]["severity"]
-            rule_name = rule["_source"]["name"]
-            
-            print(f"Checking rule: {rule_name} with severity {severity}")
-            
-            # 룰셋을 사용하여 로그를 탐지합니다.
-            log_res = es.search(index=log_index_name, body={"query": rule_query, "size": 10000})
-            logs_found = log_res['hits']['total']['value']
-            print(f"Logs found for rule {rule_name}: {logs_found}")
-                    
-            if logs_found > 0:
-                for log in log_res['hits']['hits']:
-                    log_doc = log["_source"]
-                    log_doc["detected_by_rule"] = rule_name
-                    log_doc["severity"] = severity
-                    
-                    # 탐지된 로그를 저장합니다 (중복 방지)
-                    log_id = f"{rule_name}_{log['_id']}"
-                    try:
-                        # 이미 저장된 로그인지 확인합니다.
-                        es.get(index=detected_log_index, id=log_id)
-                    except NotFoundError:
-                        # 저장되지 않은 로그인 경우에만 저장합니다.
-                        es.index(index=detected_log_index, id=log_id, body=log_doc)
-                        print(f"Rule '{rule_name}' triggered and log stored with severity {severity}")
-                    except Exception as e:
-                        print(f"Error checking log existence: {e}")
-    except ConnectionError as e:
-        print(f"Connection error: {e}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-# 주기적으로 로그를 체크합니다.
-while True:
-    if user_choice == 1:
-        check_logs_linux()
-    elif user_choice == 2:
-        check_logs_windows()
-    elif user_choice == 3:
-        check_logs_genian()
-    elif user_choice == 4:
-        check_logs_fortigate()
-    time.sleep(2)
+    for thread in threads:
+        thread.join()
