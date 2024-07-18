@@ -51,5 +51,18 @@ services:
     networks:
       - webnet
 
+  detector:
+    build:
+      context: ./detector
+      dockerfile: Dockerfile
+    container_name: detector-app
+    environment:
+      - ELASTICSEARCH_HOST=3.35.81.217
+      - ELASTICSEARCH_PORT=9200
+    networks:
+      - webnet
+    depends_on:
+      - django
+
 networks:
   webnet:

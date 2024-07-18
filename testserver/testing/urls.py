@@ -22,6 +22,7 @@ urlpatterns = [
     path('integration/mssql/', integration.integration_mssql),
     path('integration/snmp/', integration.integration_snmp),
     path('integration/transmission/', integration.integration_transmission),
+    path('integration/<system>/delete_api_key/', integration.delete_api_key),  # 태그네임 삭제 엔드포인트
     path('rule/<system>/', rule.rule_config_page),
     path('rule/<system>/<action_type>/', rule.rule_config_action)
 ]

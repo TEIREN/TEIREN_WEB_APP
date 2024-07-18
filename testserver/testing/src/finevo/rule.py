@@ -38,12 +38,13 @@ class RuleSet:
             response = []
         finally:
             return response
+
     def get_detail_page(self, request):
         context = request.POST.dict()
         context['severity'] = json.loads(context['severity'].replace("'", '"'))
         context['query'] = json.dumps(json.loads(context['query'].replace("'", '"')), indent=4)
         return render(request, f"testing/finevo/rules/custom/details.html", context=context)
-    
+
     def add_property(self, request):
         return render(request, f"testing/finevo/rules/add/property_slot.html")
 
@@ -115,6 +116,7 @@ class RuleSet:
             ruleset = {
                 "name": rule_name,
                 "system": system,
+                "status": 1,  # 기본 상태 추가
                 "query": query,
                 "severity": severity,
                 "rule_type": "custom"  # Add the rule_type property
@@ -225,7 +227,7 @@ class RuleSet:
         except Exception as e:
             logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse("Failed to remove rule. Please try again.", status=500)
-    
+
     def get_edit_page(self, request):
         context = request.POST.dict()
         context['query'] = json.loads(context['query'])
@@ -252,7 +254,7 @@ class RuleSet:
                     continue
         context['query'] = properties
         return render(request, f"testing/finevo/rules/edit/modal.html", context=context)
-    
+
     def update_ruleset(self, request):
         try:
             rule_name = request.POST.get('name', '').strip()
