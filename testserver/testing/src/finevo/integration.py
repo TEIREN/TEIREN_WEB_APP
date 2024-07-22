@@ -7,7 +7,7 @@ import tempfile
 
 def integration_action_genian(request):
     if request.method == 'POST':
-        url = f"http://3.35.81.217:8088/genian_api_send?api_key={request.POST['access_key']}&TAG_NAME=genian_api"
+        url = f"http://3.35.81.217:8088/genian_api_send?api_key={request.POST['access_key']}&TAG_NAME={request.POST['tag_name']}"
         response = requests.get(url)
         return JsonResponse(response.json(), safe=False)
     else:
@@ -22,7 +22,7 @@ def integration_genian(request):
 
 def integration_action_fortigate(request):
     if request.method == 'POST':
-        url = f"http://3.35.81.217:8088/fortigate_api_send?api_key={request.POST['access_key']}&TAG_NAME=fortigate_api"
+        url = f"http://3.35.81.217:8088/fortigate_api_send?api_key={request.POST['access_key']}&TAG_NAME={request.POST['tag_name']}"
         response = requests.get(url)
         return JsonResponse(response.json(), safe=False)
     else:
@@ -80,7 +80,7 @@ def integration_action_mssql(request):
         username = request.POST.get('db_uid')
         password = request.POST.get('db_password')
         table_name = request.POST.get('db_table')
-        TAG_NAME = "mssql_api"
+        TAG_NAME = request.POST.get('tag_name')
 
         if not all([server, database, username, password, table_name]):
             return JsonResponse({"error": "모든 필드를 입력하세요."}, safe=False, json_dumps_params={'ensure_ascii':False}, status=400)
@@ -114,13 +114,14 @@ def integration_mssql(request):
 @csrf_exempt
 def integration_snmp(request):
     if request.method == 'POST':
-        client_ip = get_client_ip(request)
+        client_ip = get_client_ip(request)  # 클라이언트 IP 얻기
         request_data = request.POST.dict()
-        request_data['teiren_request_ip'] = client_ip
-        return JsonResponse(request_data)
+        request_data['teiren_request_ip'] = client_ip  # 클라이언트 IP 로그 데이터에 추가
+        return HttpResponse(str(request_data))
     else:
         return render(request, 'testing/finevo/integration_snmp.html')
 
+# 클라이언트의 IP 주소를 얻는 함수
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
