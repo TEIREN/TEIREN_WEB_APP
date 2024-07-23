@@ -44,6 +44,7 @@ services:
       - "8088:8088"
     environment:
       - ELASTICSEARCH_HOST=3.35.81.217
+      # - ELASTICSEARCH_HOST=127.0.0.1
       - ELASTICSEARCH_PORT=9200
     depends_on:
       - django
