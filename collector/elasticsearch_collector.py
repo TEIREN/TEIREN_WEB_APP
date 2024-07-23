@@ -1,11 +1,7 @@
-from uvicorn import run
-from fastapi import FastAPI, Request, BackgroundTasks, Form, HTTPException
+from fastapi import FastAPI, Request, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from elasticsearch import Elasticsearch, NotFoundError
 from datetime import datetime
-from genian_deployment import get_logs, parse_log, send_genian_logs
-from fortigate_deployment import send_fortigate_logs, parse_fortigate_log
-from mssql_deployment import send_mssql_logs
 import subprocess
 import logging
 import re
@@ -14,7 +10,7 @@ import time
 import json
 import socket
 
-    # es = Elasticsearch("http://3.35.81.217:9200/")
+# Elasticsearch 설정
 es = Elasticsearch("http://localhost:9200")
 should_stop = {}
 log_collection_started = {}
@@ -39,10 +35,10 @@ async def create_index_if_not_exists(index_name):
     except NotFoundError:
         es.indices.create(index=index_name)
 
-# ElasticSearch에 로그를 입력하는 함수
+# Elasticsearch에 로그를 입력하는 함수
 async def elasticsearch_input(log, system, TAG_NAME):
-    index_name = f"test_{system}_syslog"  # 인덱스 이름 설정
-    log['TAG_NAME'] = TAG_NAME  # 로그에 TAG_NAME 추가
+    index_name = f"test_{system}_syslog"
+    log['TAG_NAME'] = TAG_NAME
     response = es.index(index=index_name, document=log)
     print(f"{system}_log: {response['result']}")
     return 0
@@ -202,12 +198,11 @@ async def win_log(request: Request):
     client_ip = request.client.host
     client_hostname = get_hostname(client_ip)
 
-    # 인덱스 생성 시 매핑을 설정하도록 호출
     await create_index_with_mapping("test_window_syslog", {
         "properties": {
             "date": {
                 "type": "scaled_float",
-                "scaling_factor": 10000000  # 7자리까지 인식 가능하도록 설정
+                "scaling_factor": 10000000
             }
         }
     })
@@ -216,7 +211,6 @@ async def win_log(request: Request):
         log = {k.lower(): v for k, v in log.items()}
         log['teiren_request_ip'] = client_ip
         log['client_hostname'] = client_hostname
-        # Convert 'date' field to scaled_float
         if 'date' in log:
             log['date'] = round(log['date'], 7)
         await elasticsearch_input(log, 'window', client_hostname)
@@ -413,7 +407,7 @@ class StartMSSQLCollectionRequest(BaseModel):
     username: str
     password: str
     table_name: str
-    TAG_NAME: str # 현재 프론트에 없음
+    TAG_NAME: str
 
 @app.post("/start_mssql_collection")
 async def start_mssql_collection(request: StartMSSQLCollectionRequest, background_tasks: BackgroundTasks = None):
@@ -507,12 +501,7 @@ async def add_config(config: FluentdConfig):
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
     try:
-        subprocess.run([
-            'ssh', '-i', '/app/teiren-test.pem',
-            '-o', 'StrictHostKeyChecking=no',
-            'ubuntu@3.35.81.217',
-            'sudo systemctl restart fluentd'
-        ], check=True)
+        subprocess.run(['sudo', 'service', 'td-agent', 'restart'], check=True)
         await save_api_key("fluentd", config.new_log_tag, config.dict())
         log_collection_started[config.new_log_tag] = True
         should_stop[config.new_log_tag] = False
@@ -567,12 +556,7 @@ async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
     try:
-        subprocess.run([
-            'ssh', '-i', '/app/teiren-test.pem',
-            '-o', 'StrictHostKeyChecking=no',
-            'ubuntu@3.35.81.217',
-            'sudo systemctl restart fluentd'
-        ], check=True)
+        subprocess.run(['sudo', 'service', 'td-agent', 'restart'], check=True)
         should_stop[tag_to_stop] = True
         log_collection_started[tag_to_stop] = False
         return {"status": "success", "message": f"{tag_to_stop} 로그 수집이 중지되었습니다."}
@@ -626,12 +610,7 @@ async def resume_fluentd_api_send(request: DeleteAPIKeyRequest):
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
     try:
-        subprocess.run([
-            'ssh', '-i', '/app/teiren-test.pem',
-            '-o', 'StrictHostKeyChecking=no',
-            'ubuntu@3.35.81.217',
-            'sudo systemctl restart fluentd'
-        ], check=True)
+        subprocess.run(['sudo', 'service', 'td-agent', 'restart'], check=True)
         should_stop[tag_to_resume] = False
         log_collection_started[tag_to_resume] = True
         return {"status": "success", "message": f"{tag_to_resume} 로그 수집이 재개되었습니다."}
@@ -688,12 +667,7 @@ async def delete_fluentd_api_key(request: DeleteAPIKeyRequest):
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
     try:
-        subprocess.run([
-            'ssh', '-i', '/app/teiren-test.pem',
-            '-o', 'StrictHostKeyChecking=no',
-            'ubuntu@3.35.81.217',
-            'sudo systemctl restart fluentd'
-        ], check=True)
+        subprocess.run(['sudo', 'service', 'td-agent', 'restart'], check=True)
         response = await delete_api_key("fluentd", tag_to_delete)
         return {"status": "success", "message": "Fluentd service restarted successfully"}
     except subprocess.CalledProcessError as e:
@@ -706,4 +680,4 @@ async def ping_test():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8088)

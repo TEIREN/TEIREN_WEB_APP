@@ -1,8 +1,9 @@
 #!/bin/bash
 # start.sh
 
-# SSH 키에 적절한 권한 부여
-chmod 600 /app/teiren-test.pem
+# Run systemd
+exec /lib/systemd/systemd &
+sleep 5
 
-# 애플리케이션 시작
-exec uvicorn elasticsearch_collector:app --host 0.0.0.0 --port 8088
+# Run the Python application
+uvicorn elasticsearch_collector:app --host 0.0.0.0 --port 8088

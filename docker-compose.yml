@@ -11,8 +11,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # - ELASTICSEARCH_HOST=3.35.81.217
-      ELASTICSEARCH_HOST=127.0.0.1
+      - ELASTICSEARCH_HOST=127.0.0.1
       - ELASTICSEARCH_PORT=9200
     command: sh entrypoint.sh
     networks:
@@ -37,20 +36,16 @@ services:
     container_name: collector-app
     volumes:
       - ./collector:/app
-      # conf파일을 수정하기 위한 mount
-      - /etc/fluent/fluentd.conf:/etc/fluent/fluentd.conf
-      # SSH 키 마운트 경로 변경
-      - /home/ubuntu/.ssh/teiren-test.pem:/app/teiren-test.pem
     ports:
       - "8088:8088"
     environment:
-      # - ELASTICSEARCH_HOST=3.35.81.217
       - ELASTICSEARCH_HOST=127.0.0.1
       - ELASTICSEARCH_PORT=9200
     depends_on:
       - django
       - nginx
-    network_mode: "host" # 호스트 네트워크 모드 설정
+    privileged: true
+    network_mode: "host"
 
   detector:
     build:
@@ -58,7 +53,6 @@ services:
       dockerfile: Dockerfile
     container_name: detector-app
     environment:
-      # - ELASTICSEARCH_HOST=3.35.81.217
       - ELASTICSEARCH_HOST=127.0.0.1
       - ELASTICSEARCH_PORT=9200
     networks:
