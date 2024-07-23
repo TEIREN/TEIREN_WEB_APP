@@ -14,7 +14,8 @@ import time
 import json
 import socket
 
-es = Elasticsearch("http://3.35.81.217:9200/")
+    # es = Elasticsearch("http://3.35.81.217:9200/")
+es = Elasticsearch("http://localhost:9200")
 should_stop = {}
 log_collection_started = {}
 
@@ -698,6 +699,10 @@ async def delete_fluentd_api_key(request: DeleteAPIKeyRequest):
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart Fluentd service: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
+
+@app.get("/ping_test")
+async def ping_test():
+    return {"status" : "su"}
 
 if __name__ == "__main__":
     import uvicorn

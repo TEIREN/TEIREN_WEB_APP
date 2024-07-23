@@ -49,8 +49,7 @@ services:
     depends_on:
       - django
       - nginx
-    networks:
-      - webnet
+    network_mode: "host" # 호스트 네트워크 모드 설정
 
   detector:
     build:
