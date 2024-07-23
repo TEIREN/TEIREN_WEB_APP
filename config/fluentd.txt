@@ -1,0 +1,41 @@
+# Fluentd - Linux 설정
+
+1. fluentd 설치 및 실행
+    
+    ```jsx
+    curl -fsSL https://toolbelt.treasuredata.com/sh/install-ubuntu-jammy-fluent-package5.sh | sh
+    sudo systemctl start fluentd
+    ```
+    
+2. /etc/fluent/fluentd.conf 파일 설정
+    
+    rsyslog로부터 받은 syslog를 elasticsearch 서버의 API를 통해 POST 로 보내는 설정을 conf 파일에 추가
+    
+    ```jsx
+    <source>
+      @type tcp
+      port 5140
+      bind 0.0.0.0
+      tag teiren.linux
+      <parse>
+        @type json
+      </parse>
+    </source>
+    
+    <match teiren.linux>
+    	@type http
+    	endpoint http://3.36.119.174:8088/linux_log
+    	json_array true
+    	<format>
+    	  @type json
+    	</format>
+    	<buffer>
+    	  flush_interval 10s
+    	</buffer>
+    </match>
+    ```
+    
+3. [rsyslog - Linux 설정](https://www.notion.so/rsyslog-Linux-60107b55c80945fab547b42368423a0a?pvs=21) 이후에 ⇒ fluentd 재실행
+```bash
+    sudo systemctl restart fludentd
+```
