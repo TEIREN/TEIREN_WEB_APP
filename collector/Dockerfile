@@ -6,6 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN apt-get update && apt-get install -y openssh-client
 RUN apt-get update && apt-get install -y ssh
+RUN apt-get install sshpass
 
 # start.sh 스크립트 파일을 이미지에 복사
 COPY start.sh /app/start.sh

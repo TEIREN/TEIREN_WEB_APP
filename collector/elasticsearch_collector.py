@@ -506,12 +506,16 @@ async def add_config(config: FluentdConfig):
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
     try:
+        # subprocess.run([
+        #     'sshpass', '-p', 'your_password',
+        #     'ssh', 'root@127.0.0.1',
+        #     'sudo systemctl restart fluentd'
+        # ], check=True)
+
         subprocess.run([
-            'ssh', '-i', '/app/teiren-test.pem',
-            '-o', 'StrictHostKeyChecking=no',
-            'ubuntu@3.35.81.217',
-            'sudo systemctl restart fluentd'
+            '/usr/bin/sudo', '/bin/systemctl', 'restart', 'fluentd'
         ], check=True)
+        
         await save_api_key("fluentd", config.new_log_tag, config.dict())
         log_collection_started[config.new_log_tag] = True
         should_stop[config.new_log_tag] = False
@@ -566,11 +570,14 @@ async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
     try:
+        # subprocess.run([
+        #     'sshpass', '-p', 'your_password',
+        #     'ssh', 'root@127.0.0.1',
+        #     'sudo systemctl restart fluentd'
+        # ], check=True)
+
         subprocess.run([
-            'ssh', '-i', '/app/teiren-test.pem',
-            '-o', 'StrictHostKeyChecking=no',
-            'ubuntu@3.35.81.217',
-            'sudo systemctl restart fluentd'
+            '/usr/bin/sudo', '/bin/systemctl', 'restart', 'fluentd'
         ], check=True)
         should_stop[tag_to_stop] = True
         log_collection_started[tag_to_stop] = False
@@ -625,11 +632,14 @@ async def resume_fluentd_api_send(request: DeleteAPIKeyRequest):
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
     try:
+        # subprocess.run([
+        #     'sshpass', '-p', 'your_password',
+        #     'ssh', 'root@127.0.0.1',
+        #     'sudo systemctl restart fluentd'
+        # ], check=True)
+
         subprocess.run([
-            'ssh', '-i', '/app/teiren-test.pem',
-            '-o', 'StrictHostKeyChecking=no',
-            'ubuntu@3.35.81.217',
-            'sudo systemctl restart fluentd'
+            '/usr/bin/sudo', '/bin/systemctl', 'restart', 'fluentd'
         ], check=True)
         should_stop[tag_to_resume] = False
         log_collection_started[tag_to_resume] = True
@@ -687,11 +697,14 @@ async def delete_fluentd_api_key(request: DeleteAPIKeyRequest):
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
     try:
+        # subprocess.run([
+        #     'sshpass', '-p', 'your_password',
+        #     'ssh', 'root@127.0.0.1',
+        #     'sudo systemctl restart fluentd'
+        # ], check=True)
+
         subprocess.run([
-            'ssh', '-i', '/app/teiren-test.pem',
-            '-o', 'StrictHostKeyChecking=no',
-            'ubuntu@3.35.81.217',
-            'sudo systemctl restart fluentd'
+            '/usr/bin/sudo', '/bin/systemctl', 'restart', 'fluentd'
         ], check=True)
         response = await delete_api_key("fluentd", tag_to_delete)
         return {"status": "success", "message": "Fluentd service restarted successfully"}
@@ -701,4 +714,4 @@ async def delete_fluentd_api_key(request: DeleteAPIKeyRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8088)
