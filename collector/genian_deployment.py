@@ -4,7 +4,7 @@ import json
 import time
 from fastapi import Request, BackgroundTasks
 
-NAC_URL = 'https://teiren.my.genians.co.kr/mc2/rest/logs'
+NAC_URL = 'https://10.214.26.251/mc2/rest/logs'
 POST_URL = "http://localhost:8088/genian_log"
 
 def get_logs(api_key, page=1, page_size=30):

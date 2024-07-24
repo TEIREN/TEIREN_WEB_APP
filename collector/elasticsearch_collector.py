@@ -14,7 +14,7 @@ import time
 import json
 import socket
 
-es = Elasticsearch("http://127.0.0.1:9200/")
+es = Elasticsearch("http://3.35.81.217:9200/")
 should_stop = {}
 log_collection_started = {}
 
@@ -420,11 +420,13 @@ async def start_mssql_collection(request: StartMSSQLCollectionRequest, backgroun
         "server": request.server,
         "database": request.database,
         "username": request.username,
-        "table_name": request.table_name
+        "table_name": request.table_name,
+        "password" : request.password,
+        "TAG_NAME" : request.TAG_NAME,
     }
     if request.TAG_NAME in log_collection_started and log_collection_started[request.TAG_NAME] == True:
         return {"message": f"{request.TAG_NAME} 로그 수집은 이미 시작 상태입니다."}
-    background_tasks.add_task(send_mssql_logs, request.server, request.database, request.username, request.password, request.table_name)
+    background_tasks.add_task(send_mssql_logs, request.server, request.database, request.username, request.password, request.table_name, request.password, request.TAG_NAME)
     await save_api_key("mssql", request.TAG_NAME, config)
     log_collection_started[request.TAG_NAME] = True
     should_stop[request.TAG_NAME] = False
