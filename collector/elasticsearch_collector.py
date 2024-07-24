@@ -14,7 +14,7 @@ import time
 import json
 import socket
 
-es = Elasticsearch("http://3.35.81.217:9200/")
+es = Elasticsearch("http://127.0.0.1:9200/")
 should_stop = {}
 log_collection_started = {}
 
