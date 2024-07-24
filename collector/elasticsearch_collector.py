@@ -1,7 +1,11 @@
-from fastapi import FastAPI, Request, BackgroundTasks, HTTPException
+from uvicorn import run
+from fastapi import FastAPI, Request, BackgroundTasks, Form, HTTPException
 from pydantic import BaseModel
 from elasticsearch import Elasticsearch, NotFoundError
 from datetime import datetime
+from genian_deployment import get_logs, parse_log, send_genian_logs
+from fortigate_deployment import send_fortigate_logs, parse_fortigate_log
+from mssql_deployment import send_mssql_logs
 import subprocess
 import logging
 import re
@@ -10,8 +14,7 @@ import time
 import json
 import socket
 
-# Elasticsearch 설정
-es = Elasticsearch("http://localhost:9200")
+es = Elasticsearch("http://3.35.81.217:9200/")
 should_stop = {}
 log_collection_started = {}
 
@@ -35,10 +38,10 @@ async def create_index_if_not_exists(index_name):
     except NotFoundError:
         es.indices.create(index=index_name)
 
-# Elasticsearch에 로그를 입력하는 함수
+# ElasticSearch에 로그를 입력하는 함수
 async def elasticsearch_input(log, system, TAG_NAME):
-    index_name = f"test_{system}_syslog"
-    log['TAG_NAME'] = TAG_NAME
+    index_name = f"test_{system}_syslog"  # 인덱스 이름 설정
+    log['TAG_NAME'] = TAG_NAME  # 로그에 TAG_NAME 추가
     response = es.index(index=index_name, document=log)
     print(f"{system}_log: {response['result']}")
     return 0
@@ -198,11 +201,12 @@ async def win_log(request: Request):
     client_ip = request.client.host
     client_hostname = get_hostname(client_ip)
 
+    # 인덱스 생성 시 매핑을 설정하도록 호출
     await create_index_with_mapping("test_window_syslog", {
         "properties": {
             "date": {
                 "type": "scaled_float",
-                "scaling_factor": 10000000
+                "scaling_factor": 10000000  # 7자리까지 인식 가능하도록 설정
             }
         }
     })
@@ -211,6 +215,7 @@ async def win_log(request: Request):
         log = {k.lower(): v for k, v in log.items()}
         log['teiren_request_ip'] = client_ip
         log['client_hostname'] = client_hostname
+        # Convert 'date' field to scaled_float
         if 'date' in log:
             log['date'] = round(log['date'], 7)
         await elasticsearch_input(log, 'window', client_hostname)
@@ -407,7 +412,7 @@ class StartMSSQLCollectionRequest(BaseModel):
     username: str
     password: str
     table_name: str
-    TAG_NAME: str
+    TAG_NAME: str # 현재 프론트에 없음
 
 @app.post("/start_mssql_collection")
 async def start_mssql_collection(request: StartMSSQLCollectionRequest, background_tasks: BackgroundTasks = None):
@@ -459,225 +464,241 @@ async def delete_mssql_api_key(request: DeleteAPIKeyRequest):
     return {"result": response['result']}
 
 # Fluentd 설정 추가 엔드포인트
-class FluentdConfig(BaseModel):
-    new_protocol: str
-    new_source_ip: str
-    new_dst_port: str
-    new_log_tag: str
+# class FluentdConfig(BaseModel):
+#     new_protocol: str
+#     new_source_ip: str
+#     new_dst_port: str
+#     new_log_tag: str
 
-@app.post("/add_config/")
-async def add_config(config: FluentdConfig):
-    new_endpoint = f"http://localhost:8088/{config.new_log_tag}"
+# @app.post("/add_config/")
+# async def add_config(config: FluentdConfig):
+#     new_endpoint = f"http://localhost:8088/{config.new_log_tag}"
     
-    new_conf_text = f"""
-<source>
-  @type {config.new_protocol}
-  port {config.new_dst_port}
-  bind {config.new_source_ip}
-  tag {config.new_log_tag}
-  <parse>
-    @type json
-  </parse>
-</source>
+#     new_conf_text = f"""
+# <source>
+#   @type {config.new_protocol}
+#   port {config.new_dst_port}
+#   bind {config.new_source_ip}
+#   tag {config.new_log_tag}
+#   <parse>
+#     @type json
+#   </parse>
+# </source>
 
-<match {config.new_log_tag}>
-  @type http
-  endpoint {new_endpoint}
-  json_array true
-  <format>
-    @type json
-  </format>
-  <buffer>
-    flush_interval 10s
-  </buffer>
-</match>
-"""
+# <match {config.new_log_tag}>
+#   @type http
+#   endpoint {new_endpoint}
+#   json_array true
+#   <format>
+#     @type json
+#   </format>
+#   <buffer>
+#     flush_interval 10s
+#   </buffer>
+# </match>
+# """
         
-    try:
-        with open(conf_file_path, 'a') as file:
-            file.write(new_conf_text)
-    except Exception as e:
-        logging.error(f"Failed to write to the configuration file: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
+#     try:
+#         with open(conf_file_path, 'a') as file:
+#             file.write(new_conf_text)
+#     except Exception as e:
+#         logging.error(f"Failed to write to the configuration file: {e}")
+#         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
-    try:
-        subprocess.run(['sudo', 'service', 'td-agent', 'restart'], check=True)
-        await save_api_key("fluentd", config.new_log_tag, config.dict())
-        log_collection_started[config.new_log_tag] = True
-        should_stop[config.new_log_tag] = False
-        return {"status": "success", "message": "Fluentd service restarted successfully"}
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Failed to restart Fluentd service: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
+#     try:
+#         subprocess.run([
+#             'ssh', '-i', '/app/teiren-test.pem',
+#             '-o', 'StrictHostKeyChecking=no',
+#             'ubuntu@3.35.81.217',
+#             'sudo systemctl restart fluentd'
+#         ], check=True)
+#         await save_api_key("fluentd", config.new_log_tag, config.dict())
+#         log_collection_started[config.new_log_tag] = True
+#         should_stop[config.new_log_tag] = False
+#         return {"status": "success", "message": "Fluentd service restarted successfully"}
+#     except subprocess.CalledProcessError as e:
+#         logging.error(f"Failed to restart Fluentd service: {e}")
+#         raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
 
-@app.post("/stop_fluentd_api_send")
-async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
-    tag_to_stop = request.TAG_NAME
+# @app.post("/stop_fluentd_api_send")
+# async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
+#     tag_to_stop = request.TAG_NAME
     
-    try:
-        with open(conf_file_path, 'r') as file:
-            lines = file.readlines()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read the configuration file: {e}")
+#     try:
+#         with open(conf_file_path, 'r') as file:
+#             lines = file.readlines()
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to read the configuration file: {e}")
     
-    new_lines = []
-    in_section = False
+#     new_lines = []
+#     in_section = False
     
-    for line in lines:
-        if f'<source>' in line and f'tag {tag_to_stop}' in line:
-            in_section = True
-            new_lines.append(f"# {line}")
-            continue
+#     for line in lines:
+#         if f'<source>' in line and f'tag {tag_to_stop}' in line:
+#             in_section = True
+#             new_lines.append(f"# {line}")
+#             continue
         
-        if in_section and '</source>' in line:
-            new_lines.append(f"# {line}")
-            in_section = False
-            continue
+#         if in_section and '</source>' in line:
+#             new_lines.append(f"# {line}")
+#             in_section = False
+#             continue
         
-        if f'<match {tag_to_stop}>' in line:
-            in_section = True
-            new_lines.append(f"# {line}")
-            continue
+#         if f'<match {tag_to_stop}>' in line:
+#             in_section = True
+#             new_lines.append(f"# {line}")
+#             continue
         
-        if in_section and '</match>' in line:
-            new_lines.append(f"# {line}")
-            in_section = False
-            continue
+#         if in_section and '</match>' in line:
+#             new_lines.append(f"# {line}")
+#             in_section = False
+#             continue
         
-        if in_section:
-            new_lines.append(f"# {line}")
-        else:
-            new_lines.append(line)
+#         if in_section:
+#             new_lines.append(f"# {line}")
+#         else:
+#             new_lines.append(line)
     
-    try:
-        with open(conf_file_path, 'w') as file:
-            file.writelines(new_lines)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
+#     try:
+#         with open(conf_file_path, 'w') as file:
+#             file.writelines(new_lines)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
-    try:
-        subprocess.run(['sudo', 'service', 'td-agent', 'restart'], check=True)
-        should_stop[tag_to_stop] = True
-        log_collection_started[tag_to_stop] = False
-        return {"status": "success", "message": f"{tag_to_stop} 로그 수집이 중지되었습니다."}
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Failed to restart Fluentd service: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
+#     try:
+#         subprocess.run([
+#             'ssh', '-i', '/app/teiren-test.pem',
+#             '-o', 'StrictHostKeyChecking=no',
+#             'ubuntu@3.35.81.217',
+#             'sudo systemctl restart fluentd'
+#         ], check=True)
+#         should_stop[tag_to_stop] = True
+#         log_collection_started[tag_to_stop] = False
+#         return {"status": "success", "message": f"{tag_to_stop} 로그 수집이 중지되었습니다."}
+#     except subprocess.CalledProcessError as e:
+#         logging.error(f"Failed to restart Fluentd service: {e}")
+#         raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
 
-@app.post("/resume_fluentd_api_send")
-async def resume_fluentd_api_send(request: DeleteAPIKeyRequest):
-    tag_to_resume = request.TAG_NAME
+# @app.post("/resume_fluentd_api_send")
+# async def resume_fluentd_api_send(request: DeleteAPIKeyRequest):
+#     tag_to_resume = request.TAG_NAME
     
-    try:
-        with open(conf_file_path, 'r') as file:
-            lines = file.readlines()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read the configuration file: {e}")
+#     try:
+#         with open(conf_file_path, 'r') as file:
+#             lines = file.readlines()
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to read the configuration file: {e}")
     
-    new_lines = []
-    in_section = False
+#     new_lines = []
+#     in_section = False
     
-    for line in lines:
-        if f"# <source>" in line and f'tag {tag_to_resume}' in line:
-            in_section = True
-            new_lines.append(line[2:])
-            continue
+#     for line in lines:
+#         if f"# <source>" in line and f'tag {tag_to_resume}' in line:
+#             in_section = True
+#             new_lines.append(line[2:])
+#             continue
         
-        if in_section and f"# </source>" in line:
-            new_lines.append(line[2:])
-            in_section = False
-            continue
+#         if in_section and f"# </source>" in line:
+#             new_lines.append(line[2:])
+#             in_section = False
+#             continue
         
-        if f"# <match {tag_to_resume}>" in line:
-            in_section = True
-            new_lines.append(line[2:])
-            continue
+#         if f"# <match {tag_to_resume}>" in line:
+#             in_section = True
+#             new_lines.append(line[2:])
+#             continue
         
-        if in_section and f"# </match>" in line:
-            new_lines.append(line[2:])
-            in_section = False
-            continue
+#         if in_section and f"# </match>" in line:
+#             new_lines.append(line[2:])
+#             in_section = False
+#             continue
         
-        if in_section:
-            new_lines.append(line[2:])
-        else:
-            new_lines.append(line)
+#         if in_section:
+#             new_lines.append(line[2:])
+#         else:
+#             new_lines.append(line)
     
-    try:
-        with open(conf_file_path, 'w') as file:
-            file.writelines(new_lines)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
+#     try:
+#         with open(conf_file_path, 'w') as file:
+#             file.writelines(new_lines)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
-    try:
-        subprocess.run(['sudo', 'service', 'td-agent', 'restart'], check=True)
-        should_stop[tag_to_resume] = False
-        log_collection_started[tag_to_resume] = True
-        return {"status": "success", "message": f"{tag_to_resume} 로그 수집이 재개되었습니다."}
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Failed to restart Fluentd service: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
+#     try:
+#         subprocess.run([
+#             'ssh', '-i', '/app/teiren-test.pem',
+#             '-o', 'StrictHostKeyChecking=no',
+#             'ubuntu@3.35.81.217',
+#             'sudo systemctl restart fluentd'
+#         ], check=True)
+#         should_stop[tag_to_resume] = False
+#         log_collection_started[tag_to_resume] = True
+#         return {"status": "success", "message": f"{tag_to_resume} 로그 수집이 재개되었습니다."}
+#     except subprocess.CalledProcessError as e:
+#         logging.error(f"Failed to restart Fluentd service: {e}")
+#         raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
 
-@app.post("/delete_fluentd_api_key")
-async def delete_fluentd_api_key(request: DeleteAPIKeyRequest):
-    tag_to_delete = request.TAG_NAME
-    global log_collection_started
-    if tag_to_delete in log_collection_started and log_collection_started[tag_to_delete] == True:
-        return {"message": f"{tag_to_delete} 로그 수집이 진행중입니다. 먼저 로그 수집을 중지하세요."}
+# @app.post("/delete_fluentd_api_key")
+# async def delete_fluentd_api_key(request: DeleteAPIKeyRequest):
+#     tag_to_delete = request.TAG_NAME
+#     global log_collection_started
+#     if tag_to_delete in log_collection_started and log_collection_started[tag_to_delete] == True:
+#         return {"message": f"{tag_to_delete} 로그 수집이 진행중입니다. 먼저 로그 수집을 중지하세요."}
     
-    try:
-        with open(conf_file_path, 'r') as file:
-            lines = file.readlines()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read the configuration file: {e}")
+#     try:
+#         with open(conf_file_path, 'r') as file:
+#             lines = file.readlines()
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to read the configuration file: {e}")
     
-    section_start_pattern = re.compile(r'<(source|match)[^>]*>')
-    section_end_pattern = re.compile(r'</(source|match)>')
-    tag_pattern = re.compile(r'\b{}\b'.format(re.escape(tag_to_delete)))
+#     section_start_pattern = re.compile(r'<(source|match)[^>]*>')
+#     section_end_pattern = re.compile(r'</(source|match)>')
+#     tag_pattern = re.compile(r'\b{}\b'.format(re.escape(tag_to_delete)))
     
-    new_lines = []
-    section_lines = []
-    in_section = False
-    delete_section = False
+#     new_lines = []
+#     section_lines = []
+#     in_section = False
+#     delete_section = False
     
-    for line in lines:
-        if section_start_pattern.match(line):
-            in_section = True
-            section_lines = [line]
-            delete_section = False
-            continue
+#     for line in lines:
+#         if section_start_pattern.match(line):
+#             in_section = True
+#             section_lines = [line]
+#             delete_section = False
+#             continue
         
-        if in_section:
-            section_lines.append(line)
-            if tag_pattern.search(line):
-                delete_section = True
+#         if in_section:
+#             section_lines.append(line)
+#             if tag_pattern.search(line):
+#                 delete_section = True
             
-            if section_end_pattern.match(line):
-                in_section = False
-                if not delete_section:
-                    new_lines.extend(section_lines)
-                section_lines = []
-        else:
-            new_lines.append(line)
+#             if section_end_pattern.match(line):
+#                 in_section = False
+#                 if not delete_section:
+#                     new_lines.extend(section_lines)
+#                 section_lines = []
+#         else:
+#             new_lines.append(line)
     
-    try:
-        with open(conf_file_path, 'w') as file:
-            file.writelines(new_lines)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
+#     try:
+#         with open(conf_file_path, 'w') as file:
+#             file.writelines(new_lines)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
-    try:
-        subprocess.run(['sudo', 'service', 'td-agent', 'restart'], check=True)
-        response = await delete_api_key("fluentd", tag_to_delete)
-        return {"status": "success", "message": "Fluentd service restarted successfully"}
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Failed to restart Fluentd service: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
-
-@app.get("/ping_test")
-async def ping_test():
-    return {"status" : "su"}
+#     try:
+#         subprocess.run([
+#             'ssh', '-i', '/app/teiren-test.pem',
+#             '-o', 'StrictHostKeyChecking=no',
+#             'ubuntu@3.35.81.217',
+#             'sudo systemctl restart fluentd'
+#         ], check=True)
+#         response = await delete_api_key("fluentd", tag_to_delete)
+#         return {"status": "success", "message": "Fluentd service restarted successfully"}
+#     except subprocess.CalledProcessError as e:
+#         logging.error(f"Failed to restart Fluentd service: {e}")
+#         raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8088)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
