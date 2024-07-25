@@ -469,7 +469,6 @@ class FluentdConfig(BaseModel):
     new_source_ip: str
     new_dst_port: str
     new_log_tag: str
-
 @app.post("/add_config/")
 async def add_config(config: FluentdConfig):
     new_endpoint = f"http://localhost:8088/{config.new_log_tag}"
@@ -506,24 +505,21 @@ async def add_config(config: FluentdConfig):
         raise HTTPException(status_code=500, detail=f"Failed to write to the configuration file: {e}")
     
     try:
-        # subprocess.run([
-        #     'sshpass', '-p', 'your_password',
-        #     'ssh', 'root@127.0.0.1',
-        #     'sudo systemctl restart fluentd'
-        # ], check=True)
-
         subprocess.run([
             '/usr/bin/sudo', '/bin/systemctl', 'restart', 'fluentd'
         ], check=True)
         
+        index_name = f"test_{config.new_log_tag}_syslog"
+        await create_index_if_not_exists(index_name)
         await save_api_key("fluentd", config.new_log_tag, config.dict())
         log_collection_started[config.new_log_tag] = True
         should_stop[config.new_log_tag] = False
-        return {"status": "success", "message": "Fluentd service restarted successfully"}
+        
+        return {"status": "success", "message": "Fluentd service restarted and index created successfully"}
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart Fluentd service: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
-
+    
 @app.post("/stop_fluentd_api_send")
 async def stop_fluentd_api_send(request: DeleteAPIKeyRequest):
     tag_to_stop = request.TAG_NAME

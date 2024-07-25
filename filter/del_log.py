@@ -7,13 +7,13 @@ delete_query = {
     "query": {
         "bool": {
             "must": [
-                {"match": {"teiren_request_ip": "3.35.81.217"}},
+                {"match": {"SYSTEM": "fluentd"}},
             ]
         }
     }
 }
 
 # delete_by_query API 호출
-response = es.delete_by_query(index='test_linux_syslog', body=delete_query)
+response = es.delete_by_query(index='userinfo', body=delete_query)
 
 print(response)
