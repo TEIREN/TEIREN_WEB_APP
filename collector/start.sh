@@ -2,6 +2,8 @@
 # start.sh
 # chmod +x start.sh
 
+sudo apt install python3-venv
+
 VENV_DIR=venv
 
 # 가상 환경 생성
