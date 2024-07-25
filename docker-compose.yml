@@ -11,7 +11,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - ELASTICSEARCH_HOST=127.0.0.1
+      - ELASTICSEARCH_HOST=3.35.81.217
+      # - ELASTICSEARCH_HOST=127.0.0.1 # 로컬 elasticsearch를 사용하기 위해 필요함 
       - ELASTICSEARCH_PORT=9200
     command: sh entrypoint.sh
     networks:
@@ -39,8 +40,8 @@ services:
   #   ports:
   #     - "8088:8088"
   #   environment:
-  #     - ELASTICSEARCH_HOST=127.0.0.1
-  #     - ELASTICSEARCH_PORT=9200
+      # - ELASTICSEARCH_HOST=3.35.81.217
+      # - ELASTICSEARCH_HOST=127.0.0.1 # 로컬 elasticsearch를 사용하기 위해 필요함 
   #   depends_on:
   #     - django
   #     - nginx
@@ -53,8 +54,8 @@ services:
       dockerfile: Dockerfile
     container_name: detector-app
     environment:
-      - ELASTICSEARCH_HOST=127.0.0.1
-      - ELASTICSEARCH_PORT=9200
+      - ELASTICSEARCH_HOST=3.35.81.217
+      # - ELASTICSEARCH_HOST=127.0.0.1 # 로컬 elasticsearch를 사용하기 위해 필요함 
     networks:
       - webnet
     depends_on:

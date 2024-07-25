@@ -1,0 +1,123 @@
+INFO:     Started server process [3954668]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8088 (Press CTRL+C to quit)
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:55290 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:63595 - "POST /win_log HTTP/1.1" 400 Bad Request
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3954668]
+INFO:     Started server process [3955061]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8088 (Press CTRL+C to quit)
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:36255 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:59896 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+INFO:     222.106.177.209:48590 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+INFO:     222.106.177.209:43950 - "POST /win_log HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:52358 - "POST /add_config/ HTTP/1.1" 400 Bad Request
+userinfo_log: created
+INFO:     127.0.0.1:55896 - "POST /add_config/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60350 - "POST /delete_fluentd_api_key/ HTTP/1.1" 307 Temporary Redirect
+INFO:     Shutting down
+INFO:uvicorn.error:Shutting down
+INFO:     Finished server process [3955061]
+INFO:uvicorn.error:Finished server process [3955061]
+INFO:     ASGI 'lifespan' protocol appears unsupported.
+INFO:uvicorn.error:ASGI 'lifespan' protocol appears unsupported.
+INFO:     Started server process [3964722]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8088 (Press CTRL+C to quit)
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:61274 - "POST /win_log HTTP/1.1" 400 Bad Request
+INFO:     Shutting down
+INFO:uvicorn.error:Shutting down
+INFO:     Finished server process [3964722]
+INFO:uvicorn.error:Finished server process [3964722]
+INFO:     ASGI 'lifespan' protocol appears unsupported.
+INFO:uvicorn.error:ASGI 'lifespan' protocol appears unsupported.

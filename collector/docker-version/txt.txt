@@ -1,0 +1,10 @@
+도커 버전에는 ssh를 이용하여 fluetnd를 설정하기 때문에 
+ssh 키가 필요합니다.
+
+```py
+# subprocess.run([
+#     'sshpass', '-p', 'your_password',
+#     'ssh', 'root@127.0.0.1',
+#     'sudo systemctl restart fluentd'
+# ], check=True)
+```

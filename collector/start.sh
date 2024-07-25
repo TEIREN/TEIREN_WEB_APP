@@ -1,8 +1,18 @@
 #!/bin/bash
 # start.sh
+# chmod +x start.sh
 
-# SSH 키에 적절한 권한 부여
-# chmod 600 /app/teiren-test.pem/
+VENV_DIR=venv
 
-# 애플리케이션 시작
-exec uvicorn elasticsearch_collector:app --host 0.0.0.0 --port 8088
+# 가상 환경 생성
+python3 -m venv $VENV_DIR
+
+# 가상 환경 활성화
+source $VENV_DIR/bin/activate
+
+# 패키지 설치
+pip install -r requirements.txt
+
+nohup sudo $VENV_DIR/bin/python elasticsearch_collector.py &
+
+deactivate
