@@ -13,7 +13,7 @@ def search_all_logs(index_name):
     }
 
     try:
-        result = es.search(index=index_name, body=query, size=15)
+        result = es.search(index=index_name, body=query, size=100)
         
         # 검색 결과 출력 및 로그 개수 세기
         log_count = 0

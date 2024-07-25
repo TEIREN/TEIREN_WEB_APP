@@ -1,78 +1,25 @@
-INFO:     Started server process [84322]
+INFO:     Started server process [1209258]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8088 (Press CTRL+C to quit)
-ERROR:root:Failed to get hostname: [Errno 1] Unknown host
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-INFO:     222.106.177.209:35531 - "POST /win_log HTTP/1.1" 400 Bad Request
-INFO:     127.0.0.1:43908 - "POST /add_config/ HTTP/1.1" 400 Bad Request
-ERROR:root:Failed to get hostname: [Errno 1] Unknown host
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-INFO:     222.106.177.209:51399 - "POST /win_log HTTP/1.1" 400 Bad Request
-INFO:     127.0.0.1:43916 - "POST /add_config/ HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:46714 - "POST /add_config/ HTTP/1.1" 400 Bad Request
+INFO:     Shutting down
+INFO:     Finished server process [1209258]
+INFO:     ASGI 'lifespan' protocol appears unsupported.
+INFO:     Started server process [1221079]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8088 (Press CTRL+C to quit)
+INFO:     127.0.0.1:37748 - "POST /add_config/ HTTP/1.1" 400 Bad Request
 userinfo_log: created
-INFO:     127.0.0.1:45804 - "POST /add_config/ HTTP/1.1" 200 OK
-ERROR:root:Failed to get hostname: [Errno 1] Unknown host
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-INFO:     222.106.177.209:62725 - "POST /win_log HTTP/1.1" 400 Bad Request
-ERROR:root:Failed to get hostname: [Errno 1] Unknown host
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-window_log: created
-INFO:     222.106.177.209:47306 - "POST /win_log HTTP/1.1" 400 Bad Request
-ERROR:root:Failed to get hostname: [Errno 1] Unknown host
-window_log: created
-window_log: created
-INFO:     222.106.177.209:53346 - "POST /win_log HTTP/1.1" 400 Bad Request
-ERROR:root:Failed to get hostname: [Errno 1] Unknown host
-window_log: created
-window_log: created
-INFO:     222.106.177.209:41967 - "POST /win_log HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:38432 - "POST /add_config/ HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Finished server process [1221079]
+INFO:     ASGI 'lifespan' protocol appears unsupported.
+INFO:     Started server process [1223962]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8088 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55806 - "POST /add_config/ HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40134 - "POST /add_config/ HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:47104 - "POST /add_config/ HTTP/1.1" 400 Bad Request
