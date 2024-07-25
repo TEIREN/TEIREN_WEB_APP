@@ -472,7 +472,7 @@ class FluentdConfig(BaseModel):
 
 @app.post("/add_config/")
 async def add_config(config: FluentdConfig):
-    new_endpoint = f"http://3.35.81.217:8088/{config.new_log_tag}"
+    new_endpoint = f"http://localhost:8088/{config.new_log_tag}"
     
     new_conf_text = f"""
 <source>
