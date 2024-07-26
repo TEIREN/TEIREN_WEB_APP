@@ -1,0 +1,26 @@
+<source>
+  @type udp
+  port 5140
+  bind 0.0.0.0
+  format /^(?<priority><\d+>)date=(?<date>[^ ]+) time=(?<time>[^ ]+) devname="(?<devname>[^"]+)" devid="(?<devid>[^"]+)" eventtime=(?<eventtime>\d+) tz="(?<tz>[^"]+)" logid="(?<logid>[^"]+)" type="(?<type>[^"]+)" subtype="(?<subtype>[^"]+)" level="(?<level>[^"]+)" vd="(?<vd>[^"]+)" srcip=(?<srcip>[^ ]+) srcname="(?<srcname>[^"]+)" srcport=(?<srcport>\d+) srcintf="(?<srcintf>[^"]+)" srcintfrole="(?<srcintfrole>[^"]+)" dstip=(?<dstip>[^ ]+) dstport=(?<dstport>\d+) dstintf="(?<dstintf>[^"]+)" dstintfrole="(?<dstintfrole>[^"]+)" srccountry="(?<srccountry>[^"]+)" dstcountry="(?<dstcountry>[^"]+)" sessionid=(?<sessionid>\d+) proto=(?<proto>\d+) action="(?<action>[^"]+)" policyid=(?<policyid>\d+) policytype="(?<policytype>[^"]+)" poluuid="(?<poluuid>[^"]+)" policyname="(?<policyname>[^"]+)" service="(?<service>[^"]+)" trandisp="(?<trandisp>[^"]+)" duration=(?<duration>\d+) sentbyte=(?<sentbyte>\d+) rcvdbyte=(?<rcvdbyte>\d+) sentpkt=(?<sentpkt>\d+) rcvdpkt=(?<rcvdpkt>\d+) appcat="(?<appcat>[^"]+)" crscore=(?<crscore>\d+) craction=(?<craction>\d+) crlevel="(?<crlevel>[^"]+)" srchwvendor="(?<srchwvendor>[^"]+)" devtype="(?<devtype>[^"]+)" srcfamily="(?<srcfamily>[^"]+)" osname="(?<osname>[^"]+)" srchwversion="(?<srchwversion>[^"]+)" srcswversion="(?<srcswversion>[^"]+)" mastersrcmac="(?<mastersrcmac>[^"]+)" srcmac="(?<srcmac>[^"]+)" srcserver=(?<srcserver>\d+)/
+  tag firewall.log
+</source>
+
+
+
+<filter firewall.log>
+  @type record_transformer
+  enable_ruby
+  <record>
+    log_time ${record["date"]} ${record["time"]}
+    src_info ${record["srcip"]} (${record["srcname"]}:${record["srcport"]})
+    dst_info ${record["dstip"]} (${record["dstintf"]}:${record["dstport"]})
+    action ${record["action"]}
+  </record>
+</filter>
+
+
+
+<match firewall.log>
+  @type stdout
+</match>
