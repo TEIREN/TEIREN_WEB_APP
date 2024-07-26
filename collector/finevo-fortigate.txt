@@ -343,6 +343,22 @@
 </filter>
 
 
+============
 
+<filter firewall.log>
+  @type record_transformer
+  <record>
+    parsed_message ${record["message"].gsub(/<\d+>/, '')}
+  </record>
+</filter>
 
-unknown placeholder `${record["message"].gsub(/<\d+>/, '').split(' ').map { |s| s.split('=') }` found
+<filter firewall.log>
+  @type parser
+  key_name parsed_message
+  <parse>
+    @type regexp
+    expression /(?<key>[^=]+)=(?<value>[^ ]+)/
+    time_format %Y-%m-%d %H:%M:%S
+  </parse>
+  <reserve_data true />
+</filter>
