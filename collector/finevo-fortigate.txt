@@ -341,3 +341,8 @@
     message ${record["message"].gsub(/<\d+>/, '').split(' ').map { |s| s.split('=') }.to_h.to_json}
   </record>
 </filter>
+
+
+
+
+unknown placeholder `${record["message"].gsub(/<\d+>/, '').split(' ').map { |s| s.split('=') }` found
