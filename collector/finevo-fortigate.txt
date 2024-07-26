@@ -121,3 +121,25 @@
 
 
 "<189>date=2024-07-26 time=15:03:26 devname=\"OFFICE-FW\" devid=\"FG101ETK19010698\" eventtime=1721973806879463897 tz=\"+0900\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" srcip=172.20.10.35 srcname=\"SUHWAN-PARK\" srcport=58534 srcintf=\"vlan_10\" srcintfrole=\"lan\" dstip=172.217.175.234 dstport=443 dstintf=\"wan1\" dstintfrole=\"wan\" srccountry=\"Reserved\" dstcountry=\"United States\" sessionid=102689794 proto=6 action=\"deny\" policyid=0 policytype=\"policy\" service=\"HTTPS\" trandisp=\"noop\" duration=0 sentbyte=0 rcvdbyte=0 sentpkt=0 rcvdpkt=0 appcat=\"unscanned\" crscore=30 craction=131072 crlevel=\"high\" srchwvendor=\"Dell\" devtype=\"Home & Office\" srcfamily=\"Computer\" osname=\"Windows\" srcswversion=\"10\" unauthuser=\"finance@finevo.io\" unauthusersource=\"pop3\" mastersrcmac=\"70:b5:e8:28:a0:a9\" srcmac=\"70:b5:e8:28:a0:a9\" srcserver=0"
+
+
+<source>
+  @type udp
+  port 5140
+  tag your_input_tag
+</source>
+
+<filter your_input_tag>
+  @type parser
+  key_name log
+  <parse>
+    @type regexp
+    expression /(?<key>[^=]+)=(?<value>[^ ]+)/
+    time_format %Y-%m-%d %H:%M:%S
+  </parse>
+</filter>
+
+<match your_input_tag>
+  @type stdout
+</match>
+
