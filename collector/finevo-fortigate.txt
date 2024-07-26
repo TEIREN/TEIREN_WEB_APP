@@ -168,3 +168,30 @@
   @type stdout
   output_type json
 </match>
+
+
+
+====
+
+<source>
+  @type udp
+  port 6514
+  bind 0.0.0.0
+  <parse>
+    @type none
+  </parse>
+  tag firewall.log
+</source>
+
+<filter firewall.log>
+  @type record_transformer
+  enable_ruby true
+  <record>
+    parsed_log ${record["log"].split(" ").map { |item| item.split("=") }.to_h}
+  </record>
+</filter>
+
+<match firewall.log>
+  @type stdout
+  output_type json
+</match> 
