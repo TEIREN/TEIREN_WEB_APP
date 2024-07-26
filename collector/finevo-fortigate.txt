@@ -344,11 +344,20 @@
 
 
 ============
+<source>
+  @type udp
+  port 6514
+  bind 0.0.0.0
+  <parse>
+    @type none
+  </parse>
+  tag firewall.log
+</source>
 
 <filter firewall.log>
   @type record_transformer
   <record>
-    parsed_message ${record["message"].gsub(/<\d+>/, '')}
+    parsed_message ${record["message"].gsub(/<\d+>/, '').split(' ').each_slice(2).map { |k, v| "#{k}=#{v}" }.join(', ')}
   </record>
 </filter>
 
@@ -358,7 +367,23 @@
   <parse>
     @type regexp
     expression /(?<key>[^=]+)=(?<value>[^ ]+)/
+  </parse>
+  <record>
+    message ${record["parsed_message"]}
+  </record>
+</filter>
+
+==========
+
+<filter firewall.log>
+  @type parser
+  key_name message
+  <parse>
+    @type regexp
+    expression /(?<key>[^=]+)=(?<value>[^ ]+)/
     time_format %Y-%m-%d %H:%M:%S
   </parse>
-  <reserve_data true />
+  <record>
+    message ${record["message"].gsub(/\s+/, " ").strip}
+  </record>
 </filter>
