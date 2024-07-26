@@ -387,3 +387,6 @@
     message ${record["message"].gsub(/\s+/, " ").strip}
   </record>
 </filter>
+
+
+[warn]: #0 pattern not matched data="<189>date=2024-07-26 time=16:19:30 devname=\"OFFICE-FW\" devid=\"FG101ETK19010698\" eventtime=1721978371040780971 tz=\"+0900\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" srcip=172.20.30.36 srcname=\"DESKTOP-COSFCJO\" srcport=56867 srcintf=\"vlan_30\" srcintfrole=\"lan\" dstip=8.8.8.8 dstport=53 dstintf=\"wan1\" dstintfrole=\"wan\" srccountry=\"Reserved\" dstcountry=\"United States\" sessionid=102780570 proto=17 action=\"accept\" policyid=71 policytype=\"policy\" poluuid=\"6fcb4448-e1bf-51ea-bf70-b4525792821b\" policyname=\"chris_to_wan\" service=\"DNS\" trandisp=\"snat\" transip=112.169.101.20 transport=56867 duration=180 sentbyte=70 rcvdbyte=171 sentpkt=1 rcvdpkt=1 appcat=\"unscanned\" srchwvendor=\"Dell\" devtype=\"Home & Office\" srcfamily=\"Computer\" osname=\"Windows\" srcswversion=\"10\" unauthuser=\"bhkim\" unauthusersource=\"imap\" mastersrcmac=\"70:b5:e8:2c:10:bc\" srcmac=\"70:b5:e8:2c:10:bc\" srcserver=0"
