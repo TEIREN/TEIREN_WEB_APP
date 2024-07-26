@@ -728,6 +728,17 @@ async def finevo_genian_log(request: Request):
     return {"message": "Log received successfully"}
 
 
+async def fortigate_parse(log:str):
+    clean_log = log[log.find('>') + 1:]
+    log_dict = {}
+    for item in clean_log.split(' '):
+        if '=' in item:
+            key, value = item.split('=', 1)
+            if value.startswith('"') and value.endswith('"'):
+                value = value[1:-1]
+            log_dict[key] = value
+    return log_dict
+
 @app.post("/finevo-fortigate")
 async def finevo_genian_log(request: Request):
     log_request = await request.json()
@@ -737,10 +748,11 @@ async def finevo_genian_log(request: Request):
     index_name = "test_finevo_fortigate_syslog"  
     
     for log in log_request:
-        log['teiren_request_ip'] = client_ip
-        log['client_hostname'] = client_hostname
+        parsed_log = await fortigate_parse(log['message'])        
+        parsed_log['teiren_request_ip'] = client_ip
+        parsed_log['client_hostname'] = client_hostname
         response = es.index(index=index_name, document=log)
-        print(f"finevo_genian_log: {response['result']}")
+        print(f"finevo_fortigate_log: {response['result']}")
     
     return {"message": "Log received successfully"}
 
