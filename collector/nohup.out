@@ -859,16 +859,3 @@ window_log: created
 window_log: created
 window_log: created
 INFO:     222.106.177.209:37933 - "POST /win_log HTTP/1.1" 400 Bad Request
-ERROR:root:Failed to get hostname: [Errno 1] Unknown host
-window_log: created
-window_log: created
-window_log: created
-INFO:     222.106.177.209:46641 - "POST /win_log HTTP/1.1" 400 Bad Request
-ERROR:root:Failed to get hostname: [Errno 1] Unknown host
-window_log: created
-window_log: created
-INFO:     222.106.177.209:63532 - "POST /win_log HTTP/1.1" 400 Bad Request
-ERROR:root:Failed to get hostname: [Errno 1] Unknown host
-window_log: created
-window_log: created
-INFO:     222.106.177.209:50955 - "POST /win_log HTTP/1.1" 400 Bad Request
