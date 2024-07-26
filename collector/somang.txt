@@ -69,3 +69,8 @@
 <match your_output>
   @type stdout
 </match>
+
+
+
+  format /^(?<priority><\d+>)date=(?<date>[^ ]+) time=(?<time>[^ ]+) devname="(?<devname>[^"]+)" devid="(?<devid>[^"]+)" eventtime=(?<eventtime>\d+) tz="(?<tz>[^"]+)" logid="(?<logid>[^"]+)" type="(?<type>[^"]+)" subtype="(?<subtype>[^"]+)" level="(?<level>[^"]+)" vd="(?<vd>[^"]+)" srcip=(?<srcip>[^ ]+) srcname="(?<srcname>[^"]+)" srcport=(?<srcport>\d+) srcintf="(?<srcintf>[^"]+)" srcintfrole="(?<srcintfrole>[^"]+)" dstip=(?<dstip>[^ ]+) dstport=(?<dstport>\d+) dstintf="(?<dstintf>[^"]+)" dstintfrole="(?<dstintfrole>[^"]+)" srccountry="(?<srccountry>[^"]+)" dstcountry="(?<dstcountry>[^"]+)" sessionid=(?<sessionid>\d+) proto=(?<proto>\d+) action="(?<action>[^"]+)" policyid=(?<policyid>\d+) policytype="(?<policytype>[^"]+)" poluuid="(?<poluuid>[^"]+)" policyname="(?<policyname>[^"]+)" service="(?<service>[^"]+)" trandisp="(?<trandisp>[^"]+)" (transip=(?<transip>[^ ]+))? transport=(?<transport>\d+) duration=(?<duration>\d+) sentbyte=(?<sentbyte>\d+) rcvdbyte=(?<rcvdbyte>\d+) sentpkt=(?<sentpkt>\d+) rcvdpkt=(?<rcvdpkt>\d+) appcat="(?<appcat>[^"]+)" srchwvendor="(?<srchwvendor>[^"]+)" devtype="(?<devtype>[^"]+)" srcfamily="(?<srcfamily>[^"]+)" osname="(?<osname>[^"]+)" srcswversion="(?<srcswversion>[^"]+)" unauthuser="(?<unauthuser>[^"]+)" unauthusersource="(?<unauthusersource>[^"]+)" mastersrcmac="(?<mastersrcmac>[^"]+)" srcmac="(?<srcmac>[^"]+)" srcserver=(?<srcserver>\d+)/
+
