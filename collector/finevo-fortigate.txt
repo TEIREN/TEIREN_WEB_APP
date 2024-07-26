@@ -211,7 +211,7 @@
   @type udp
   port 6514
   bind 0.0.0.0
-  format /<(?<priority>\d+)>date=(?<date>\d{4}-\d{2}-\d{2}) time=(?<time>\d{2}:\d{2}:\d{2}) devname=\"(?<devname>[^\"]+)\" devid=\"(?<devid>[^\"]+)\" eventtime=(?<eventtime>\d+) tz=\"(?<tz>[^\"]+)\" logid=\"(?<logid>[^\"]+)\" type=\"(?<type>[^\"]+)\" subtype=\"(?<subtype>[^\"]+)\" level=\"(?<level>[^\"]+)\" vd=\"(?<vd>[^\"]+)\" srcip=(?<srcip>\d+\.\d+\.\d+\.\d+) srcname=\"(?<srcname>[^\"]+)\" srcport=(?<srcport>\d+) srcintf=\"(?<srcintf>[^\"]+)\" srcintfrole=\"(?<srcintfrole>[^\"]+)\" dstip=(?<dstip>\d+\.\d+\.\d+\.\d+) dstport=(?<dstport>\d+) dstintf=\"(?<dstintf>[^\"]+)\" dstintfrole=\"(?<dstintfrole>[^\"]+)\" srccountry=\"(?<srccountry>[^\"]+)\" dstcountry=\"(?<dstcountry>[^\"]+)\" sessionid=(?<sessionid>\d+) proto=(?<proto>\d+) action=\"(?<action>[^\"]+)\" policyid=(?<policyid>\d+) policytype=\"(?<policytype>[^\"]+)\" poluuid=\"(?<poluuid>[^\"]+)?\" policyname=\"(?<policyname>[^\"]+)?\" service=\"(?<service>[^\"]+)\" trandisp=\"(?<trandisp>[^\"]+)\" duration=(?<duration>\d+) sentbyte=(?<sentbyte>\d+) rcvdbyte=(?<rcvdbyte>\d+) sentpkt=(?<sentpkt>\d+) rcvdpkt=(?<rcvdpkt>\d+) appcat=\"(?<appcat>[^\"]+)\" crscore=(?<crscore>\d+) craction=(?<craction>\d+) crlevel=\"(?<crlevel>[^\"]+)\" srchwvendor=\"(?<srchwvendor>[^\"]+)\" devtype=\"(?<devtype>[^\"]+)\" srcfamily=\"(?<srcfamily>[^\"]+)\" osname=\"(?<osname>[^\"]+)\" srchwversion=\"(?<srchwversion>[^\"]+)\" srcswversion=\"(?<srcswversion>[^\"]+)\" unauthuser=\"(?<unauthuser>[^\"]+)?\" unauthusersource=\"(?<unauthusersource>[^\"]+)?\" mastersrcmac=\"(?<mastersrcmac>[^\"]+)\" srcmac=\"(?<srcmac>[^\"]+)\" srcserver=(?<srcserver>\d+)/
+  format /<(?<priority>\d+)>date=(?<date>\d{4}-\d{2}-\d{2}) time=(?<time>\d{2}:\d{2}:\d{2}) devname=\"(?<devname>[^\"]+)\" devid=\"(?<devid>[^\"]+)\" eventtime=(?<eventtime>\d+) tz=\"(?<tz>[^\"]+)\" logid=\"(?<logid>[^\"]+)\" type=\"(?<type>[^\"]+)\" subtype=\"(?<subtype>[^\"]+)\" level=\"(?<level>[^\"]+)\" vd=\"(?<vd>[^\"]+)\" srcip=(?<srcip>\d+\.\d+\.\d+\.\d+) srcname=\"(?<srcname>[^\"]+)\" srcport=(?<srcport>\d+) srcintf=\"(?<srcintf>[^\"]+)\" srcintfrole=\"(?<srcintfrole>[^\"]+)\" dstip=(?<dstip>\d+\.\d+\.\d+\.\d+) dstport=(?<dstport>\d+) dstintf=\"(?<dstintf>[^\"]+)\" dstintfrole=\"(?<dstintfrole>[^\"]+)\" srccountry=\"(?<srccountry>[^\"]+)\" dstcountry=\"(?<dstcountry>[^\"]+)\" sessionid=(?<sessionid>\d+) proto=(?<proto>\d+) action=\"(?<action>[^\"]+)\" policyid=(?<policyid>\d+) policytype=\"(?<policytype>[^\"]+)\" poluuid=\"(?<poluuid>[^\"]+)\" policyname=\"(?<policyname>[^\"]+)\" service=\"(?<service>[^\"]+)\" trandisp=\"(?<trandisp>[^\"]+)\" duration=(?<duration>\d+) sentbyte=(?<sentbyte>\d+) rcvdbyte=(?<rcvdbyte>\d+) sentpkt=(?<sentpkt>\d+) rcvdpkt=(?<rcvdpkt>\d+) appcat=\"(?<appcat>[^\"]+)\" crscore=(?<crscore>\d+) craction=(?<craction>\d+) crlevel=\"(?<crlevel>[^\"]+)\" srchwvendor=\"(?<srchwvendor>[^\"]+)\" devtype=\"(?<devtype>[^\"]+)\" srcfamily=\"(?<srcfamily>[^\"]+)\" osname=\"(?<osname>[^\"]+)\" srchwversion=\"(?<srchwversion>[^\"]+)\" srcswversion=\"(?<srcswversion>[^\"]+)\" unauthuser=\"(?<unauthuser>[^\"]+)?\" unauthusersource=\"(?<unauthusersource>[^\"]+)?\" mastersrcmac=\"(?<mastersrcmac>[^\"]+)\" srcmac=\"(?<srcmac>[^\"]+)\" srcserver=(?<srcserver>\d+)/
   time_format %Y-%m-%d %H:%M:%S
   tag firewall.log
 </source>
@@ -390,3 +390,85 @@
 
 
 [warn]: #0 pattern not matched data="<189>date=2024-07-26 time=16:19:30 devname=\"OFFICE-FW\" devid=\"FG101ETK19010698\" eventtime=1721978371040780971 tz=\"+0900\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" srcip=172.20.30.36 srcname=\"DESKTOP-COSFCJO\" srcport=56867 srcintf=\"vlan_30\" srcintfrole=\"lan\" dstip=8.8.8.8 dstport=53 dstintf=\"wan1\" dstintfrole=\"wan\" srccountry=\"Reserved\" dstcountry=\"United States\" sessionid=102780570 proto=17 action=\"accept\" policyid=71 policytype=\"policy\" poluuid=\"6fcb4448-e1bf-51ea-bf70-b4525792821b\" policyname=\"chris_to_wan\" service=\"DNS\" trandisp=\"snat\" transip=112.169.101.20 transport=56867 duration=180 sentbyte=70 rcvdbyte=171 sentpkt=1 rcvdpkt=1 appcat=\"unscanned\" srchwvendor=\"Dell\" devtype=\"Home & Office\" srcfamily=\"Computer\" osname=\"Windows\" srcswversion=\"10\" unauthuser=\"bhkim\" unauthusersource=\"imap\" mastersrcmac=\"70:b5:e8:2c:10:bc\" srcmac=\"70:b5:e8:2c:10:bc\" srcserver=0"
+
+
+
+<source>
+  @type udp
+  port 6514
+  bind 0.0.0.0
+  format /<(?<priority>\d+)>date=(?<date>\d{4}-\d{2}-\d{2}) time=(?<time>\d{2}:\d{2}:\d{2}) devname=\"(?<devname>[^\"]+)\" devid=\"(?<devid>[^\"]+)\" eventtime=(?<eventtime>\d+) tz=\"(?<tz>[^\"]+)\" logid=\"(?<logid>[^\"]+)\" type=\"(?<type>[^\"]+)\" subtype=\"(?<subtype>[^\"]+)\" level=\"(?<level>[^\"]+)\" vd=\"(?<vd>[^\"]+)\" srcip=(?<srcip>\d+\.\d+\.\d+\.\d+) srcname=\"(?<srcname>[^\"]+)\" srcport=(?<srcport>\d+) srcintf=\"(?<srcintf>[^\"]+)\" srcintfrole=\"(?<srcintfrole>[^\"]+)\" dstip=(?<dstip>\d+\.\d+\.\d+\.\d+) dstport=(?<dstport>\d+) dstintf=\"(?<dstintf>[^\"]+)\" dstintfrole=\"(?<dstintfrole>[^\"]+)\" srccountry=\"(?<srccountry>[^\"]+)\" dstcountry=\"(?<dstcountry>[^\"]+)\" sessionid=(?<sessionid>\d+) proto=(?<proto>\d+) action=\"(?<action>[^\"]+)\" policyid=(?<policyid>\d+) policytype=\"(?<policytype>[^\"]+)\" poluuid=\"(?<poluuid>[^\"]+)\" policyname=\"(?<policyname>[^\"]+)\" service=\"(?<service>[^\"]+)\" trandisp=\"(?<trandisp>[^\"]+)\" duration=(?<duration>\d+) sentbyte=(?<sentbyte>\d+) rcvdbyte=(?<rcvdbyte>\d+) sentpkt=(?<sentpkt>\d+) rcvdpkt=(?<rcvdpkt>\d+) appcat=\"(?<appcat>[^\"]+)\" crscore=(?<crscore>\d+) craction=(?<craction>\d+) crlevel=\"(?<crlevel>[^\"]+)\" srchwvendor=\"(?<srchwvendor>[^\"]+)\" devtype=\"(?<devtype>[^\"]+)\" srcfamily=\"(?<srcfamily>[^\"]+)\" osname=\"(?<osname>[^\"]+)\" srchwversion=\"(?<srchwversion>[^\"]+)\" srcswversion=\"(?<srcswversion>[^\"]+)\" unauthuser=\"(?<unauthuser>[^\"]+)?\" unauthusersource=\"(?<unauthusersource>[^\"]+)?\" mastersrcmac=\"(?<mastersrcmac>[^\"]+)\" srcmac=\"(?<srcmac>[^\"]+)\" srcserver=(?<srcserver>\d+)/
+  time_format %Y-%m-%d %H:%M:%S
+  tag firewall.log
+</source>
+
+<filter firewall.log>
+  @type record_transformer
+  enable_ruby true
+  <record>
+    priority ${record["priority"]}
+    date ${record["date"]}
+    time ${record["time"]}
+    devname ${record["devname"]}
+    devid ${record["devid"]}
+    eventtime ${record["eventtime"]}
+    tz ${record["tz"]}
+    logid ${record["logid"]}
+    type ${record["type"]}
+    subtype ${record["subtype"]}
+    level ${record["level"]}
+    vd ${record["vd"]}
+    srcip ${record["srcip"]}
+    srcname ${record["srcname"]}
+    srcport ${record["srcport"]}
+    srcintf ${record["srcintf"]}
+    srcintfrole ${record["srcintfrole"]}
+    dstip ${record["dstip"]}
+    dstport ${record["dstport"]}
+    dstintf ${record["dstintf"]}
+    dstintfrole ${record["dstintfrole"]}
+    srccountry ${record["srccountry"]}
+    dstcountry ${record["dstcountry"]}
+    sessionid ${record["sessionid"]}
+    proto ${record["proto"]}
+    action ${record["action"]}
+    policyid ${record["policyid"]}
+    policytype ${record["policytype"]}
+    poluuid ${record["poluuid"]}
+    policyname ${record["policyname"]}
+    service ${record["service"]}
+    trandisp ${record["trandisp"]}
+    duration ${record["duration"]}
+    sentbyte ${record["sentbyte"]}
+    rcvdbyte ${record["rcvdbyte"]}
+    sentpkt ${record["sentpkt"]}
+    rcvdpkt ${record["rcvdpkt"]}
+    appcat ${record["appcat"]}
+    crscore ${record["crscore"]}
+    craction ${record["craction"]}
+    crlevel ${record["crlevel"]}
+    srchwvendor ${record["srchwvendor"]}
+    devtype ${record["devtype"]}
+    srcfamily ${record["srcfamily"]}
+    osname ${record["osname"]}
+    srchwversion ${record["srchwversion"]}
+    srcswversion ${record["srcswversion"]}
+    unauthuser ${record["unauthuser"]}
+    unauthusersource ${record["unauthusersource"]}
+    mastersrcmac ${record["mastersrcmac"]}
+    srcmac ${record["srcmac"]}
+    srcserver ${record["srcserver"]}
+  </record>
+</filter>
+
+<match firewall.log>
+  @type http
+  endpoint http://localhost:8088/finevo-fortigate
+  json_array true
+  <format>
+    @type json
+  </format>
+  <buffer>
+    flush_interval 10s
+  </buffer>
+</match>
