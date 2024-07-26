@@ -143,19 +143,28 @@
   @type stdout
 </match>
 
+==================================
 
 
+<source>
+  @type udp
+  port 6514
+  bind 0.0.0.0
+  <parse>
+    @type none
+  </parse>
+  tag firewall.log
+</source>
 
-<filter your_tag>
+<filter firewall.log>
   @type record_transformer
   enable_ruby true
   <record>
-    # Parse the log string into key-value pairs
-    parsed_log ${record["message"].split(" ").map { |item| item.split("=") }.to_h}
+    parsed_log ${record["message"].split(" ").map { |item| item.split("=") }.reduce({}) { |acc, (key, value)| acc[key.gsub(/"/, "")] = value.gsub(/"/, ""); acc }}
   </record>
 </filter>
 
-<match your_tag>
+<match firewall.log>
   @type stdout
   output_type json
 </match>
