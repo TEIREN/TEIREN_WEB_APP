@@ -321,3 +321,25 @@
 
 2024-07-26 06:44:35.729542017 +0000 firewall.log: {"message":"<189>date=2024-07-26 time=15:44:35 devname=\"OFFICE-FW\" devid=\"FG101ETK19010698\" eventtime=1721976275378531481 tz=\"+0900\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" srcip=172.20.30.36 srcname=\"DESKTOP-COSFCJO\" srcport=10204 srcintf=\"vlan_30\" srcintfrole=\"lan\" dstip=172.26.6.112 dstport=14200 dstintf=\"KT_IPSec\" dstintfrole=\"undefined\" srccountry=\"Reserved\" dstcountry=\"Reserved\" sessionid=102732450 proto=6 action=\"close\" policyid=56 policytype=\"policy\" poluuid=\"f11a4484-d87a-51ea-be29-b0d675e449e0\" policyname=\"KT_IPSec_v30_HIWARE\" service=\"Hiware_14200\" trandisp=\"noop\" duration=3 sentbyte=1526 rcvdbyte=3412 sentpkt=11 rcvdpkt=14 vpntype=\"ipsecvpn\" appcat=\"unscanned\" srchwvendor=\"Dell\" devtype=\"Home & Office\" srcfamily=\"Computer\" osname=\"Windows\" srcswversion=\"10\" unauthuser=\"bhkim\" unauthusersource=\"imap\" mastersrcmac=\"70:b5:e8:2c:10:bc\" srcmac=\"70:b5:e8:2c:10:bc\" srcserver=0"}
 2024-07-26 06:44:35.729621498 +0000 firewall.log: {"message":"<189>date=2024-07-26 time=15:44:35 devname=\"OFFICE-FW\" devid=\"FG101ETK19010698\" eventtime=1721976275648534010 tz=\"+0900\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" srcip=172.20.20.42 srcname=\"DESKTOP-RF9RKVQ\" srcport=55897 srcintf=\"vlan_20\" srcintfrole=\"lan\" dstip=172.26.6.112 dstport=14200 dstintf=\"KT_IPSec\" dstintfrole=\"undefined\" srccountry=\"Reserved\" dstcountry=\"Reserved\" sessionid=102732456 proto=6 action=\"close\" policyid=59 policytype=\"policy\" poluuid=\"60428eec-d881-51ea-377a-e80b77ac961c\" policyname=\"KT_IPSec_v20_HIWARE\" service=\"Hiware_14200\" trandisp=\"noop\" duration=3 sentbyte=1566 rcvdbyte=3412 sentpkt=12 rcvdpkt=14 vpntype=\"ipsecvpn\" appcat=\"unscanned\" srchwvendor=\"GIGA-BYTE\" osname=\"Windows\" srcswversion=\"10\" unauthuser=\"sootdeng2@finevo.io\" unauthusersource=\"pop3\" mastersrcmac=\"b4:2e:99:a7:5e:e0\" srcmac=\"b4:2e:99:a7:5e:e0\" srcserver=0"}
+
+
+
+===
+<filter firewall.log>
+  @type parser
+  key_name message
+  <parse>
+    @type regexp
+    expression /(?<key>[^=]+)=(?<value>[^ ]+)/
+    # This regex captures key=value pairs
+    # Adjust the regex if your log format varies
+  </parse>
+  <record>
+    # Convert the captured key-value pairs into a JSON object
+    @type record_transformer
+    enable_ruby true
+    <record>
+      parsed_message ${record["message"].scan(/(?<key>[^=]+)=(?<value>[^ ]+)/).map { |k, v| [k.strip, v.strip] }.to_h.to_json}
+    </record>
+  </record>
+</filter>
