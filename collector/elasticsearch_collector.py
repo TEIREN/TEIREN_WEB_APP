@@ -717,7 +717,24 @@ async def finevo_genian_log(request: Request):
     client_ip = request.client.host
     client_hostname = get_hostname(client_ip)
     
-    index_name = "test_finevo_genian"  
+    index_name = "test_finevo_genian_syslog"  
+    
+    for log in log_request:
+        log['teiren_request_ip'] = client_ip
+        log['client_hostname'] = client_hostname
+        response = es.index(index=index_name, document=log)
+        print(f"finevo_genian_log: {response['result']}")
+    
+    return {"message": "Log received successfully"}
+
+
+@app.post("/finevo-fortigate")
+async def finevo_genian_log(request: Request):
+    log_request = await request.json()
+    client_ip = request.client.host
+    client_hostname = get_hostname(client_ip)
+    
+    index_name = "test_finevo_fortigate_syslog"  
     
     for log in log_request:
         log['teiren_request_ip'] = client_ip

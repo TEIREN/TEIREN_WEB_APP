@@ -627,3 +627,217 @@ window_log: created
 window_log: created
 window_log: created
 INFO:     222.106.177.209:55186 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+INFO:     222.106.177.209:62624 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+INFO:     222.106.177.209:59193 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:60675 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:60675 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:41201 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:61580 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:50385 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:50946 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+INFO:     222.106.177.209:51365 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:60337 - "POST /win_log HTTP/1.1" 400 Bad Request
+INFO:     206.168.34.48:48854 - "GET / HTTP/1.1" 404 Not Found
+INFO:     206.168.34.48:48860 - "PRI %2A HTTP/2.0" 404 Not Found
+WARNING:  Invalid HTTP request received.
+Traceback (most recent call last):
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/starlette/exceptions.py", line 71, in __call__
+    await self.app(scope, receive, sender)
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/starlette/routing.py", line 609, in __call__
+    await self.default(scope, receive, send)
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/starlette/routing.py", line 497, in not_found
+    raise HTTPException(status_code=404)
+starlette.exceptions.HTTPException
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 136, in handle_events
+    event = self.conn.next_event()
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 487, in next_event
+    exc._reraise_as_remote_protocol_error()
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_util.py", line 77, in _reraise_as_remote_protocol_error
+    raise self
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 469, in next_event
+    event = self._extract_next_receive_event()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 411, in _extract_next_receive_event
+    event = self._reader(self._receive_buffer)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_readers.py", line 83, in maybe_read_from_IDLE_client
+    matches = validate(
+              ^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_util.py", line 91, in validate
+    raise LocalProtocolError(msg)
+h11._util.RemoteProtocolError: illegal request line: bytearray(b'SM')
+WARNING:uvicorn.error:Invalid HTTP request received.
+Traceback (most recent call last):
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/starlette/exceptions.py", line 71, in __call__
+    await self.app(scope, receive, sender)
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/starlette/routing.py", line 609, in __call__
+    await self.default(scope, receive, send)
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/starlette/routing.py", line 497, in not_found
+    raise HTTPException(status_code=404)
+starlette.exceptions.HTTPException
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 136, in handle_events
+    event = self.conn.next_event()
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 487, in next_event
+    exc._reraise_as_remote_protocol_error()
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_util.py", line 77, in _reraise_as_remote_protocol_error
+    raise self
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 469, in next_event
+    event = self._extract_next_receive_event()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 411, in _extract_next_receive_event
+    event = self._reader(self._receive_buffer)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_readers.py", line 83, in maybe_read_from_IDLE_client
+    matches = validate(
+              ^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_util.py", line 91, in validate
+    raise LocalProtocolError(msg)
+h11._util.RemoteProtocolError: illegal request line: bytearray(b'SM')
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:49961 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:50920 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+INFO:     222.106.177.209:43846 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+INFO:     222.106.177.209:55897 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:54282 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:44589 - "POST /win_log HTTP/1.1" 400 Bad Request
