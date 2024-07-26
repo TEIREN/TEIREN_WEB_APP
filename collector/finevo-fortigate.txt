@@ -325,21 +325,19 @@
 
 
 ===
-<filter firewall.log>
-  @type parser
-  key_name message
+<source>
+  @type udp
+  port 6514
+  bind 0.0.0.0
   <parse>
-    @type regexp
-    expression /(?<key>[^=]+)=(?<value>[^ ]+)/
-    # This regex captures key=value pairs
-    # Adjust the regex if your log format varies
+    @type none
   </parse>
+  tag firewall.log
+</source>
+
+<filter firewall.log>
+  @type record_transformer
   <record>
-    # Convert the captured key-value pairs into a JSON object
-    @type record_transformer
-    enable_ruby true
-    <record>
-      parsed_message ${record["message"].scan(/(?<key>[^=]+)=(?<value>[^ ]+)/).map { |k, v| [k.strip, v.strip] }.to_h.to_json}
-    </record>
+    message ${record["message"].gsub(/<\d+>/, '').split(' ').map { |s| s.split('=') }.to_h.to_json}
   </record>
 </filter>
