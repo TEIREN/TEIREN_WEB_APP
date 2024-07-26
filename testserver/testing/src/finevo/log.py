@@ -32,7 +32,7 @@ class LogManagement():
             "fortigate": "eventtime.keyword",
             "mssql": "ID",
             "snmp": "",
-            "finevo_genian" : "timestamp"
+            "finevo_genian" : "timestamp.keyword"
         }
         return timestamp_mapping[self.system]
 
