@@ -143,3 +143,19 @@
   @type stdout
 </match>
 
+
+
+
+<filter your_tag>
+  @type record_transformer
+  enable_ruby true
+  <record>
+    # Parse the log string into key-value pairs
+    parsed_log ${record["message"].split(" ").map { |item| item.split("=") }.to_h}
+  </record>
+</filter>
+
+<match your_tag>
+  @type stdout
+  output_type json
+</match>
