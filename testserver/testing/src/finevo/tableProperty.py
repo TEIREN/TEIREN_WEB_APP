@@ -7,23 +7,27 @@ from elasticsearch import Elasticsearch, ConnectionError, NotFoundError
 es = Elasticsearch(hosts=["http://3.35.81.217:9200/"])
     
 def save_table_property(request, system):
-    document = {'system': system, 'properties': [property for property in dict(request.GET)['properties'] if property]}
-    print(request.GET.get('properties'))
+    document = {'system': system.lower(), 'properties': [property for property in dict(request.GET)['properties'] if property]}
+    print(document)
     try:
-        es.update_by_query(index="table_property", body={
-            "query":{
-                "match": {"system": system}
-            },
-            "script":{
-                "source": f"ctx._source.properties = {document['properties']}",
-                "lang": "painless" 
-            }
-        })
+        result = es.search(index="table_property", body={"query": {"match": {"system": system.lower()}}})
+        if len(result['hits']['hits']) < 1:
+            es.index(index=f"table_property", document=document)
+        else:
+            es.update_by_query(index="table_property", body={
+                "query":{
+                    "match": {"system": system.lower()}
+                },
+                "script":{
+                    "source": f"ctx._source.properties = {document['properties']}",
+                    "lang": "painless" 
+                }
+            })
         return HttpResponse('Successfully Saved')
     except NotFoundError:
         try:
-            es.index(index=f"table_property", document=document)
-            return HttpResponse('Successfully Saved')
+            result = es.index(index=f"table_property", document=document)
+            return HttpResponse('Successfully Changed And Saved')
         except Exception as e:
             return HttpResponse(f"error: {e}")
     except ConnectionError as e:
