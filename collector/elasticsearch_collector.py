@@ -40,7 +40,10 @@ async def create_index_if_not_exists(index_name):
 
 # ElasticSearch에 로그를 입력하는 함수
 async def elasticsearch_input(log, system, TAG_NAME):
-    index_name = f"test_{system}_syslog"  # 인덱스 이름 설정
+    if system == "fluentd" :
+        index_name = f"test_{TAG_NAME}_syslog"  # 인덱스 이름 설정
+    else :
+        index_name = f"test_{system}_syslog" 
     log['TAG_NAME'] = TAG_NAME  # 로그에 TAG_NAME 추가
     response = es.index(index=index_name, document=log)
     print(f"{system}_log: {response['result']}")
@@ -707,6 +710,23 @@ async def delete_fluentd_api_key(request: DeleteAPIKeyRequest):
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to restart Fluentd service: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to restart Fluentd service: {e}")
+
+@app.post("/finevo-genian")
+async def finevo_genian_log(request: Request):
+    log_request = await request.json()
+    client_ip = request.client.host
+    client_hostname = get_hostname(client_ip)
+    
+    index_name = "test_finevo_genian"  
+    
+    for log in log_request:
+        log['teiren_request_ip'] = client_ip
+        log['client_hostname'] = client_hostname
+        response = es.index(index=index_name, document=log)
+        print(f"finevo_genian_log: {response['result']}")
+    
+    return {"message": "Log received successfully"}
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -23,3 +23,607 @@ INFO:     Uvicorn running on http://0.0.0.0:8088 (Press CTRL+C to quit)
 INFO:     127.0.0.1:55806 - "POST /add_config/ HTTP/1.1" 400 Bad Request
 INFO:     127.0.0.1:40134 - "POST /add_config/ HTTP/1.1" 400 Bad Request
 INFO:     127.0.0.1:47104 - "POST /add_config/ HTTP/1.1" 400 Bad Request
+WARNING:  Invalid HTTP request received.
+Traceback (most recent call last):
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 136, in handle_events
+    event = self.conn.next_event()
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 487, in next_event
+    exc._reraise_as_remote_protocol_error()
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_util.py", line 77, in _reraise_as_remote_protocol_error
+    raise self
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 469, in next_event
+    event = self._extract_next_receive_event()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 411, in _extract_next_receive_event
+    event = self._reader(self._receive_buffer)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_readers.py", line 83, in maybe_read_from_IDLE_client
+    matches = validate(
+              ^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_util.py", line 91, in validate
+    raise LocalProtocolError(msg)
+h11._util.RemoteProtocolError: illegal request line: bytearray(b'\x16\x03\x01\x06\xc0\x01\x00\x06\xbc\x03\x03\xc0\x07Jf)\xeffo\x82s\x92R\xdfJ/\xa8\xffV\x1a4\xb9\xd4\xe1\xbb\xf0r\xc8a\xd5\x85DI ^\xd2H?F\x89!\xe48\x8fJp\xcf\x02c\xa6 \xd7\x1f\xd6\xa7k\x14\x8cv\x0f-\xee\xfa&\xdd\x8c\x00 ')
+WARNING:  Invalid HTTP request received.
+Traceback (most recent call last):
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 136, in handle_events
+    event = self.conn.next_event()
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 487, in next_event
+    exc._reraise_as_remote_protocol_error()
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_util.py", line 77, in _reraise_as_remote_protocol_error
+    raise self
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 469, in next_event
+    event = self._extract_next_receive_event()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_connection.py", line 411, in _extract_next_receive_event
+    event = self._reader(self._receive_buffer)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_readers.py", line 83, in maybe_read_from_IDLE_client
+    matches = validate(
+              ^^^^^^^^^
+  File "/home/ubuntu/TEIREN_WEB_APP/collector/venv/lib/python3.12/site-packages/h11/_util.py", line 91, in validate
+    raise LocalProtocolError(msg)
+h11._util.RemoteProtocolError: illegal request line: bytearray(b'\x16\x03\x01\x06\xa0\x01\x00\x06\x9c\x03\x03\xd0\x17]\t\x9ep\xb2-5\x9b\x9b\x86db\xb3\x01\xb9\xba@ubp\xef\xed\\\x17\x17&4\xaa\x9b2 -\x87*\xa0b1P\xa4\xa1\x98\x92\x04\xb4\xa9\xb2\x0c\x1b\x03\x0b\xc6h9o\x88\xc5B\\\x8eU\x17\xfc\xf1\x00 jj\x13\x01\x13\x02\x13\x03\xc0+\xc0/\xc0,\xc00\xcc\xa9\xcc\xa8\xc0\x13\xc0\x14\x00\x9c\x00\x9d\x00/\x005\x01\x00\x063\x1a\x1a\x00\x00\x00#\x00\x00\x00+\x00\x07\x06\xea\xea\x03\x04\x03\x03\x00\x1b\x00\x03\x02\x00\x02\xfe\r\x00\xba\x00\x00\x01\x00\x01J\x00 \xae\xc6\xd9w\xcf@\x92\xea\xc6\x97\xde#\xbb\xd1b\x04\xe9@\xc6\x84\xb8+\xf0\x91L@\xbb\x93\xc5\x1a\xd3\x1f\x00\x90c\xba\xcc\x88\x83X\x9c\x18\xc5\xaf\xf9s\x05\xa7\xeb\x90\xb1\x18\xc7\xb3[\xb5\xcb\xcb\xac\xa7\xab\xe0\x84G\x838\xb2\xb6\x0ef\xd7\xfb\xdbpR\x9b2\xa0\xc9ej\xbal\x99\x98V\xfd%H\x9co\xd9\xe0\x16\xe3\x01f\xc7u\\<\xae\xfe\xbc\x88\x97GgvH\xf7=\x9c4\xb2\xbc+')
+INFO:     175.210.91.85:3306 - "GET / HTTP/1.1" 404 Not Found
+INFO:     175.210.91.85:3306 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     198.235.24.147:64774 - "GET / HTTP/1.1" 404 Not Found
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+INFO:     222.106.177.209:56133 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:56133 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:64073 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:47719 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:64073 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:47719 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:47719 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:62072 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:51939 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:63675 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+INFO:     222.106.177.209:38514 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+INFO:     222.106.177.209:56211 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:42049 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:39181 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+INFO:     222.106.177.209:41101 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+INFO:     222.106.177.209:33570 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:46363 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:45733 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:55186 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:42326 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:55186 - "POST /win_log HTTP/1.1" 400 Bad Request
+ERROR:root:Failed to get hostname: [Errno 1] Unknown host
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+window_log: created
+INFO:     222.106.177.209:55186 - "POST /win_log HTTP/1.1" 400 Bad Request
