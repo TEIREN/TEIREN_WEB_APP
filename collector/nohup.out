@@ -872,3 +872,54 @@ ERROR:root:Failed to get hostname: [Errno 1] Unknown host
 window_log: created
 window_log: created
 INFO:     222.106.177.209:50955 - "POST /win_log HTTP/1.1" 400 Bad Request
+INFO:     Started server process [148686]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8088 (Press CTRL+C to quit)
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+INFO:     127.0.0.1:11256 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+INFO:     127.0.0.1:34558 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+finevo_genian_log: created
+INFO:     127.0.0.1:35984 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+INFO:     127.0.0.1:9506 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+INFO:     127.0.0.1:58258 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+INFO:     127.0.0.1:8172 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+INFO:     127.0.0.1:15166 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+INFO:     127.0.0.1:17974 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+INFO:     127.0.0.1:26616 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+INFO:     127.0.0.1:12254 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+INFO:     127.0.0.1:4568 - "POST /finevo-genian HTTP/1.1" 200 OK
+finevo_genian_log: created
+finevo_genian_log: created
+finevo_genian_log: created
+INFO:     127.0.0.1:28772 - "POST /finevo-genian HTTP/1.1" 200 OK
