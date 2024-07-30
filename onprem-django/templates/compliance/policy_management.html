@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filter %}
+{% block head %}
+<link rel="stylesheet" href="{% static '/M_compliance/css/policy_management/searchcard.css' %}">
+{% endblock head %}
+{% block content %}
+<!-- Begin Page Content -->
+<div class="locationbar ml-2">
+    <span>Compliance Management&nbsp;&nbsp;>&nbsp;&nbsp;Compliance &nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">Policy Management<span>
+</div>
+
+
+<!-- Page Heading -->
+<h6 class="h3 mb-2 font-weight-bold text-gray-800 ml-2">Policy Management</h6>
+<p class="h6 mb-4 ml-2">Manage the entire policy at once.</p>
+{% include "./policy_management/searchcard.html" %}
+<div class="row">
+    {% for p in policy%}
+        <div>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 row">
+                    <h4 class="d-flex align-items-center m-0 font-weight-bold text-teiren">{{p.policy.name}}</h4>
+                    {% make_list 'Articles of Association' 'Rules' 'Guidelines' 'Regulation' as essential_policy_list %}
+                    {% if not p.policy.name in essential_policy_list%}
+                    <button class="btn btn-md btn-outline-teiren ml-2" data-toggle="modal" data-target="#policy_modify_modal" data-policy-name="{{p.policy.name}}"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn btn-md btn-outline-danger ml-2" data-toggle="modal" data-target="#policy_delete_modal" data-policy-name="{{p.policy.name}}"><i class="fa-solid fa-trash"></i></button>
+                    {% endif %}
+                    <button class="btn btn-md btn-teiren ml-auto" data-toggle="modal" data-target="#data_add_modal" data-policy-name="{{p.policy.name}}"><i class="fa-solid fa-plus mr-2"></i>Add Policy Data</button>
+                </div>
+                <div class="card-body" style="font-size:15px; overflow:scroll;">
+                    <div class="table-responsive overflow-auto" style="max-height:350px;">
+                        <table class="table table-bordered" id="{{p.policy.name}}_dataTable" cellspacing="0"
+                            style="table-layout:fixed;text-align:center;font-size:15px;">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Name</th>
+                                    <th>Comment</th>
+                                    <th>Author</th>
+                                    <th>Last Update</th>
+                                    <th>Files</th>
+                                    <th>Modify</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in p.data%}
+                                    <tr>
+                                        <td>{{forloop.counter}}</td>
+                                        <td>{{data.name}}</td>
+                                        <td>{{data.comment}}</td>
+                                        <td>{{data.author}}</td>
+                                        <td>{{data.last_update}}</td>
+                                        <td>
+                                            
+                                            <form method="POST" action="/compliance/policy/{{ p.policy.name }}/{{ data.name }}/">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="policy_name" value="{{ p.policy.name }}"/>
+                                                <input type="hidden" name="data_name" value="{{ data.name }}"/>
+                                                <button type="submit" class="btn btn-md btn-outline-teiren"><i class="fa-solid fa-file mr-2"></i>Files</button>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-md btn-teiren" data-toggle="modal" data-target="#data_modify_modal"
+                                            data-policy-name="{{p.policy.name}}" data-name="{{data.name}}" data-comment="{{data.comment}}"><i class="fa-solid fa-pen-to-square mr-2"></i>Modify</button>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-md btn-danger" data-toggle="modal" data-target="#data_delete_modal"
+                                            data-policy-name="{{p.policy.name}}" data-name="{{data.name}}" data-comment="{{data.comment}}" data-author="{{data.author}}"><i class="fa-solid fa-trash mr-2"></i>Delete</button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Add Policy Modal -->
+<div class="modal hide fade card-body" id="policy_add_modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Add Policy</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="policy_add_form">
+                    <p>Policy Name: <input class="form-control" name="policy" type="text"></p>
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' class="btn btn-md btn-teiren" onClick="addPolicy()" value="Add Policy">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modify Policy Modal -->
+<div class="modal hide fade card-body" id="policy_modify_modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Modify Policy: <span class="policy-name"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="policy_modify_form">
+                    <input type="hidden" name="og_policy">
+                    <p>Policy Name: <input class="form-control" name="policy" type="text"></p>
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' class="btn btn-md btn-teiren" onClick="modifyPolicy()"value="Modify Policy">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Policy Modal -->
+<div class="modal hide fade card-body" id="policy_delete_modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-danger" id='modal_title'>Delete Policy: <span class="policy-name"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="policy_delete_form">
+                    <p>Policy Name: <input class="form-control" name="policy" type="text" readonly></p>
+                </form>
+                <h5 class="text-danger">Data and files related to "<span class="policy-name"></span>" will be delete as well. Will you still delete this policy?</h5>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' class="btn btn-md btn-danger" onClick="deletePolicy()"value="Delete Policy">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Policy Data Modal -->
+<div class="modal hide fade card-body" id="data_add_modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Add Policy Data</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="data_add_form">
+                    <p>Policy Name: <input class="form-control" name="policy" type="text" readonly></p>
+                    <p>Data Name: <input class="form-control" name="name" type="text"></p>
+                    <p>Comment: <input class="form-control" name="comment" type="text"></p>
+                    <p>Author: <input class="form-control" name="author" type="text" value="{{user}}"readonly></p>
+                    <span class="text-teiren">※ The last update time is automatically saved after the modification.<span>
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' class="btn btn-md btn-teiren" onClick="addPolicyData()" value="Add Policy Data">
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modify Policy Data Modal -->
+<div class="modal hide fade card-body" id="data_modify_modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Modify Policy Data: <span class="data-name"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="data_modify_form">
+                    <p>Policy Name: <input class="form-control" name="policy" type="text" readonly></p>
+                    <p>Data Name: <input class="form-control" name="name" type="text"></p>
+                    <p>Comment: <input class="form-control" name="comment" type="text"></p>
+                    <p>Author: <input class="form-control" name="author" type="text" value="{{user}}"readonly></p>
+                    <input type="hidden" name="og_name">
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' class="btn btn-md btn-teiren" onClick="modifyPolicyData()" value="Modify Policy Data">
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Policy Data Modal -->
+<div class="modal hide fade card-body" id="data_delete_modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-danger" id='modal_title'>Delete Policy Data: <span class="data-name"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="data_delete_form">
+                    <p>Policy Name: <input class="form-control" name="policy" type="text" readonly></p>
+                    <p>Data Name: <input class="form-control" name="name" type="text" readonly></p>
+                    <p>Comment: <input class="form-control" name="comment" type="text" readonly></p>
+                    <p>Author: <input class="form-control" name="author" type="text" readonly></p>
+                    <h5 class="text-danger">Files Related To "<span class="data-name"></span>" Will Be Deleted. Will You Delete Policy Data?</h5>
+                </form>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <input type='button' class="btn btn-md btn-outline-danger" data-dismiss='modal' value="Cancel">
+                <input type='button' class="btn btn-md btn-danger" onClick="deletePolicyData()" value="Delete Policy Data">
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$('.table').each(function(i){
+    $(this).DataTable({
+        searching:false,
+        lengthChange:false,
+        info:true
+    })
+})
+
+function addPolicy(){
+    $.ajax({
+        url: 'add/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: $('#policy_add_form').serialize()
+    }).done(function(response){
+        alert(response)
+        if(response.startsWith('Success')){
+            location.reload()
+            return 0
+        }
+    })
+}
+
+$('#policy_modify_modal').on('shown.bs.modal', function(e){
+    $('#policy_modify_form input[name="policy"]').val($(e.relatedTarget).data('policy-name'))
+    $('#policy_modify_form input[name="og_policy"]').val($(e.relatedTarget).data('policy-name'))
+    $('#policy_modify_modal .policy-name').text($(e.relatedTarget).data('policy-name'))
+})
+
+function modifyPolicy(){
+    $.ajax({
+        url: 'modify/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: $('#policy_modify_form').serialize()
+    }).done(function(response){
+        alert(response)
+        if(response.startsWith('Success')){
+            location.reload()
+            return 0
+        }
+    })
+}
+
+$('#policy_delete_modal').on('shown.bs.modal', function(e){
+    $('#policy_delete_form input[name="policy"]').val($(e.relatedTarget).data('policy-name'))
+    $('#policy_delete_modal .policy-name').text($(e.relatedTarget).data('policy-name'))
+})
+
+function deletePolicy(){
+    $.ajax({
+        url: 'delete/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: $('#policy_delete_form').serialize()
+    }).done(function(response){
+        alert(response)
+        if(response.startsWith('Success')){
+            location.reload()
+            return 0
+        }
+    })
+}
+
+$('#data_add_modal').on('shown.bs.modal', function (e) {
+    $(this).find('input[name="policy"]').val($(e.relatedTarget).data('policy-name'));
+});
+
+function addPolicyData(){
+    $.ajax({
+        url: 'data/add/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: $('#data_add_form').serialize()
+    }).done(function(response){
+        alert(response)
+        if(response.startsWith('Success')){
+            location.reload()
+            return 0
+        }
+    })
+}
+
+$('#data_modify_modal').on('shown.bs.modal', function (e) {
+    $(this).find('input[name="policy"]').val($(e.relatedTarget).data('policy-name'));
+    $(this).find('input[name="name"]').val($(e.relatedTarget).data('name'));
+    $(this).find('input[name="og_name"]').val($(e.relatedTarget).data('name'));
+    $(this).find('input[name="comment"]').val($(e.relatedTarget).data('comment'));
+    $(this).find('.data-name').text($(e.relatedTarget).data('name'))
+});
+
+function modifyPolicyData(){
+    $.ajax({
+        url: 'data/modify/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: $('#data_modify_form').serialize()
+    }).done(function(response){
+        alert(response)
+        if(response.startsWith('Success')){
+            location.reload()
+            return 0
+        }
+    })
+}
+
+$('#data_delete_modal').on('shown.bs.modal', function (e) {
+    $(this).find('input[name="policy"]').val($(e.relatedTarget).data('policy-name'));
+    $(this).find('input[name="name"]').val($(e.relatedTarget).data('name'));
+    $(this).find('input[name="comment"]').val($(e.relatedTarget).data('comment'));
+    $(this).find('input[name="author"]').val($(e.relatedTarget).data('author'));
+    $(this).find('.data-name').text($(e.relatedTarget).data('name'))
+});
+
+function deletePolicyData(){
+    $.ajax({
+        url: 'data/delete/',
+        headers: {
+            'X-CSRFToken': "{{ csrf_token }}"
+        },
+        type: 'POST',
+        data: $('#data_delete_form').serialize()
+    }).done(function(response){
+        alert(response)
+        if(response.startsWith('Success')){
+            location.reload()
+            return 0
+        }
+    })
+}
+</script>
+<script>$('#compliance_side').addClass('active');</script>
+{% endblock %}
+

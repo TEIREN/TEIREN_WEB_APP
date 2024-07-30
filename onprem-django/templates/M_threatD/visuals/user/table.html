@@ -1,0 +1,75 @@
+<div class="table-responsive" style="overflow:hidden;">
+    <table class="table table-bordered" id="dataTable_modal" width="100%" cellspacing="0" style="text-align:center;">
+        <thead>
+            <th>No</th>
+            <th>Detected Rule</th>
+            <th>Detected Time</th>
+            <th>Rule Type</th>
+            <th>Severity</th>
+            <th>Details</th>
+        </thead>
+        <tfoot>
+            <th>No</th>
+            <th>Detected Rule</th>
+            <th>Detected Time</th>
+            <th>Rule Type</th>
+            <th>Severity</th>
+            <th>Details</th>
+        </tfoot>
+        <tbody>
+            {% if table %}
+            {% for log in table %}
+            <tr>
+                {% for key, value in log.items %}
+                    {% if key != 'resource' and key != 'eventTime' and key != 'arr' and key != 'level' %}
+                        <td>{{value}}</td>
+                    {% elif key == 'level' %}
+                        <td>
+                            <div class="color-box color-box-{{value.1}}">{{value.0}}</div>
+                        </td>
+                    {% endif %}
+                {% endfor %}
+                <td>
+                    <button type=button class="btn btn-outline-danger" onclick="rule_detail('{{log.arr}}')"
+                        data-dismiss="modal" data-toggle="modal" data-target="#rule_modal">
+                        Details
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+<script>
+    function rule_detail(e) {
+        var arr = JSON.parse(e)
+        var rule_name = arr['account'] + '의 ' + arr['detected_rule'] + arr['id']
+        arr['rule_name'] = rule_name
+        $.ajax({
+            url: '/threat/neo4j/',
+            headers:{
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            data: $.param(arr),
+            type: 'post'
+        }).done(function(data) {
+            $('#account_body').children().remove()
+            $('#rule_body').html(data)
+            $('.rule').val(arr['account'])
+            $('.rule').attr('data-resource', arr['resource']);
+            $('#rule_form').html(
+                `
+                {% csrf_token %}
+                <input type="hidden" name="rule_name" value="${rule_name}">
+                <input type="hidden" name="detected_rule" value="${arr['detected_rule']}">
+                <input type="hidden" name="eventTime" value="${arr['eventTime']}">
+                <input type="hidden" name="rule_class" value="${arr['rule_class']}">
+                <input type="hidden" name="resource" value="${arr['resource']}">
+                <input type="hidden" name="id" value="${arr['id']}">
+                <input type="submit" class="btn btn-block btn-md btn-teiren" value="Detail Page">
+                `
+            )
+        })
+    }
+</script>

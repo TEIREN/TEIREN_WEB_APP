@@ -1,0 +1,119 @@
+<div class="col-xl">
+    <div class="">
+        <div class="text-center">
+            <h2 class="m-0 font-weight-bold text-center text-teiren">Default Rule Details</h2>
+        </div>
+        <br>
+    </div>
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h5 class="m-0 font-weight-bold text-teiren" style="text-align:center">
+                {{default.ruleName}}
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" style="overflow:hidden;">
+                <table class="table table-bordered" id="dataTable" width="auto" cellspacing="0"
+                    style="table-layout:fixed;text-align:center;overflow:scroll;font-size:0.7rem">
+                    <thead></thead>
+                    <tbody>
+                        <tr>
+                            <td class="font-weight-bold">Resource Type</td>
+                            <td>{{default.logType}}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Log Type</td>
+                            <td>{{default.type}}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Rule Name</td>
+                            {% if default.ruleName %}
+                            <td>{{default.ruleName}}</td>
+                            {% else %}
+                            <td>{{default.name}}</td>
+                            {% endif %}
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Rule Comment</td>
+                            {% if default.ruleComment %}
+                            <td>{{default.ruleComment}}</td>
+                            {% else %}
+                            <td>{{default.comment}}</td>
+                            {% endif %}
+                        </tr>
+                        {% for key, value in default.details.items %}
+                        {% if value %}
+                        <tr>
+                            <td class="font-weight-bold">{{key}}</td>
+                            <td>{{value}}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                        {% if default.alert_email1 and default.alert_email1 != '' %}
+                        <tr>
+                            <td class="font-weight-bold">Alert E-mail 1</td>
+                            <td>{{default.alert_email1}}</td>
+                        </tr>
+                        {% endif %}
+                        {% if default.alert_email2 and default.alert_email2 != '' %}
+                        <tr>
+                            <td class="font-weight-bold">Alert E-mail 2</td>
+                            <td>{{default.alert_email2}}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if default.related %}
+        <div class="">
+            <div class="text-center">
+                <h4 class="m-0 font-weight-bold text-center text-teiren">Related Flow Detection</h4>
+            </div>
+        </div>
+        {% for related in default.related %}
+        <div class="card-body">
+            <div class="table-responsive" style="overflow:hidden;">
+                <table class="table table-bordered" id="dataTable" width="auto" cellspacing="0"
+                    style="table-layout:fixed;text-align:center;overflow:scroll;font-size:0.9em">
+                    <tbody>
+                        <tr>
+                            <th class='bg-gray-300'>Rule Name</th>
+                            <th class='bg-gray-300'>{{related.name}}</th>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">No</td>
+                            <td>{{related.id}}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-weight-bold">Rule Comment</td>
+                            <td>{{related.comment}}</td>
+                        </tr>
+                        {% for key, value in related.detail.items %}
+                        {% if value %}
+                        <tr>
+                            <td class="font-weight-bold">{{key}}</td>
+                            <td>{{value}}</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                        {% if related.alert_email1 and related.alert_email1 != '' %}
+                        <tr>
+                            <td class="font-weight-bold">Alert E-mail 1</td>
+                            <td>{{related.alert_email1}}</td>
+                        </tr>
+                        {% endif %}
+                        {% if related.alert_email2 and related.alert_email2 != '' %}
+                        <tr>
+                            <td class="font-weight-bold">Alert E-mail 2</td>
+                            <td>{{related.alert_email2}}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>

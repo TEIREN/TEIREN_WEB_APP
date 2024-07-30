@@ -1,0 +1,46 @@
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>테이렌 SIEM</title>
+    <link rel="icon" type="images/png" href="{% static '/img/teiren-icon.png' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Teiren -->
+    <link rel="stylesheet" href="{% static '/css/teiren.css' %}">
+    <link rel="stylesheet" href="{% static '/auth/css/authentication.css' %}">
+
+    <!-- Font-Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" type="text/css">
+
+    <!-- NAVER font-->
+    <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet">
+
+    <!-- Google font-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900;1000&display=swap" rel="stylesheet">
+
+</head>
+<body class="bg-auth">
+    <div class="auth-container">
+        <div class="card border-0 auth-shadow w-75 h-100">
+            <div class="card-body d-flex justify-content-center align-items-center flex-column" style="padding: 70px">
+                <h2 class="text-grey-800 font-weight-bold my-4">Whoops.. This Page is Gone..</h2>
+                <div>
+                   <img src={% static "/img/404.svg" %} style="height:400px;">
+                </div>
+                <h1 class="text-teiren font-weight-bold my-4">We Will Try Our Best To Visualize It!</h1>
+                <div class="w-100 d-flex mt-4">
+                    <a class="btn btn-outline-teiren btn-lg ml-auto" onclick="window.history.back()">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Back
+                    </a>
+                    <a href="/" class="btn btn-teiren btn-lg ml-3 w-25">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

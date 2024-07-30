@@ -1,0 +1,18 @@
+.order-div{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 10%;
+}
+
+.order-btn{
+    border: none;
+    background-color: transparent;
+    color: #94A2B3;
+    margin: -7px 0;
+    font-size: 12px;
+}
+
+.order-btn i{
+    height:1px;
+}

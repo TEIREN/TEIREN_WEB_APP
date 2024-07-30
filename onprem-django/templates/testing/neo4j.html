@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="col-md-12">
+    <div class="card shadow">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header d-flex flex-row align-items-center justify-content-between">
+            <div class="h6 m-0 font-weight-bold text-danger">최근 탐지 위협</div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body p-3" style="height:300px; overflow-y:scroll;">
+            <div class="table-responsive">
+                <table class="table m-0" id="dataTable" style="text-align:center;overflow:scroll;font-size:0.6rem">
+                    <thead>
+                        <tr>
+                            <th>위협 No</th>
+                            <th>장비명</th>
+                            <th>탐지위협</th>
+                            <th>행위</th>
+                            <th>발생시간</th>
+                            <th>더보기</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_threat %}
+                        {% for threat in recent_threat %}
+                        <tr>
+                            {% for key, value in threat.items %}
+                            {% if key != 'form' %}
+                            <td>
+                                {{ value }}
+                            </td>
+                            {% endif %}
+                            {% endfor %}
+                            <td>
+                                <form class="gdb_threat" method="post" onclick="threat(this)">
+                                    {% for key, value in threat.form.items %}
+                                    <input type="hidden" name="{{key}}" value="{{value}}">
+                                    {% endfor %}
+                                    <input type=button class="btn btn-md btn-danger" style="font-size:0.5vw" value='더보기'>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<!-- Pie Chart -->
+<div class="col-md-6 mb-4">
+<div class="h-100" id="gdb_dashboard">
+    {% for result in data %}
+        {% for key, value in result.items %}
+        <div>
+            {{key}}: {{value}}
+        </div>
+        {% endfor %}
+        <div>---------------------</div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    /*
+    function threat(e) {
+        var data = $(e).serialize()
+        $.ajax({
+            url: "/neo4j/",
+            headers:{
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+            data: data,
+            type: "post"
+        }).done(function(res) {
+            $("#gdb_dashboard").html(res)
+            console.log(res)
+             {% comment %}$('#threat_form').append($(e).find('input[type=hidden]').clone())
+            $('#threat_form').append('<button class="btn btn-block btn-teiren mb-2">상세보기</button>') {% endcomment %}
+        })
+    }
+    
+    var e = $('.gdb_threat').clone()[0]
+    threat(e)
+    */
+</script>
+{% endblock %}

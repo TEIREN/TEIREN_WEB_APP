@@ -1,0 +1,25 @@
+{% load static %}
+<head>
+    {% include 'head.html' %}
+    <link rel="stylesheet" href="{% static '/auth/css/authentication.css' %}">
+</head>
+<body class="bg-auth">
+    <div class="auth-container">
+        <div class="card border-0 auth-shadow w-50 h-100">
+            <div class="card-body d-flex justify-content-center align-items-center">
+                <div class="w-100 text-center my-3">
+                    <div class="auth-text">
+                        <h5> Visualize The Invisible</h5>
+                        <span class="text-teiren font-weight-bold">TEIREN CLOUD</span>
+                    </div>
+                    <h1 class="text-teiren"> Email confirm Fail..</h1>
+                    <h1 class="text-teiren mb-5"> Please try again </h1>
+                    <a href="/auth/register/" class="btn btn-lg btn-teiren px-5 py-3" style="border-radius: 50px;">
+                        <i class="fa-solid fa-arrow-left fa-bounce mr-3"></i>
+                        Back to register page
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

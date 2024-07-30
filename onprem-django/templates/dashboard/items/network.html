@@ -1,0 +1,14 @@
+{% load static %}
+<div id="network" class="h-100">
+    <div class="card border-left-warning shadow h-100">
+        <div class="card-header">
+            <div class="h6 m-0 font-weight-bold text-warning text-uppercase">Network</div>
+        </div>
+        <div class="card-body pb-0">
+            <div class="chart-area" style="height:100%">
+                <canvas id="myNet"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'dashboard/js/network_perform.js' %}"></script>
