@@ -42,6 +42,9 @@ class ElasticsearchCollector:
             log['TAG_NAME'] = self.TAG_NAME
             await self.es.index(index=index_name, document=log)
 
+        return {"message": f"{self.TAG_NAME.title()} Log received successfully"}
+
+
     async def save_integration(self, system, TAG_NAME, config):
         index_name = "integration_info"
         await self.create_index_if_not_exists(index_name)
@@ -61,7 +64,7 @@ class ElasticsearchCollector:
         log = {
             "SYSTEM": system,
             "TAG_NAME": TAG_NAME,
-            "inserted_at": datetime.datetime.now(),
+            "inserted_at": datetime.now(),
             "status": "started",
             "config": config
         }
@@ -132,7 +135,7 @@ class ElasticsearchCollector:
                 log = {
                     "SYSTEM": system,
                     "TAG_NAME": TAG_NAME,
-                    "inserted_at": datetime.datetime.now(),
+                    "inserted_at": datetime.now(),
                     "status": "started",
                     "config": config
                 }
@@ -169,8 +172,9 @@ class ElasticsearchCollector:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def manage_integration(self, action: str, config=None):
+    async def manage_integration(self, action: str, request):
         if action == "add":
+            config = await request.json()
             await self.save_integration(self.system, self.TAG_NAME, config)
         elif action == "start":
             await self.update_status("started")
@@ -178,7 +182,11 @@ class ElasticsearchCollector:
             await self.update_status("stopped")
         elif action == "delete":
             await self.delete_integration(self.system, self.TAG_NAME)
-        elif action == "update" and config:
+        elif action == "update":
+            config = await request.json()
             await self.update_integration(self.system, self.TAG_NAME, config)
         else:
             raise HTTPException(status_code=400, detail="Invalid action or missing config for update")
+    
+    async def configure_fluentd(self, config):
+        pass
