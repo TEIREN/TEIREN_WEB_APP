@@ -2,19 +2,22 @@
 # start.sh
 # chmod +x start.sh
 
-sudo apt update
-sudo apt install -y python3-venv
+sudo apt install python3-venv -y
 
 VENV_DIR=venv
 
-if [ ! -d "$VENV_DIR" ]; then
-  python3 -m venv $VENV_DIR
-fi
+# 가상 환경 생성
+python3 -m venv $VENV_DIR
 
+# 가상 환경 활성화
 source $VENV_DIR/bin/activate
 
+# 패키지 설치
 pip install -r requirements.txt
 
-nohup $VENV_DIR/bin/uvicorn elasticsearch_fastapi:app --host 0.0.0.0 --port 8088 &
+nohup sudo $VENV_DIR/bin/uvicorn elasticsearch_fastapi:app --host 0.0.0.0 --port 8088 &
 
 deactivate
+
+# nohup.sh 삭제
+rm -f nohup.sh

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
-from elsasticsearch_collector_renew import ElasticsearchCollector
+from elasticsearch_collector_renew import ElasticsearchCollector
 
 app = FastAPI()
 
@@ -26,7 +26,7 @@ async def collector_action(request: Request, action: str, system: str, TAG_NAME:
 async def collect_log(request: Request, system: str, TAG_NAME: str):
     es_collector = ElasticsearchCollector(system=system, TAG_NAME=TAG_NAME)
     try:
-        if es_collector.get_status() != "started":
+        if await es_collector.get_status() != "started":
             raise HTTPException(status_code=400, detail="Log collection is not started")
     
         log_request = await request.json()

@@ -3,13 +3,15 @@ from fastapi import HTTPException
 import datetime
 import logging
 import socket
-from .fortigate_deployment import fortigate_parse
+from fortigate_deployment import fortigate_parse
+from fluentd_deployment import FluentdDeployment
 
 class ElasticsearchCollector:
     def __init__(self, system: str, TAG_NAME: str):
         self.system = system
         self.TAG_NAME = TAG_NAME
-        self.es = AsyncElasticsearch("http://3.35.81.217:9200/")
+        self.es = AsyncElasticsearch("http://localhost:9200/")
+        self.fluentd = FluentdDeployment()
 
     def get_hostname(self, client_ip):
         try:
@@ -33,7 +35,10 @@ class ElasticsearchCollector:
             await self.es.indices.create(index=index_name)
 
     async def collect_logs(self, request, client_ip):
-        index_name = f"{self.system}_syslog"
+        if self.system == "flunetd":
+            index_name = f"{self.TAG_NAME}_syslog"
+        else:
+            index_name = f"{self.system}_syslog"
         for log in request:
             if self.system == "fortigate":
                 log = await fortigate_parse(log['message'])
@@ -43,7 +48,6 @@ class ElasticsearchCollector:
             await self.es.index(index=index_name, document=log)
 
         return {"message": f"{self.TAG_NAME.title()} Log received successfully"}
-
 
     async def save_integration(self, system, TAG_NAME, config):
         index_name = "integration_info"
@@ -61,10 +65,15 @@ class ElasticsearchCollector:
         res = await self.es.search(index=index_name, body=query)
         if res['hits']['total']['value'] > 0:
             raise HTTPException(status_code=400, detail=f"{TAG_NAME}이 이미 사용중입니다.")
+        
+        # Fluentd 구성 추가
+        fluentd = FluentdDeployment()
+        await fluentd.configure_fluentd(config, TAG_NAME) # system까지 포함되서 genian fortigate 버전생성 
+
         log = {
             "SYSTEM": system,
             "TAG_NAME": TAG_NAME,
-            "inserted_at": datetime.now(),
+            "inserted_at": datetime.datetime.now(),
             "status": "started",
             "config": config
         }
@@ -135,7 +144,7 @@ class ElasticsearchCollector:
                 log = {
                     "SYSTEM": system,
                     "TAG_NAME": TAG_NAME,
-                    "inserted_at": datetime.now(),
+                    "inserted_at": datetime.datetime.now(),
                     "status": "started",
                     "config": config
                 }
@@ -187,6 +196,3 @@ class ElasticsearchCollector:
             await self.update_integration(self.system, self.TAG_NAME, config)
         else:
             raise HTTPException(status_code=400, detail="Invalid action or missing config for update")
-    
-    async def configure_fluentd(self, config):
-        pass

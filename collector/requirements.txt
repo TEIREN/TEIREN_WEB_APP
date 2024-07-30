@@ -2,6 +2,7 @@ fastapi==0.68.0
 uvicorn==0.15.0
 elastic-transport==8.13.0
 elasticsearch==8.13.0
+aiohttp
 requests
 pymssql
 python-multipart
