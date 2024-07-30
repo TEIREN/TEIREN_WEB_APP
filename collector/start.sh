@@ -18,6 +18,3 @@ pip install -r requirements.txt
 nohup sudo $VENV_DIR/bin/uvicorn elasticsearch_fastapi:app --host 0.0.0.0 --port 8088 &
 
 deactivate
-
-# nohup.sh 삭제
-rm -f nohup.sh

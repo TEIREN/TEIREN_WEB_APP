@@ -11,7 +11,6 @@ class ElasticsearchCollector:
         self.system = system
         self.TAG_NAME = TAG_NAME
         self.es = AsyncElasticsearch("http://localhost:9200/")
-        self.fluentd = FluentdDeployment()
 
     def get_hostname(self, client_ip):
         try:
@@ -35,19 +34,23 @@ class ElasticsearchCollector:
             await self.es.indices.create(index=index_name)
 
     async def collect_logs(self, request, client_ip):
-        if self.system == "flunetd":
-            index_name = f"{self.TAG_NAME}_syslog"
-        else:
-            index_name = f"{self.system}_syslog"
-        for log in request:
-            if self.system == "fortigate":
-                log = await fortigate_parse(log['message'])
-            log['request_ip'] = client_ip
-            log['client_hostname'] = self.get_hostname(client_ip=client_ip)
-            log['TAG_NAME'] = self.TAG_NAME
-            await self.es.index(index=index_name, document=log)
+        try : 
+            if self.system == "fluentd":
+                index_name = f"{self.TAG_NAME}_syslog"
+            else:
+                index_name = f"{self.system}_syslog"
+            for log in request:
+                if self.system == "fortigate":
+                    log = await fortigate_parse(log['message'])
+                log['request_ip'] = client_ip
+                log['client_hostname'] = self.get_hostname(client_ip=client_ip)
+                log['TAG_NAME'] = self.TAG_NAME
+                response = await self.es.index(index=index_name, document=log)
 
-        return {"message": f"{self.TAG_NAME.title()} Log received successfully"}
+            return {"message": f"{self.TAG_NAME.title()} Log received successfully"}
+        
+        except :
+            raise HTTPException(status_code=500, detail=str("no logs found"))
 
     async def save_integration(self, system, TAG_NAME, config):
         index_name = "integration_info"
@@ -65,11 +68,6 @@ class ElasticsearchCollector:
         res = await self.es.search(index=index_name, body=query)
         if res['hits']['total']['value'] > 0:
             raise HTTPException(status_code=400, detail=f"{TAG_NAME}이 이미 사용중입니다.")
-        
-        # Fluentd 구성 추가
-        fluentd = FluentdDeployment()
-        await fluentd.configure_fluentd(config, TAG_NAME) # system까지 포함되서 genian fortigate 버전생성 
-
         log = {
             "SYSTEM": system,
             "TAG_NAME": TAG_NAME,
@@ -185,6 +183,8 @@ class ElasticsearchCollector:
         if action == "add":
             config = await request.json()
             await self.save_integration(self.system, self.TAG_NAME, config)
+            fluentd = FluentdDeployment()
+            await fluentd.configure_fluentd(config, self.system, self.TAG_NAME)
         elif action == "start":
             await self.update_status("started")
         elif action == "stop":
@@ -194,5 +194,7 @@ class ElasticsearchCollector:
         elif action == "update":
             config = await request.json()
             await self.update_integration(self.system, self.TAG_NAME, config)
+            fluentd = FluentdDeployment()
+            await fluentd.configure_fluentd(config, self.system, self.TAG_NAME)
         else:
             raise HTTPException(status_code=400, detail="Invalid action or missing config for update")
