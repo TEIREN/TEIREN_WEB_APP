@@ -13,7 +13,7 @@ def search_all_logs(index_name):
     }
 
     try:
-        result = es.search(index=index_name, body=query, size=100)
+        result = es.search(index=index_name, body=query, size=10)
         
         # 검색 결과 출력 및 로그 개수 세기
         log_count = 0
@@ -28,6 +28,7 @@ def search_all_logs(index_name):
 # 함수 실행
 if __name__ == "__main__":
     # search_all_logs('userinfo')
+    search_all_logs('test_finevo_fortigate_syslog')
     search_all_logs('test_finevo_genian')
     # search_all_logs('test_window_syslog')
     # search_all_logs('linux_ruleset')
