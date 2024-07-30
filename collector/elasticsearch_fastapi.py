@@ -9,7 +9,7 @@ app = FastAPI()
 async def collector_action(request: Request, action: str, system: str, TAG_NAME: str):
     """
     {action}에는 시스템별로 추가(add) 시작(start) 중지(stop) 삭제(delete) 수정(update) 
-    {system}에는 system name linux, window, genian, fortigate, etc
+    {system}에는 system name linux, windows, genian, fortigate, etc
     """
     try:
         es_collector = ElasticsearchCollector(system=system, TAG_NAME=TAG_NAME)
@@ -43,3 +43,4 @@ async def collect_log(request: Request, system: str, TAG_NAME: str):
     finally:
         print(response)
         return response
+    

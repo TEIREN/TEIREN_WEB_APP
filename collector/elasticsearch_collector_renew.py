@@ -52,25 +52,25 @@ class ElasticsearchCollector:
         except :
             raise HTTPException(status_code=500, detail=str("no logs found"))
 
-    async def save_integration(self, system, TAG_NAME, config):
+    async def save_integration(self, config):
         index_name = "integration_info"
         await self.create_index_if_not_exists(index_name)
         query = {
             "query": {
                 "bool": {
                     "must": [
-                        {"match": {"SYSTEM": system}},
-                        {"match": {"TAG_NAME": TAG_NAME}}
+                        {"match": {"SYSTEM": self.system}},
+                        {"match": {"TAG_NAME": self.TAG_NAME}}
                     ]
                 }
             }
         }
         res = await self.es.search(index=index_name, body=query)
         if res['hits']['total']['value'] > 0:
-            raise HTTPException(status_code=400, detail=f"{TAG_NAME}이 이미 사용중입니다.")
+            raise HTTPException(status_code=400, detail=f"{self.TAG_NAME}이 이미 사용중입니다.")
         log = {
-            "SYSTEM": system,
-            "TAG_NAME": TAG_NAME,
+            "SYSTEM": self.system,
+            "TAG_NAME": self.TAG_NAME,
             "inserted_at": datetime.datetime.now(),
             "status": "started",
             "config": config
@@ -122,15 +122,15 @@ class ElasticsearchCollector:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def update_integration(self, system, TAG_NAME, config):
+    async def update_integration(self, config):
         index_name = "integration_info"
         await self.create_index_if_not_exists(index_name)
         query = {
             "query": {
                 "bool": {
                     "must": [
-                        {"match": {"SYSTEM": system}},
-                        {"match": {"TAG_NAME": TAG_NAME}}
+                        {"match": {"SYSTEM": self.system}},
+                        {"match": {"TAG_NAME": self.TAG_NAME}}
                     ]
                 }
             }
@@ -140,8 +140,8 @@ class ElasticsearchCollector:
             if res['hits']['total']['value'] > 0:
                 doc_id = res['hits']['hits'][0]['_id']
                 log = {
-                    "SYSTEM": system,
-                    "TAG_NAME": TAG_NAME,
+                    "SYSTEM": self.system,
+                    "TAG_NAME": self.TAG_NAME,
                     "inserted_at": datetime.datetime.now(),
                     "status": "started",
                     "config": config
@@ -154,15 +154,15 @@ class ElasticsearchCollector:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def delete_integration(self, system, TAG_NAME):
+    async def delete_integration(self):
         index_name = "integration_info"
         await self.create_index_if_not_exists(index_name)
         query = {
             "query": {
                 "bool": {
                     "must": [
-                        {"match": {"SYSTEM": system}},
-                        {"match": {"TAG_NAME": TAG_NAME}}
+                        {"match": {"SYSTEM": self.system}},
+                        {"match": {"TAG_NAME": self.TAG_NAME}}
                     ]
                 }
             }
@@ -182,7 +182,7 @@ class ElasticsearchCollector:
     async def manage_integration(self, action: str, request):
         if action == "add":
             config = await request.json()
-            await self.save_integration(self.system, self.TAG_NAME, config)
+            await self.save_integration(config)
             fluentd = FluentdDeployment()
             await fluentd.configure_fluentd(config, self.system, self.TAG_NAME)
         elif action == "start":
@@ -190,10 +190,10 @@ class ElasticsearchCollector:
         elif action == "stop":
             await self.update_status("stopped")
         elif action == "delete":
-            await self.delete_integration(self.system, self.TAG_NAME)
+            await self.delete_integration()
         elif action == "update":
             config = await request.json()
-            await self.update_integration(self.system, self.TAG_NAME, config)
+            await self.update_integration(config)
             fluentd = FluentdDeployment()
             await fluentd.configure_fluentd(config, self.system, self.TAG_NAME)
         else:
