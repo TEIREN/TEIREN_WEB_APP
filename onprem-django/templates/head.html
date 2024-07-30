@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
 <!-- Jquery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> -->
+<script src="{% static '/plugin/googleapis/jquery.min.js' %}"></script>
 <script src="{% static '/js/jquery-easing/jquery.easing.min.js' %}"></script>
 
 <!-- Teiren -->
@@ -13,25 +14,28 @@
 <link rel="stylesheet" href="{% static '/css/navbar.css' %}">
 
 <!-- Google Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+<link href="{% static '/plugin/googleapis/googleicon.css' %}" rel="stylesheet">
 
 <!-- Font-Awesome -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" type="text/css">
+<!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" type="text/css"> -->
+<link href="{% static '/plugin/font-awesome/all.min.css' %}" rel="stylesheet" type="text/css">
 
 <!-- NAVER font-->
-<link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet">
+<!-- <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet"> -->
+<link href="{% static '/plugin/naver/naverfonts.css' %}" rel="stylesheet">
 
 <!-- Google font-->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900;1000&display=swap" rel="stylesheet">
+<!-- <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900;1000&display=swap" rel="stylesheet"> -->
+<link href="{% static '/plugin/googleapis/googlefonts.css' %}" rel="stylesheet">
 
 <!-- polyfills so the demo works on old browsers, like IE -->
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.2.20171210/classList.min.js"></script> -->
-<script src="https://unpkg.com/whatwg-fetch@3.0.0/dist/fetch.umd.js"></script>
+<!-- <script src="https://unpkg.com/whatwg-fetch@3.0.0/dist/fetch.umd.js"></script> -->
+<script src="{% static '/plugin/polyfills/fetch.umd.js' %}"></script>
 
 <!-- Lodash.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js"></script> -->
+<script src="{% static '/plugin/lodash/lodash.min.js' %}"></script>
 
 <!-- Bootstrap js -->
 <script src="{% static '/js/bootstrap.bundle.js' %}"></script>
