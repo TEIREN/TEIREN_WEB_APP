@@ -1,4 +1,0 @@
-{
-    "index": 1,
-    "cypher": "match(n) return n limit 5"
-}
