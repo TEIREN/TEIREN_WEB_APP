@@ -49,3 +49,15 @@ def parse_fortigate_log(log_entry):
             value = '='.join(parts[1:])
             log_data[key] = value.strip('"')
     return log_data
+
+# fortigate syslog udp/tcp 수집 시 파싱
+async def fortigate_parse(log:str):
+    clean_log = log[log.find('>') + 1:]
+    log_dict = {}
+    for item in clean_log.split(' '):
+        if '=' in item:
+            key, value = item.split('=', 1)
+            if value.startswith('"') and value.endswith('"'):
+                value = value[1:-1]
+            log_dict[key] = value
+    return log_dict
