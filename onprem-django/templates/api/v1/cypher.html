@@ -1,0 +1,24 @@
+<!-- myapp/templates/myapp/my_page.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Page</title>
+</head>
+<body>
+    <h1>My Page</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="input_text">문자열 입력:</label>
+        <textarea id="cypher" name="cypher" rows="4" cols="50"></textarea>
+        <input type="submit" value="전송">
+    </form>
+    {% if cypher %}
+    <p2>cypher:</p2>
+    <p2>
+        <pre>{{ cypher|safe }}</pre>
+        {% endif %}
+    </p2>
+</body>
+</html>

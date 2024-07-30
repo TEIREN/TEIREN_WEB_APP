@@ -1,0 +1,36 @@
+@font-face {
+    font-family: 'NanumSquareNeoLight';
+    src: url(./naverfonts/NanumSquareNeoTTF-aLt.eot);
+    src: url(./naverfonts/NanumSquareNeoTTF-aLt.eot?#iefix) format("embedded-opentype"), url(./naverfonts/NanumSquareNeoTTF-aLt.woff) format("woff"), url(./naverfonts/NanumSquareNeoTTF-aLt.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: 'NanumSquareNeo';
+    src: url(./naverfonts/NanumSquareNeoTTF-bRg.eot);
+    src: url(./naverfonts/NanumSquareNeoTTF-bRg.eot?#iefix) format("embedded-opentype"), url(./naverfonts/NanumSquareNeoTTF-bRg.woff) format("woff"), url(./naverfonts/NanumSquareNeoTTF-bRg.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: 'NanumSquareNeoBold';
+    src: url(./naverfonts/NanumSquareNeoTTF-cBd.eot);
+    src: url(./naverfonts/NanumSquareNeoTTF-cBd.eot?#iefix) format("embedded-opentype"), url(./naverfonts/NanumSquareNeoTTF-cBd.woff) format("woff"), url(./naverfonts/NanumSquareNeoTTF-cBd.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: 'NanumSquareNeoExtraBold';
+    src: url(./naverfonts/NanumSquareNeoTTF-dEb.eot);
+    src: url(./naverfonts/NanumSquareNeoTTF-dEb.eot?#iefix) format("embedded-opentype"), url(./naverfonts/NanumSquareNeoTTF-dEb.woff) format("woff"), url(./naverfonts/NanumSquareNeoTTF-dEb.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: 'NanumSquareNeoHeavy';
+    src: url(./naverfonts/NanumSquareNeoTTF-eHv.eot);
+    src: url(./naverfonts/NanumSquareNeoTTF-eHv.eot?#iefix) format("embedded-opentype"), url(./naverfonts/NanumSquareNeoTTF-eHv.woff) format("woff"), url(./naverfonts/NanumSquareNeoTTF-eHv.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: 'NanumSquareNeoVariable';
+    src: url(./naverfonts/NanumSquareNeo-Variable.eot);
+    src: url(./naverfonts/NanumSquareNeo-Variable.eot?#iefix) format("embedded-opentype"), url(./naverfonts/NanumSquareNeo-Variable.woff) format("woff"), url(./naverfonts/NanumSquareNeo-Variable.ttf) format("truetype");
+}
+

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<!-- Chart.js-->
+<script src="{% static '/plugin/chart.js/Chart.bundle.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0"></script>
+
+<!-- Cytoscape.js -->
+<script src="{% static '/plugin/cytoscape.js/WebCola/cola.min.js' %}"></script>
+<script src="https://unpkg.com/popper.js@1.14.4/dist/umd/popper.js"></script>
+<script src="https://unpkg.com/tippy.js@2.6.0/dist/tippy.all.js"></script>
+<script src="https://unpkg.com/cytoscape@3.18.0/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/cytoscape-cola@2.2.3/cytoscape-cola.js"></script>
+<script src="https://unpkg.com/cytoscape-popper@1.0.2/cytoscape-popper.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-euler@1.2.2/cytoscape-euler.min.js"></script>
+<script src="https://unpkg.com/bluebird@3.5.2/js/browser/bluebird.js"></script>
+
+<!-- Jquery-ui -->
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<!-- Gridstack -->
+<link rel="stylesheet" href="{% static '/plugin/gridstack/gridstack.css' %}">
+<script src="{% static '/plugin/gridstack/gridstack-all.js' %}"></script>
+
+<!-- Page Essential -->
+<link rel="stylesheet" href="{% static '/configurations/css/dashboard.css' %}">
+{% endblock %}
+{% block content %}
+<div id="layoutInfo">
+    <div id="layoutName" class="text-teiren"></div>
+    <div id="layoutbtns" style="display:none;">
+        <button class="btn btn-md btn-outline-teiren mx-2 ml-auto" onclick="toggleLayoutSidebar()">Select Layout</button>
+        <button class="btn btn-md btn-outline-teiren mx-2" onclick="toggleItemSidebar()">Add Widget</button>
+        <button class="btn btn-md btn-outline-teiren mx-2 mr-auto" onclick="resetLayout()">Reset</button>
+        <button class="btn btn-md btn-outline-teiren savebtn mx-2 ml-auto" onclick="saveLayout()" disabled>Save</button>
+        <button class="btn btn-md btn-outline-teiren" id="defaultCheckbox">Save As Default</button>
+        <button class="btn btn-md btn-outline-teiren savebtn mx-2 mr-auto" data-toggle="modal" data-target="#newLayout-modal" disabled>Save As</button>
+    </div>
+</div>
+<div class="grid-stack"></div>
+<div id="delete-box">Drop here to delete</div>
+<div id="layoutSidebar">        
+    <div class="row mb-2">
+        <h3>Layout</h3>
+        <button class="btn btn-md btn-outline-teiren ml-2" onclick="editLayout()">Setting</button>
+        <button class="closebtn text-danger" onclick="closeSidebar(this)">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </button>
+    </div>
+    <!-- Add more content here -->
+    <div id='layoutList'></div>
+    <button class="btn btn-md btn-teiren" data-toggle="modal" data-target="#newLayout-modal">New Layout</button>
+</div>
+<div id="itemSidebar">        
+    <div class="row mb-2">
+        <h2>Widget</h2>
+        <button class="closebtn text-danger" onclick="closeSidebar(this)">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </button>
+    </div>
+    <!-- Add more content here -->
+    <div id='itemList'></div>
+</div>
+
+<!-- New Layout Modal -->
+<div class="modal fade card-body" id="newLayout-modal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content p-1" style='width:1000px; height:auto'>
+            <div class='d-flex justify-content-end p-3'>
+                <button type="button" class=close data-dismiss="modal" aria-label="Close">x</button>
+            </div>
+            <div class="modal-body justify-content-center text-center" id='detail'>
+                <div class="form-group text-teiren"><h2>Insert Name For New Layout</h2>
+                    <div class="form-group text-dark mt-3 d-flex justify-content-center">
+                        <input type='text' class="form-control w-75" id="newLayoutName" name="newLayoutName" placeholder="Layout Name"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-md btn-teiren" data-dismiss="modal" onclick="newLayout()">Save</button>
+                <button type="button" class="btn btn-md btn-danger" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block script %}
+<script src="{% static '/configurations/js/dashboard.js' %}"></script>
+{% endblock %}

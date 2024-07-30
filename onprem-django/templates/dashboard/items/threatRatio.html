@@ -1,0 +1,24 @@
+<div id="threatRatio">
+    <div class="card border-left-danger shadow">
+        <div class="card-body">
+            <div class="row no-gutters align-items-center">
+                <div class="col p-0 mr-2">
+                    <div class="h7 font-weight-bold text-danger text-uppercase mb-1"><i class='text-xs fas fa-fw fa-exclamation-triangle'></i> Threat Ratio</div>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col-auto p-0">
+                            <div class="p-0 h6 mb-0 mr-3 font-weight-bold text-gray-800">
+                                {{threat_ratio}}%
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="progress progress-sm">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width:{{ threat_ratio }}%"
+                                    aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

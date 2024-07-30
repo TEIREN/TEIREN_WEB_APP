@@ -1,0 +1,59 @@
+{% load static %}
+{% load custom_filter %}
+<div class="searchcard shadow mb-4">
+    <form id="search" onsubmit="querySearch(); return false;">
+        <div class="searchcard-body py-3">
+            {% if query.bool %}
+            <input class="search-input" style="font-size: 15px;"name="query" placeholder="Search" value="{{query.bool|pop:'minimum_should_match'}}"/>
+            {% else %}
+            <input class="search-input" style="font-size: 15px;"name="query" placeholder="Search" value=""/>
+            {% endif %}
+            <button class="btn btn-md btn-search" type="submit">
+                <span class="material-symbols-outlined">
+                    search
+                </span>
+            </button>
+        </div>
+    </form>
+</div>
+<script>
+    function objectifyForm(formArray) {
+        var returnArray = {};
+        for (var i = 0; i < formArray.length; i++){
+            returnArray[formArray[i]['name']] = formArray[i]['value'];
+        }
+        return returnArray;
+    }
+
+    function searchFilter(e){
+        form = e.parentNode.parentNode
+        test = objectifyForm($(form).serializeArray())
+        $.ajax({
+            url: '/test/log/{{system}}/test/',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            type: 'GET',
+            data: $(form).serializeArray()
+        }).done(function(response){
+            console.log(response)
+        })
+    }
+
+    function querySearch(){
+        var data = $('form#search').serialize()+'&'+$('form#filter_form').serialize()
+        $.ajax({
+            url: '',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            data: data,
+            type: 'get'
+        }).done(function(response){
+            $('#log_table').html(response)
+            $('.page-item a').each(function(){
+                $(this).attr('filter', data)
+            })
+        })
+    }
+</script>

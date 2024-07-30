@@ -1,0 +1,129 @@
+<div id='rule_{{count}}' class="rule card-body shadow mt-4" style= "border-radius:20px; display:none;">
+    <div class='row'>
+        <h5 class='text-teiren font-weight-bold ml-3 mt-2'>{{count}}번 째 행위</h5>
+        <div style="margin-left:auto">
+            <button type="button" class="btn btn-md btn-outline-teiren ml-4" style='border-radius:40px' onclick='moveup(this)'><i class="fas fa-arrow-up"></i></button>
+            <button type="button" class="btn btn-md btn-outline-teiren mr-4" style='border-radius:40px' onclick='movedown(this)'><i class="fas fa-arrow-down"></i></button>
+            <button type="button" class="btn btn-md btn-danger" style='border-radius:40px' onclick='delrule(this)'><i class="fas fa-trash-can"></i></button>
+            <button type='button' class='hide text-teiren' style="background-color:transparent; border-color:transparent"
+                onclick='hide(this)'><i class='fas fa-chevron-up'></i>
+            </button>
+            <button type='button' hidden class='show text-teiren' style="background-color:transparent; border-color:transparent"
+                onclick='show(this)'><i class='fas fa-chevron-down'></i>
+            </button>
+        </div>
+    </div>
+    <div class='content'>
+        <button type='button' onclick='changerule("default", this, {{count}}, "{{cloud}}")' class='btn btn-md btn-outline-teiren mt-4' style=''>기본 행위로 변경</button>
+        <div class="form-group text-center">
+            <input type='hidden' name='rule_type_{{count}}' value='new'/>
+            <div class="text-center">
+                <span class='pr-3'>로그 종류</span>
+                <br>
+                <select id='log_type' name='productName_{{count}}' class="btn btn-md" style="background-color:#FFFFFF; border-color:#E5E5E5; width:700px;">
+                    <option>로그 종류</option>
+                    {% for log_type in log_types %}
+                    <option value={{log_type}}>{{log_type}}</option>
+                    {% endfor%}
+                </select>
+            </div>
+        </div>
+        {{ log_properties }}
+        <div class="form-group row text-center">
+            <div class="col-sm-6 mb-sm-1">
+                <span>정책 이름</span>
+                <input type="text-area" class="form-control form-control-user" name="name_{{count}}" placeholder="정책 이름 설정">
+            </div>
+            <div class="col-sm-6">
+                <span>정책 설명</span>
+                <input type="text-area" class="form-control form-control-user" name="comment_{{count}}" placeholder="정책 설명">
+            </div>
+        </div>
+
+        <div class="form-group row text-center">
+            <div class="col-sm-4 mb-1">
+                <span>설정 행위</span>
+                <input type="text" class="form-control form-control-user" name="actionDisplayName_{{count}}" placeholder="ex. Login">
+            </div>
+            <div class="col-sm-4">
+                <span>설정 행위 결과</span>
+                <input type="text" class="form-control form-control-user" name="actionResultType_{{count}}" placeholder="ex. SUCCESS">
+            </div>
+            <div class="col-sm-4">
+                <span>설정 시간</span>
+                <input type="text" class="form-control form-control-user" name="eventTime_{{count}}" placeholder="ex. 0:00~24:00">
+            </div>
+        </div>
+        <div class="form-group row text-center">
+            <div class="col-sm-4 mb-1">
+                <span>설정 국가</span>
+                <input type="text" class="form-control form-control-user" name="clientIpCountry_{{count}}" placeholder="ex. KR">
+            </div>
+            <div class="col-sm-4">
+                <span>설정 IP 대역</span>
+                <input type="text" class="form-control form-control-user" name="sourceIp_{{count}}" placeholder="ex. 192.168.0.0/16">
+            </div>
+            <div class="col-sm-4">
+                <span>설정 사용자 ID</span>
+                <input type="text" class="form-control form-control-user" name="userName_{{count}}" placeholder="ex. USERNAME">
+            </div>
+        </div>
+        <div class="form-group row text-center">
+            <div class="col-sm-4 mb-1">
+                <span>설정 사용자 유형</span>
+                <input type="text" class="form-control form-control-user" name="actionUserType_{{count}}" placeholder="ex. Sub">
+            </div>
+            <div class="col-sm-4">
+                <span>설정 사용자 에이전트</span>
+                <input type="text" class="form-control form-control-user" name="userAgent_{{count}}" placeholder="ex. firefox">
+            </div>
+            <div class="col-sm-4">
+                <span>설정 경로</span>
+                <input type="text" class="form-control form-control-user" name="sourceType_{{count}}" placeholder="ex. PORTAL">
+            </div>
+        </div>
+        <div class="form-group row text-center">
+            <div class="col-sm-4 mb-1">
+                <span>설정 PORT</span>
+                <input type="text" class="form-control form-control-user" name="portRange_{{count}}" placeholder="ex. 433">
+            </div>
+            <div class="col-sm-4">
+                <span>설정 탐지 횟수</span>
+                <input type="text" class="form-control form-control-user" name="count_{{count}}" placeholder="ex. 5">
+            </div>
+            <div class="col-sm-4">
+                <span>설정 사용자 고유번호</span>
+                <input type="text" class="form-control form-control-user" name="subAccountNo_{{count}}" placeholder="ex. 55902">
+            </div>
+        </div>
+        <div class="form-group text-center">
+            <span>설정 탐지 시간</span>
+        </div>
+        <div class="form-group row text-center mb-0">
+            <div class="col-sm-3 mr-auto ml-auto">
+                <input type="text" class="form-control form-control-user " name="days_{{count}}" placeholder="ex. 0">일
+            </div>
+            <div class="col-sm-3 mr-auto ml-auto">
+                <input type="text" class="form-control form-control-user " name="hours_{{count}}" placeholder="ex. 0">시간
+            </div>  
+            <div class="col-sm-3 mr-auto ml-auto">
+                <input type="text" class="form-control form-control-user " name="minutes_{{count}}" placeholder="ex. 30">분
+            </div>  
+            <div class="col-sm-3 mr-auto ml-auto">
+                <input type="text" class="form-control form-control-user " name="seconds_{{count}}" placeholder="ex. 0">초
+            </div>  
+        </div>
+        <br>
+        <div class="form-group row text-center">
+            <div class="col-sm-6">
+                <span>알림 대상 E-mail 1</span>
+                <input type="text" class="form-control form-control-user" name="alert_email1_{{count}}" placeholder="ex. bob11@bob.com">
+            </div>
+            <div class="col-sm-6">
+                <span>알림 대상 E-mail 2</span>
+                <input type="text" class="form-control form-control-user" name="alert_email2_{{count}}" placeholder="ex. bob11@bob.com">
+            </div>
+        </div>
+        <br>
+    </div>
+</div>

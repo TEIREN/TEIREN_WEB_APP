@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="locationbar ml-2">
+    <span>Resource Management &nbsp;&nbsp;>&nbsp;&nbsp;Integreation &nbsp;&nbsp;>&nbsp;&nbsp;<a href="/integration/registration/">Registration</a> &nbsp;&nbsp;>&nbsp;&nbsp;Fortinet &nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">Fortigate NGFW<span>
+</div>
+<div>
+    <!-- Page Heading -->
+    <h6 class="h3 mb-2 ml-2 font-weight-bold text-gray-800">Integrate Fortigate</h6>
+    <p class="h6 mb-4 ml-2">Integrate Fortigate Logs To Teiren Cloud</p>
+    <!-- Begin Page Content -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <div style="float: left">
+                <h6 class="m-0 font-weight-bold text-danger">
+                    Verify Fortigate Account
+                </h6>
+            </div>
+        </div>
+        <div class="card-body" style="font-size:12px">
+            <form method="POST" id='account_form'>
+                <div class="form-group text-danger">Fortigate API KEY
+                    <div class="form-group text-dark">
+                        <input type='text' class="form-control" id="access_key" name="access_key" placeholder="Fortigate API KEY">
+                    </div>
+                </div>
+                <input type="button" class="btn btn-outline-primary" onclick="register()" id='form-check' value="Confirm Fortigate Information"/>
+            </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    function register(){
+        $.ajax({
+            url: 'insert/',
+            headers:{
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            type: 'post',
+            data: $('#account_form').serialize()
+        }).done(function(response){
+            alert(response)
+            if(response.startsWith('{"message"')){
+                location.reload()
+            }
+        })
+    }
+</script>
+{% endblock %}

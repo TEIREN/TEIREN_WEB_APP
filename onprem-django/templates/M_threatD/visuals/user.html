@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<!-- Cytoscape.js -->
+<script src="{% static '/plugin/cytoscape.js/WebCola/cola.min.js' %}"></script>
+<!-- <script src="https://unpkg.com/popper.js@1.14.4/dist/umd/popper.js"></script>
+<script src="https://unpkg.com/tippy.js@2.6.0/dist/tippy.all.js"></script>
+<script src="https://unpkg.com/cytoscape@3.18.0/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/cytoscape-cola@2.2.3/cytoscape-cola.js"></script>
+<script src="https://unpkg.com/cytoscape-popper@1.0.2/cytoscape-popper.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-euler@1.2.2/cytoscape-euler.min.js"></script>
+<script src="https://unpkg.com/bluebird@3.5.2/js/browser/bluebird.js"></script> -->
+
+<script src="{% static '/plugin/cytoscape.js/popper.js/popper.js' %}"></script>
+<script src="{% static '/plugin/cytoscape.js/tippy.js/tippy.all.js' %}"></script>
+<script src="{% static '/plugin/cytoscape.js/cytoscape.min.js' %}"></script>
+<script src="{% static '/plugin/cytoscape.js/cytoscape-cola.js' %}"></script>
+<script src="{% static '/plugin/cytoscape.js/cytoscape-popper.js' %}"></script>
+<script src="{% static '/plugin/cytoscape.js/cytoscape-euler.min.js' %}"></script>
+<script src="{% static '/plugin/cytoscape.js/bluebird.js/bluebird.js' %}"></script>
+<!-- Page Essential -->
+{% endblock %}
+{% block content %}
+<div class="locationbar ml-2">
+    <span>Threat Management &nbsp;&nbsp;>&nbsp;&nbsp;Visualization &nbsp;&nbsp;>&nbsp;&nbsp; </span>
+    <span class="current">User Analysis <span>
+</div>
+<div>
+    <h6 class="h3 mb-2 font-weight-bold text-gray-800 ml-2">
+        User Analysis
+    </h6>
+    <p class="h6 mb-4 ml-2">
+        Discover User Centered Threat Detection
+    </p>
+
+    <!-- 그래프 출력 -->
+    <div class="card shadow mb-4 ">
+        <div class="card-header py-3 ">
+            <h6 class="m-0 font-weight-bold text-teiren ">User Graph Analysis</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" style="overflow:hidden;font-size:15px;">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="text-align:center;font-size:15px;">
+                    <thead>
+                        <th>Resource</th>
+                        <th>Account</th>
+                        <th>Detection Count</th>
+                        <th>Recent Detection</th>
+                        <th>Recent Event</th>
+                        <th>Recent EventTime</th>
+                        <th>Details</th>
+                    </thead>
+                    <tfoot>
+                        <th>Resource</th>
+                        <th>Account</th>
+                        <th>Detection Count</th>
+                        <th>Recent Detection</th>
+                        <th>Recent Event</th>
+                        <th>Recent EventTime</th>
+                        <th>Details</th>
+                    </tfoot>
+                    <tbody>
+                        {% if accounts %}
+                        {% for account in accounts %}
+                        <tr>
+                            {% for key, value in account.items %}
+                                {% if  key == 'account_real' %}
+                                {% else %}
+                                    <td>{{value}}</td>
+                                {% endif %}
+                            {% endfor %}
+                            <td>
+                                {% if account.account_real != '-' %}
+                                    <button type=button class='btn btn-outline-teiren btn-md' data-resource="{{account.resource}}" data-total="{{account.total}}" onclick='details(this); return false;' value="{{account.account_real}}" data-toggle='modal' data-target='#account_modal'>Graph Details</button>
+                                {% else %}
+                                    <button type=button class='btn btn-outline-teiren btn-md' data-resource="{{account.resource}}" data-total="{{account.total}}" onclick='details(this); return false;' value={{account.account}} data-toggle='modal' data-target='#account_modal'>Graph Details</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- MODAL -->
+<div class="modal fade card-body" id="account_modal" style='overflow-y:auto' aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p-1" style='width:1200px; height:auto'>
+            <div class='d-flex justify-content-end p-3'>
+                <button type="button" class=close data-dismiss="modal" aria-label="Close">x</button>
+            </div>
+            <div class="modal-body justify-content-center" id='account_body'>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-md btn-teiren" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal hide fade card-body" id="rule_modal" style='overflow-y:auto' aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p-1" style='width:1200px; height:auto'>
+            <div class='d-flex justify-content-end p-3'>
+                <button type="button" class="close rule" onclick="btdetails(this)" data-dismiss="modal" data-toggle="modal" data-target="#account_modal" aria-label="Close">
+                    <i class='fas fa-arrow-left'></i>
+                </button>
+            </div>
+            <div class="modal-body justify-content-center" style="height:600px" id='rule_body'>
+            </div>
+            <div class="p-3">
+                <form id="rule_form" method="post" action="/threat/notifications/details/">
+                    {% csrf_token %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-md btn-teiren rule" onclick="btdetails(this)" data-dismiss="modal" data-toggle="modal" data-target="#account_modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    function details(e) {
+        $('#account_body').html('<div id="loader" class="spinner-border text-teiren" style="margin:100px 100px 100px 580px"></div>')
+        $.ajax({
+            url: 'details/',
+            headers:{
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            data: {
+                account: e.value,
+                resource: $(e).data('resource'),
+                total: $(e).data('total')
+            },
+            type: 'post',
+        }).done(function(data) {
+            console.log(data)
+            // console.log(data)
+            setTimeout(() => {
+                $('#loader').fadeOut()
+                setTimeout(() => {
+                    $('#account_body').html(data).hide().fadeIn()
+                }, 1000);
+            }, 1000);
+        })
+    }
+    function btdetails(e) {
+        $('#rule_body').children().remove()
+        details(e)
+    }
+</script>
+<script type="text/javascript">
+    $(function() {
+        $("#dataTable").DataTable({
+            destroy: false,
+            // 표시 건수기능 숨기기
+            lengthChange: true,
+            // 검색 기능 숨기기
+            searching: false,
+            // 정렬 기능 숨기기
+            ordering: false,
+            // 정보 표시 숨기기
+            info: true,
+            // 페이징 기능 숨기기
+            paging: true
+        });
+        $('#threat_side').addClass('active')
+    });
+</script>
+{% endblock %}

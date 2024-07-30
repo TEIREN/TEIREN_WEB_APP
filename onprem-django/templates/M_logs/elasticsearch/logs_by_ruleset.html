@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filter %}
+
+{% block head %}
+<!-- 페이지 필수 스타일 -->
+<link rel="stylesheet" href="{% static '/M_threatD/css/dynamic.css' %}">
+<link rel="stylesheet" href="{% static '/css/tab.css' %}">
+<link rel="stylesheet" href="{% static '/M_logs/css/searchcard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="locationbar ml-2">
+    <span>Log Management &nbsp;&nbsp;>&nbsp;&nbsp; Logs &nbsp;&nbsp;>&nbsp;&nbsp; {{system}}  &nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">{{ruleset_name|title}}<span>
+</div>
+<div>
+    <!-- 페이지 헤딩 -->
+    <h6 class="h3 font-weight-bold mb-2 text-gray-800 ml-2">{{system}} Log &nbsp;&nbsp;>&nbsp;&nbsp; <span class="text-teiren">{{ruleset_name|title}}<span></h6>
+    <p class="h6 mb-4 ml-2">{{system}} Integrated Logs filtered by [ {{ruleset_name}} ]</p>
+    {% include "./ruleset_details.html" %}
+    {% include "./search_filter.html" %}
+    <div class="row justify-content-between">
+        {% include "./filter_sidebar.html" %}
+        <div class="card shadow mb-4 ml-auto" id="log_table" style="width:84%;">
+            {% include "./log_table.html" %}
+        </div>
+    </div>
+</div>
+
+<div class="modal hide fade card-body" id="table_property_setting" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style='width:700px; height:auto'>
+            <div class="modal-header">
+                <h5 class="m-0 font-weight-bold text-teiren" id='modal_title'>Table Property Settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                </button>
+            </div>
+            <div class="modal-body card-body" style="font-size:12px;">
+                <form id="table_properties_form" enctype="multipart/form-data">
+                    <div>
+                        {% if table_properties|length > 0 %}
+                            {% for property in table_properties %}
+                            <div class="row align-items-center my-4" style="font-size: 18px;">
+                                <span class="ml-3">{{forloop.counter}}</span>
+                                <input type="text" class="form-control ml-3" style="width:90%;" name="properties" value="{{property}}">
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="row align-items-center my-4" style="font-size: 18px;">
+                                <span class="ml-3">1.</span>
+                                <input type="text" class="form-control ml-3" style="width:90%;" name="properties" value=''>
+                            </div>
+                        {% endif %}
+                    </div>
+                </form>
+                <div class="row align-items-center my-4" style="font-size: 18px;">
+                    <button class="btn btn-md btn-outline-teiren" style="border-radius:20px" onclick="addPropertyList()">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <input type="text" class="form-control ml-3" style="width:90%;" name="properties" value='' disabled>
+                </div>
+            </div>
+            <div class="modal-footer" id="modal_footer">
+                <button type='submit' id='modify' class="btn btn-md btn-outline-teiren" onclick="saveTableProperty()">Save Properties</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>
+    function displayLogData(e){
+        $(`#log_data_trunc_${e}`).hide()
+        $(`#log_data_${e}`).slideDown()
+    }
+
+    function hideLogData(e){
+        $(`#log_data_${e}`).slideUp('fast')
+        $(`#log_data_trunc_${e}`).show()
+    }
+
+    function addPropertyList(){
+        var count = $('form#table_properties_form').find('input').length + 1
+        
+        $($('form#table_properties_form div')[0]).append(`
+            <div class="row align-items-center my-4" style="font-size: 18px;">
+                <span class="ml-3">${count}.</span>
+                <input type="text" class="form-control ml-3" style="width:90%;" name="properties" value=''>
+            </div>
+        `)
+    }
+
+    function saveTableProperty(){
+        $.ajax({
+            url:`/test/log/{{system}}/property/save/`,
+            data: $('form#table_properties_form').serialize(),
+            type: 'get'
+        }).done(function(response){
+            alert(response)
+            if(response.startsWith('Success')){
+                location.reload()
+            }
+        })
+    }
+</script>
+{% endblock script %}

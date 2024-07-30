@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<!-- Page Essential -->
+<link rel="stylesheet" href="{% static '/M_threatD/css/dynamic.css' %}">
+{% endblock %}
+{% block content %}
+<div id="dynamic_flow" class="card-body shadow mt-4" style="font-size:12px;border-radius:20px;/* display: none; */">
+    <div class="row">
+        <h5 class="text-teiren font-weight-bold ml-3 my-2">Dynamic Detection Configuration</h5>
+        <div class="ml-auto">
+            <button type="button" class="btn btn-md btn-outline-teiren" style="border-radius:40px"
+                onclick="dynamicRule()">Back to Flow Detection List</button>
+        </div>
+    </div>
+    <div id="flow_content">
+
+
+
+        <div class="flow" id="flow_1">
+            <div class="dynamic_detection">
+                <table id="dataTable" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Dynamic Detection No</th>
+                            <th>Name</th>
+                            <th colspan="2">Comment</th>
+                            <th colspan="2">Property : Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>No</td>
+                            <td>No</td>
+                            <td colspan="2">No</td>
+                            <td colspan="2">
+                                <table class="property-table">
+                                    <tr>
+                                        <td>
+                                            <span class="text-teiren">fff: </span>
+                                            <span>ddd</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>No</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
+            Dynamic Detection1
+            <br>
+
+            recipientAccountId: test
+            <br>
+
+            <br>
+
+            Dynamic Detection2
+            <br>
+
+            tste: test
+            <br>
+
+            <br>
+
+
+            <div class="form-group row text-center">
+                <div class="col-10 text-teiren">
+                    <h6>Dynamic Detection 1</h6>
+                </div>
+            </div>
+            <div class="form-group row text-center">
+                <div class="col-2">
+                    <span>Flow Detection</span>
+                    <select type="text-area" class="form-control form-control-user" name="flow_srcNum_1">
+
+                        <option value="log1">1</option>
+
+                        <option value="log2">2</option>
+
+                    </select>
+                </div>
+                <div class="col-3">
+                    <span>Detection Property</span>
+                    <input type="text-area" class="form-control form-control-user" list="flow_src_property_list_1"
+                        name="flow_srcProperty_1">
+                    <datalist id="flow_src_property_list_1">
+
+                        <option value="managementEvent">managementEvent</option>
+
+                    </datalist>
+                </div>
+                <div class="col-1 px-0">
+                    <select name="flow_op_1" class="btn btn-md mt-3 pl-0"
+                        style="background-color:#FFFFFF; border-color:#E5E5E5; width:100%;">
+                        <option>=</option>
+                        <option>&lt;&gt;</option>
+                        <option>CONTAINS</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <span>Flow Detection</span>
+                    <select type="text-area" class="form-control form-control-user" name="flow_dstNum_1">
+
+                        <option value="log1">1</option>
+
+                        <option value="log2">2</option>
+
+                    </select>
+                </div>
+                <div class="col-3">
+                    <span>Detection Property</span>
+                    <input type="text-area" class="form-control form-control-user" list="flow_dst_property_list_1"
+                        name="flow_dstProperty_1">
+                    <datalist id="flow_dst_property_list_1">
+
+                        <option value="requestParameters_targets_1_input">requestParameters_targets_1_input</option>
+
+
+                    </datalist>
+                </div>
+                <div class="col-1 d-flex align-items-center px-0">
+                    <button type="button" class="btn btn-teiren btn-sm ml-auto mr-auto" style="border-radius:40px"
+                        onclick="addFlow()">+</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="button" class="btn btn-block btn-teiren mt-3" onclick="addNewDynamicRule()">Add Dynamic Rule</button>
+</div>
+
+{% endblock %}
