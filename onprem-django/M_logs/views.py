@@ -9,7 +9,7 @@ def log_view(request, resourceType, logType):
     if logType in ['aws', 'teiren_cloud']:
         if request.method == 'POST':
             with DashboardLogHandler(request=request) as lhandler:
-                context = (lhandler.get_log_page(logType.split(' ')[0]))
+                context = (lhandler.get_log_page(logType.split('_')[0]))
                 return render(request,f"M_logs/dataTable.html",context)
         else:
             with DashboardLogHandler(request=request) as lhandler:

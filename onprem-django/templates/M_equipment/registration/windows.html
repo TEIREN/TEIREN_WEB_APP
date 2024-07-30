@@ -21,6 +21,16 @@
         <div class="card-body" style="font-size:12px">
             <form method="POST" id='account_form' action="/integration/windows/eventlog/insert/" target="_blank">
                 {% csrf_token %}
+                <div class="form-group font-weight-bold text-teiren">Teiren Cloud Server IP
+                    <div class="form-group text-dark">
+                        <input type='text' class="form-control" id="server_ip" name="server_ip" placeholder="Teiren Cloud Server IP">
+                    </div>
+                </div>
+                <div class="form-group font-weight-bold text-teiren">TAG NAME
+                    <div class="form-group text-dark">
+                        <input type='text' class="form-control" id="tag_name" name="tag_name" placeholder="Linux TAG NAME">
+                    </div>
+                </div>
                 <input type="submit" class="btn btn-outline-primary" id='form-check' value="Download Windows Integration File"/>
             </form>
             </div>

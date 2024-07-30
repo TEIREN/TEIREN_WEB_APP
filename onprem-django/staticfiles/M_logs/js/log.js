@@ -68,7 +68,7 @@ function searchFilter(e) {
         data = $('#search').serialize() + `&page=${e}&logType=${logType}`
     }
     $.ajax({
-        url: `/logs/${resourceType}/filter/`,
+        url: `/logs/${resourceType}/${logType}/filter/`,
         headers: {
             'X-CSRFToken': getCookie()
         },
