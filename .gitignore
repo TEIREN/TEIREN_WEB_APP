@@ -175,3 +175,7 @@ cython_debug/
 
 #log
 nohup.out
+
+# python 
+search_log.py
+del_log.py
