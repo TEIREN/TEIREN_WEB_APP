@@ -27,7 +27,7 @@ class FortinetIntegration:
         #     if val == '':
         #         return 'Please Insert All Required Items.'
         # return 'api'
-        return {"error": "API Integration Not Ready. Please use Network Transmission."}
+        return {"error": "API Integration Not Ready. Please Use Network Transmission."}
     
     # Elasticsearch Server에 연동하기 (TCP/UDP => fluentd)
     def insert_network(self):

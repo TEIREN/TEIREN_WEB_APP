@@ -19,7 +19,7 @@
             </div>
         </div>
         <div class="card-body" style="font-size:12px">
-            <form method="POST" id='account_form' action="/integration/windows/eventlog/insert/" target="_blank">
+            <form method="POST" id='agent_form'>
                 {% csrf_token %}
                 <div class="form-group font-weight-bold text-teiren">Teiren Cloud Server IP
                     <div class="form-group text-dark">
@@ -31,10 +31,44 @@
                         <input type='text' class="form-control" id="tag_name" name="tag_name" placeholder="Windows TAG NAME">
                     </div>
                 </div>
-                <input type="submit" class="btn btn-outline-primary" id='form-check' value="Download Windows Integration File"/>
+                <input type='hidden' id="integration_type" name="integration_type" value="agent">
+                <input type="button" class="btn btn-outline-primary" onclick="register('agent_form')" value="Download Windows Integration File"/>
             </form>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+{% block script %}
+<script>
+    function register(win_form){
+        $.ajax({
+            url: 'insert/',
+            headers:{
+                'X-CSRFToken': '{{csrf_token}}'
+            },
+            type: 'post',
+            data: $(`#${win_form}`).serialize()
+        }).done(function(response){
+            try{
+                if ('error' in JSON.parse(response)){
+                    alert(JSON.parse(response).error)
+                } else {
+                    throw new Error
+                }
+            } catch {
+                const blob = new Blob([JSON.parse(response).file], { type: 'application/octet-stream' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'teiren_windows_setup.ps1';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                alert(JSON.parse(response).message)
+            }
+        })
+    }    
+</script>
 {% endblock %}

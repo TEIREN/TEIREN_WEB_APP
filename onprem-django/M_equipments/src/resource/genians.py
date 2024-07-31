@@ -12,9 +12,8 @@ class GeniansIntegartion:
         self.request =
         {'server_ip': '', 'dst_port': '', 'tag_name': ''}
         """
-        for key, val in self.request.items():
-            if val == '':
-                return {"error": "Please Insert All Required Items."}
+        if any(val == '' for val in self.request.values()):
+            return {"error": "Please Insert All Required Items."}
         return self.insert_network()
     
     # Elasticsearch Server에 연동하기 전에 예외처리 및 파싱 (API)
@@ -27,7 +26,7 @@ class GeniansIntegartion:
         #     if val == '':
         #         return 'Please Insert All Required Items.'
         # return 'api'
-        return {"error": "API Integration Not Ready. Please use Network Transmission."}
+        return {"error": "API Integration Not Ready. Please Use Network Transmission."}
     
     # Elasticsearch Server에 연동하기 (TCP/UDP => fluentd)
     def insert_network(self):

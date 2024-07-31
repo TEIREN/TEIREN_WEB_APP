@@ -24,7 +24,7 @@ class MSSQLIntegartion:
             {'access_key': '', 'dst_port': '', 'tag_name': ''}
         """
         print(self.request)
-        return {"error": "Account Integration Not Ready. Please use Network Transmission."}
+        return {"error": "Account Integration Not Ready. Please Use Network Transmission."}
     
     # Elasticsearch Server에 연동하기 (TCP/UDP => fluentd)
     def insert_network(self):
