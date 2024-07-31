@@ -23,11 +23,12 @@ def windows_insert(request):
     
     # 파일 열어서 변수값 수정
     file_path = os.path.join(settings.BASE_DIR, 'staticfiles', 'M_equipment', 'setup','setup_win.ps1')
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         context = ''.join(file.readlines())
         context = context.replace("{teiren_server_ip}", config['server_ip'])
         context = context.replace("{tag_name}", config['tag_name'])
         context = context.encode('utf-8')
+        
     
     # 다운로드 가능한 파일로 return       
     filename = "teiren_windows_setup.ps1"

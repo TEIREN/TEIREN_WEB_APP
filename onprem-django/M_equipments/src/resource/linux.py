@@ -19,9 +19,11 @@ def linux_insert(request):
                 return 'Please Insert Correct Server IP'
             elif value != '':
                 config[item] = value
+                
         # FastAPI를 통해서 integration_info index에 잘 들어가는지 확인 
         if linux_check() == "fail":
             raise Exception
+        
         file_path = os.path.join(settings.BASE_DIR, 'staticfiles', 'M_equipment', 'setup','setup_linux.sh')
         with open(file_path, 'r') as file:
             context = ''.join(file.readlines())
@@ -39,7 +41,7 @@ def linux_insert(request):
         print(e)
         return 'Wrong Configurations. Please Try Again'
 
-##### 현우야 여기에서 integration 잘 되는지 안 되는지 확인하는 코드 작성해주세요
+##### 예외처리 / "/collector/{action}/{system}/{TAG_NAME}" 에 보내기
 def linux_check():
     pass
 
