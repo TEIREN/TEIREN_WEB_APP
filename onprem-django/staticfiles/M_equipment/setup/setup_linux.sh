@@ -33,7 +33,7 @@ template(name="json-template"
 EOF
 
 cat << EOF | sudo tee /etc/rsyslog.d/60-fluentd.conf
-*.*	@@localhost:5140;json-template
+*.*	@@localhost:{agent_port};json-template
 EOF
 
 sudo systemctl restart rsyslog

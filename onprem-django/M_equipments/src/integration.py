@@ -9,6 +9,7 @@ from .resource.windows import windows_insert
 from .resource.genians import genians_insert
 from .resource.transmission import transmission_insert
 from .resource.mssql import mssql_insert
+from .resource.mysql import mysql_insert
 
 from common.dockerHandler.handler import DockerHandler
 from common.neo4j.handler import Neo4jHandler

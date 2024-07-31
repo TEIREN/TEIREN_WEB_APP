@@ -1,46 +1,83 @@
 import os
 import requests
-import random
-import string
-import tempfile
-from django.http import FileResponse, HttpResponse
+import json
 from django.conf import settings
 
-def windows_insert(request):
-    config = {
-            'server_ip':'', 
-            'tag_name': f'windows_{''.join(random.choices(string.ascii_letters, k=5))}'.lower()
+class WindowsIntegration:
+    def __init__(self, request: dict):
+        self.integration = request.pop('integration_type', '')
+        self.request = request
+    
+    def check_agent(self):
+        try:
+            if any(val == '' for val in self.request.values()):
+                return {"error": "Please Insert All Required Items."}
+            
+            return self.insert_agent()
+        except Exception as e:
+            print(e)
+            return {"error": "Wrong Agent Configurations. Please Try Again"}
+    
+    def check_network(self):
+        return {"error": "Network Transmission Integration Not Ready. Please Use Network Transmission."}
+    
+    def insert_agent(self):
+        try:
+            url = f"http://{self.request['server_ip']}/windows/{self.request['tag_name']}"
+            headers = {
+                "Context-Type": "application/json"
+            }
+            data = {
+                "teiren_server_ip": self.request['server_ip'],
+                "tag_name": self.request['tag_name'],
+                "integration_type": self.integration
+            }
+            # result = requests.post(url=url, headers=headers, data=data)
+            # print(result)
+            return self.download_agent()
+        except Exception as e:
+            print(e)
+            return {"error": "Wrong Agent Configurations. Please Try Again"}
+        
+    def download_agent(self):
+        message_data = {
+            "Teiren Server IP": self.request['server_ip'],
+            "Tag Name": self.request['tag_name']
         }
-    for item in ['server_ip','tag_name']:
-        value = request.POST.get(item, '')
-        if value == '' and item == 'server_ip':
-            return 'Please Insert Server IP'
-        elif value != '':
-            config[item] = value
-    # FastAPI를 통해서 integration_info index에 잘 들어가는지 확인 
-    if windows_check() == "fail":
-        raise Exception
-    
-    # 파일 열어서 변수값 수정
-    file_path = os.path.join(settings.BASE_DIR, 'staticfiles', 'M_equipment', 'setup','setup_win.ps1')
-    with open(file_path, 'r') as file:
-        context = ''.join(file.readlines())
-        context = context.replace("{teiren_server_ip}", config['server_ip'])
-        context = context.replace("{tag_name}", config['tag_name'])
-        context = context.encode('utf-8')
-    
-    # 다운로드 가능한 파일로 return       
-    filename = "teiren_windows_setup.ps1"
-    temp = tempfile.NamedTemporaryFile(delete=False)
-    # temp = tempfile.NamedTemporaryFile(suffix=".sh")
-    temp.write(context)
-    temp.close()
-    return FileResponse(open(temp.name, 'rb'), as_attachment=True, filename=filename)
+        try:
+            file_path = os.path.join(settings.BASE_DIR, 'staticfiles', 'M_equipment', 'setup','setup_win.ps1')
+            with open(file_path, 'r', encoding='utf-8') as file:
+                context = ''.join(file.readlines())
+                context = context.replace("{teiren_server_ip}", self.request['server_ip'])
+                context = context.replace("{tag_name}", self.request['tag_name'])
+            
+            
+            return {"message": f"Succcessfully Integrated Windows Eventlog: \n{message_data}", "file": context}
+        except Exception as e:
+            print(e)
+            return {"error": f"Failed to Integrate Windows Eventlog: \n{message_data}"}
 
+def windows_insert(request):
+    try:
+        if request.POST.get('integration_type', '') == '':
+            return 'Please reload the page and try again.'
+        integration =  WindowsIntegration(request=request.POST.dict())
+        response = getattr(integration, f'check_{integration.integration}')()
+    except Exception as e:
+        print(e)
+        response = {"error": 'Wrong Configurations. Please Try Again'}
+    finally:
+        return json.dumps(response)
+        
+    
+    # # 다운로드 가능한 파일로 return       
+    # filename = "teiren_windows_setup.ps1"
+    # temp = tempfile.NamedTemporaryFile(delete=False)
+    # # temp = tempfile.NamedTemporaryFile(suffix=".sh")
+    # temp.write(context)
+    # temp.close()
+    # return FileResponse(open(temp.name, 'rb'), as_attachment=True, filename=filename)
 
-##### 현우야 여기에서 integration 잘 되는지 안 되는지 확인하는 코드 작성해주세요
-def windows_check():
-    pass
 
 
 # import requests
