@@ -102,12 +102,12 @@
                         <a class="collapse-item dark disabled" href="/logs/database/mysql/" style="display:none;">
                             MYSQL
                         </a>
-                        <a class="collapse-item dark disabled" href="/logs/database/mysql/" style="display:none;">
+                        {% comment %} <a class="collapse-item dark disabled" href="/logs/database/mysql/" style="display:none;">
                             MongoDB
                         </a>
                         <a class="collapse-item dark disabled" href="/logs/database/mysql/" style="display:none;">
                             Amazon S3
-                        </a>
+                        </a> {% endcomment %}
                     </div>
                     <div class="divider"></div>
                     <div class="item-toggle">
@@ -132,12 +132,12 @@
                                 expand_more
                             </span>
                         </button>
-                        <a class="collapse-item" href="/logs/system/window_eventlog/" style="display:none;">
+                        {% comment %} <a class="collapse-item" href="/logs/system/window_eventlog/" style="display:none;">
                             Network Transmission Logs
                         </a>
                         <a class="collapse-item dark disabled" href="/logs/system/linux_syslog/" style="display:none;">
                             SNMP Logs
-                        </a>
+                        </a> {% endcomment %}
                     </div>
                 </div>
             </li>
@@ -227,9 +227,9 @@
                         <a class="collapse-item" href="/threat/rules/cloud/aws/" style="display:none;">
                             AWS Rules
                         </a>
-                        <a class="collapse-item" href="/threat/rules/solution/teiren_cloud/" style="display:none;">
+                        {% comment %} <a class="collapse-item" href="/threat/rules/solution/teiren_cloud/" style="display:none;">
                             Teiren Cloud Rules
-                        </a>
+                        </a> {% endcomment %}
                         <a class="collapse-item" href="/threat/rules/system/linux/" style="display:none;">
                             Linux Rules
                         </a>
