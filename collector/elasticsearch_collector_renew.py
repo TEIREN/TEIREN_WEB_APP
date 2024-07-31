@@ -34,7 +34,7 @@ class ElasticsearchCollector:
             await self.es.indices.create(index=index_name)
 
     async def collect_logs(self, request, client_ip):
-        try : 
+        try:
             if self.system == "fluentd":
                 index_name = f"{self.TAG_NAME}_syslog"
             else:
@@ -48,9 +48,8 @@ class ElasticsearchCollector:
                 response = await self.es.index(index=index_name, document=log)
 
             return {"message": f"{self.TAG_NAME.title()} Log received successfully"}
-        
-        except :
-            raise HTTPException(status_code=500, detail=str("no logs found"))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error while collecting logs: {str(e)}")
 
     async def save_integration(self, config):
         index_name = "integration_info"
@@ -180,10 +179,12 @@ class ElasticsearchCollector:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def manage_integration(self, action: str, request):
+        config = await request.json()
+        if config['new_log_tag'] != self.TAG_NAME:
+            raise HTTPException(status_code=400, detail="TAG_NAME과 new_log_tag 값이 동일하여야 합니다.")
+        fluentd = FluentdDeployment()
         if action == "add":
-            config = await request.json()
             await self.save_integration(config)
-            fluentd = FluentdDeployment()
             await fluentd.configure_fluentd(config, self.system, self.TAG_NAME)
         elif action == "start":
             await self.update_status("started")
@@ -192,9 +193,7 @@ class ElasticsearchCollector:
         elif action == "delete":
             await self.delete_integration()
         elif action == "update":
-            config = await request.json()
             await self.update_integration(config)
-            fluentd = FluentdDeployment()
             await fluentd.configure_fluentd(config, self.system, self.TAG_NAME)
         else:
             raise HTTPException(status_code=400, detail="Invalid action or missing config for update")

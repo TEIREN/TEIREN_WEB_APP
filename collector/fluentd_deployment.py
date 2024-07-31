@@ -9,7 +9,6 @@ class FluentdDeployment:
     async def configure_fluentd(self, config, system, TAG_NAME):
         if config['new_log_tag'] != TAG_NAME:
             raise HTTPException(status_code=400, detail="TAG_NAME과 new_log_tag 값이 동일하여야 합니다.")
-        
         if system == 'genian':
             new_conf_text = self._genian_conf(config)
         elif system == 'fortigate':
@@ -98,7 +97,7 @@ class FluentdDeployment:
 """
 
     def _default_conf(self, config):
-        new_endpoint = f"http://localhost:8088/{config['new_log_tag']}"
+        new_endpoint = f"http://localhost:8088/collect_log/fluentd/{config['new_log_tag']}"
         return f"""
 <source>
   @type {config['new_protocol']}
