@@ -77,6 +77,9 @@ class ElasticsearchCollector:
             raise HTTPException(status_code=500, detail=f"Error while collecting logs: {str(e)}")
 
     async def save_integration(self, config):
+        if 'new_log_tag' in config and config['new_log_tag'] != self.TAG_NAME:
+            raise HTTPException(status_code=400, detail="TAG_NAME과 new_log_tag 값이 동일하여야 합니다.")
+        
         index_name = "integration_info"
         await self.create_index_if_not_exists(index_name)
         query = {
@@ -246,10 +249,6 @@ class ElasticsearchCollector:
         print(f"Managing integration with action: {action}, system: {self.system}, TAG_NAME: {self.TAG_NAME}")
         print("==================")
 
-        if self.system not in ['linux', 'windows', 'fortigate']:
-            if config['new_log_tag'] != self.TAG_NAME:
-                raise HTTPException(status_code=400, detail="TAG_NAME과 new_log_tag 값이 동일하여야 합니다.")
-
         client_ip = request.client.host
         client_hostname = self.get_hostname(client_ip)
 
@@ -299,4 +298,3 @@ class ElasticsearchCollector:
             print(f"Error managing integration: {str(e)}")
             print("==================")
             raise HTTPException(status_code=500, detail=f"Error managing integration: {str(e)}")
-

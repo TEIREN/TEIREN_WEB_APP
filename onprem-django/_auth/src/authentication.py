@@ -26,10 +26,10 @@ class AuthTrigger(Neo4jHandler):
         super().__init__()
 
 def login_success(userName, srcip, db_name):
-    dstip = get_server_ip()
+    dstip = '127.0.0.1' # get_server_ip()
     query = f"""
     MATCH (a:Account:Teiren{{
-        userName: '{userName}'
+         userName: '{userName}'
     }})
     SET a.failCount = 0
     WITH a
@@ -72,7 +72,7 @@ def login_success(userName, srcip, db_name):
 def login_fail(userName, srcip):
     user = get_user_model().objects.get(username=userName)
     db_name = user.db_name
-    dstip = get_server_ip()
+    dstip = '127.0.0.1' # get_server_ip()
     
     query = f"""
     MATCH (a:Account:Teiren{{
@@ -122,7 +122,7 @@ def logout_success(sender, request, **kwargs):
     with GraphDatabase.driver(URI, auth=(USER, PW)) as driver:
         with driver.session(database=db_name) as session:
             srcip = get_client_ip(request)
-            dstip = get_server_ip()
+            dstip = '127.0.0.1' # get_server_ip()
             
             query = f"""
             MATCH (a:Account:Teiren{{
