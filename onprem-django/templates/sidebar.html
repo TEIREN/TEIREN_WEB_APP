@@ -75,9 +75,9 @@
                                 expand_more
                             </span>
                         </button>
-                        <a class="collapse-item" href="/logs/solution/teiren_cloud/" style="display:none;">
+                        {% comment %} <a class="collapse-item" href="/logs/solution/teiren_cloud/" style="display:none;">
                             Teiren Cloud Logs
-                        </a>
+                        </a> {% endcomment %}
                         <a class="collapse-item" href="/logs/solution/fortinet_firewall/" style="display:none;">
                             Fortinet Firewall Logs
                         </a>
@@ -99,15 +99,15 @@
                         <a class="collapse-item" href="/logs/database/mssql/" style="display:none;">
                             MSSQL
                         </a>
-                        <a class="collapse-item dark disabled" href="/logs/database/mysql/" style="display:none;">
+                        <a class="collapse-item" href="/logs/database/mysql/" style="display:none;">
                             MYSQL
                         </a>
-                        <a class="collapse-item dark disabled" href="/logs/database/mysql/" style="display:none;">
+                        {% comment %} <a class="collapse-item dark disabled" href="/logs/database/mysql/" style="display:none;">
                             MongoDB
                         </a>
                         <a class="collapse-item dark disabled" href="/logs/database/mysql/" style="display:none;">
                             Amazon S3
-                        </a>
+                        </a> {% endcomment %}
                     </div>
                     <div class="divider"></div>
                     <div class="item-toggle">
@@ -125,7 +125,7 @@
                         </a>
                     </div>
                     <div class="divider"></div>
-                    <div class="item-toggle">
+                    {% comment %} <div class="item-toggle">
                         <button class="item-header">
                             Network Logs
                             <span class="material-symbols-outlined">
@@ -138,14 +138,11 @@
                         <a class="collapse-item dark disabled" href="/logs/system/linux_syslog/" style="display:none;">
                             SNMP Logs
                         </a>
-                    </div>
+                    </div> {% endcomment %}
                 </div>
             </li>
             <li>
                 <a id="integration_side" class="nav-link">
-                    {% comment %} <span class="material-symbols-outlined">
-                        library_add
-                    </span> {% endcomment %}
                     <div class="tippy row">
                         <span style="font-size:18px; color: #fff; margin-right: 22px;"> Resource Management </span>
                         <span class="material-symbols-outlined">
@@ -171,13 +168,13 @@
                         <button class="item-header">
                             Integration
                             <span class="material-symbols-outlined">
-                                expand_more
+                                expand_less
                             </span>
                         </button>
-                        <a class="collapse-item" href="/integration/registration/" style="display:none;">
+                        <a class="collapse-item" href="/integration/registration/" style="">
                             Registration
                         </a>
-                        <a class="collapse-item" href="/integration/configuration/" style="display:none;">
+                        <a class="collapse-item" href="/integration/configuration/" style="">
                             Configuration
                         </a>
                     </div>
@@ -224,12 +221,12 @@
                                 expand_more
                             </span>
                         </button>
-                        <a class="collapse-item" href="/threat/rules/cloud/aws/" style="display:none;">
+                        {% comment %} <a class="collapse-item" href="/threat/rules/cloud/aws/" style="display:none;">
                             AWS Rules
-                        </a>
-                        <a class="collapse-item" href="/threat/rules/solution/teiren_cloud/" style="display:none;">
+                        </a> {% endcomment %}
+                        {% comment %} <a class="collapse-item" href="/threat/rules/solution/teiren_cloud/" style="display:none;">
                             Teiren Cloud Rules
-                        </a>
+                        </a> {% endcomment %}
                         <a class="collapse-item" href="/threat/rules/system/linux/" style="display:none;">
                             Linux Rules
                         </a>
@@ -245,7 +242,10 @@
                         <a class="collapse-item" href="/threat/rules/database/mssql/" style="display:none;">
                             MSSQL Rules
                         </a>
-                        <a class="collapse-item" href="/threat/rules/network/transmission/" style="display:none;">
+                        <a class="collapse-item" href="/threat/rules/database/mysql/" style="display:none;">
+                            MySQL Rules
+                        </a>
+                        {% comment %} <a class="collapse-item" href="/threat/rules/network/transmission/" style="display:none;">
                             Network Transmission Rules
                         </a>
                         <a class="collapse-item dark disabled" href="/threat/rules/cloud/ncp/" style="display:none;">
@@ -259,9 +259,9 @@
                         </a>
                         <a class="collapse-item dark disabled" href="/threat/rules/cloud/nhn/" style="display:none;">
                             NHN Rules
-                        </a>
+                        </a> {% endcomment %}
                     </div>                    
-                    <div class="divider"></div>
+                    {% comment %} <div class="divider"></div>
                     <div class="item-toggle">
                         <button class="item-header">
                             Graph Analysis
@@ -275,7 +275,7 @@
                         <a class="collapse-item dark disabled" href="/threat/rules/aws/" style="display:none;">
                             IP Analysis
                         </a>
-                    </div>
+                    </div> {% endcomment %}
                 </div>
             </li>
             {% comment %} <li>
