@@ -2,11 +2,11 @@ version: '3'
 services:
   django:
     build:
-      context: ./onprem-django
+      context: ./testserver
       dockerfile: Dockerfile
     container_name: deploy-app
     volumes:
-      - ./onprem-django/:/app/
+      - ./testserver/:/app/
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8000:8000"
@@ -29,6 +29,24 @@ services:
       - django
     networks:
       - webnet
+
+  # collector:
+  #   build:
+  #     context: ./collector
+  #     dockerfile: Dockerfile
+  #   container_name: collector-app
+  #   volumes:
+  #     - ./collector:/app
+  #   ports:
+  #     - "8088:8088"
+  #   environment:
+      # - ELASTICSEARCH_HOST=3.35.81.217
+      # - ELASTICSEARCH_HOST=127.0.0.1 # 로컬 elasticsearch를 사용하기 위해 필요함 
+  #   depends_on:
+  #     - django
+  #     - nginx
+  #   privileged: true
+  #   network_mode: "host"
 
   detector:
     build:
