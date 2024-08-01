@@ -15,10 +15,10 @@ async def collector_action(request: Request, action: str, system: str, TAG_NAME:
         es_collector = ElasticsearchCollector(system=system, TAG_NAME=TAG_NAME)
         if action == "status":
             response = await es_collector.get_status()
-            return {"status": response}
+            return {"message": json.dumps({"status":response})}
         else:
             await es_collector.manage_integration(action=action, request=request)
-            return {"result": f"{action} action completed for {system} with TAG_NAME {TAG_NAME}"}
+            return {"message": f"{TAG_NAME} Integration saved successfully"}
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -31,10 +31,13 @@ async def collect_log(request: Request, system: str, TAG_NAME: str):
         if await es_collector.get_status() != "started":
             raise HTTPException(status_code=400, detail="Log collection is not started")
         try:
-            log_request = await request.body()
-            log_json = json.loads(log_request.decode('euc-kr'))
+            try:
+                log_request = await request.body()
+                log_request = json.loads(log_request.decode('euc-kr'))
+            except:
+                log_request = await request.json()
             client_ip = request.client.host
-            response = await es_collector.collect_logs(request=log_json, client_ip=client_ip)
+            response = await es_collector.collect_logs(request=log_request, client_ip=client_ip)
         except json.JSONDecodeError:
             raise HTTPException(status_code=400, detail="Invalid JSON format")
         
@@ -44,3 +47,6 @@ async def collect_log(request: Request, system: str, TAG_NAME: str):
         print(response)
         return response
     
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8088)

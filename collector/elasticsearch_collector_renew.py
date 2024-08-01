@@ -2,17 +2,24 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import HTTPException, Request
 import datetime
 import socket
+import json
 from fortigate_deployment import fortigate_parse
 from fluentd_deployment import FluentdDeployment
 
 class ElasticsearchCollector:
     def __init__(self, system: str, TAG_NAME: str):
-        self.system = system
-        print("==================")
-        print(f"Initializing ElasticsearchCollector with system: {system}, TAG_NAME: {TAG_NAME}")
-        print("==================")
-        self.TAG_NAME = TAG_NAME
-        self.es = AsyncElasticsearch("http://localhost:9200/")
+        try:
+            self.system = system
+            print("==================")
+            print(f"Initializing ElasticsearchCollector with system: {system}, TAG_NAME: {TAG_NAME}")
+            print("==================")
+            self.TAG_NAME = TAG_NAME
+            self.es = AsyncElasticsearch("http://localhost:9200/")
+        except Exception as e:
+            print("==================")
+            print(f"Error initializing ElasticsearchCollector: {str(e)}")
+            print("==================")
+            raise
 
     def get_hostname(self, client_ip):
         try:
@@ -34,28 +41,33 @@ class ElasticsearchCollector:
             print(f"Index {index_name} already exists.")
             print("==================")
         except NotFoundError:
-            if mapping:
-                await self.es.indices.create(index=index_name, body={"mappings": mapping})
+            try:
+                if mapping:
+                    await self.es.indices.create(index=index_name, body={"mappings": mapping})
+                    print("==================")
+                    print(f"Created index {index_name} with mapping.")
+                    print("==================")
+                else:
+                    await self.es.indices.create(index=index_name)
+                    print("==================")
+                    print(f"Created index {index_name} without mapping.")
+                    print("==================")
+            except Exception as e:
                 print("==================")
-                print(f"Created index {index_name} with mapping.")
+                print(f"Error creating index {index_name}: {str(e)}")
                 print("==================")
-            else:
-                await self.es.indices.create(index=index_name)
-                print("==================")
-                print(f"Created index {index_name} without mapping.")
-                print("==================")
+                raise
 
     async def collect_logs(self, request, client_ip):
         try:
-            log_request = await request.json()
             print("==================")
-            print(f"Received log request: {log_request}")
+            print(f"Received log request: {request}")
             print("==================")
             if self.system == "fluentd":
                 index_name = f"{self.TAG_NAME}_syslog"
             else:
                 index_name = f"{self.system}_syslog"
-            for log in log_request:
+            for log in request:
                 if self.system == "fortigate":
                     log = await fortigate_parse(log['message'])
                 elif self.system == "windows":
@@ -77,36 +89,41 @@ class ElasticsearchCollector:
             raise HTTPException(status_code=500, detail=f"Error while collecting logs: {str(e)}")
 
     async def save_integration(self, config):
-        if 'new_log_tag' in config and config['new_log_tag'] != self.TAG_NAME:
-            raise HTTPException(status_code=400, detail="TAG_NAME과 new_log_tag 값이 동일하여야 합니다.")
-        
-        index_name = "integration_info"
-        await self.create_index_if_not_exists(index_name)
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"SYSTEM": self.system}},
-                        {"match": {"TAG_NAME": self.TAG_NAME}}
-                    ]
+        try:
+            if 'new_log_tag' in config and config['new_log_tag'] != self.TAG_NAME:
+                raise HTTPException(status_code=400, detail="TAG_NAME과 new_log_tag 값이 동일하여야 합니다.")
+            
+            index_name = "integration_info"
+            await self.create_index_if_not_exists(index_name)
+            query = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"match": {"SYSTEM": self.system}},
+                            {"match": {"TAG_NAME": self.TAG_NAME}}
+                        ]
+                    }
                 }
             }
-        }
-        res = await self.es.search(index=index_name, body=query)
-        if res['hits']['total']['value'] > 0:
-            raise HTTPException(status_code=400, detail=f"{self.TAG_NAME}이 이미 사용중입니다.")
-        log = {
-            "SYSTEM": self.system,
-            "TAG_NAME": self.TAG_NAME,
-            "inserted_at": datetime.datetime.now(),
-            "status": "started",
-            "config": config
-        }
-        response = await self.es.index(index=index_name, document=log)
-        print("==================")
-        print(f"Saved integration info to {index_name}: {response['result']}")
-        print("==================")
-        return response
+            res = await self.es.search(index=index_name, body=query)
+            if res['hits']['total']['value'] > 0:
+                raise HTTPException(status_code=400, detail=f"{self.TAG_NAME}이 이미 사용중입니다.")
+            log = {
+                "SYSTEM": self.system,
+                "TAG_NAME": self.TAG_NAME,
+                "inserted_at": datetime.datetime.now(),
+                "status": "started",
+                "config": config
+            }
+            response = await self.es.index(index=index_name, document=log)
+            print("==================")
+            print(f"Saved integration info to {index_name}: {response['result']}")
+            print("==================")
+        except Exception as e:
+            print("==================")
+            print(f"Error saving integration: {str(e)}")
+            print("==================")
+            raise HTTPException(status_code=500, detail=f"Error saving integration: {str(e)}")
 
     async def get_status(self):
         try:
@@ -137,21 +154,26 @@ class ElasticsearchCollector:
             print(f"No status found for {self.system} with TAG_NAME {self.TAG_NAME}")
             print("==================")
             return "not_found"
+        except Exception as e:
+            print("==================")
+            print(f"Error getting status: {str(e)}")
+            print("==================")
+            raise HTTPException(status_code=500, detail=str(e))
 
     async def update_status(self, status: str):
-        index_name = "integration_info"
-        await self.create_index_if_not_exists(index_name)
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"SYSTEM": self.system}},
-                        {"match": {"TAG_NAME": self.TAG_NAME}}
-                    ]
+        try:
+            index_name = "integration_info"
+            await self.create_index_if_not_exists(index_name)
+            query = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"match": {"SYSTEM": self.system}},
+                            {"match": {"TAG_NAME": self.TAG_NAME}}
+                        ]
+                    }
                 }
             }
-        }
-        try:
             res = await self.es.search(index=index_name, body=query)
             if res['hits']['total']['value'] > 0:
                 doc_id = res['hits']['hits'][0]['_id']
@@ -171,19 +193,19 @@ class ElasticsearchCollector:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def update_integration(self, config):
-        index_name = "integration_info"
-        await self.create_index_if_not_exists(index_name)
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"SYSTEM": self.system}},
-                        {"match": {"TAG_NAME": self.TAG_NAME}}
-                    ]
+        try:
+            index_name = "integration_info"
+            await self.create_index_if_not_exists(index_name)
+            query = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"match": {"SYSTEM": self.system}},
+                            {"match": {"TAG_NAME": self.TAG_NAME}}
+                        ]
+                    }
                 }
             }
-        }
-        try:
             res = await self.es.search(index=index_name, body=query)
             if res['hits']['total']['value'] > 0:
                 doc_id = res['hits']['hits'][0]['_id']
@@ -211,19 +233,19 @@ class ElasticsearchCollector:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def delete_integration(self):
-        index_name = "integration_info"
-        await self.create_index_if_not_exists(index_name)
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"match": {"SYSTEM": self.system}},
-                        {"match": {"TAG_NAME": self.TAG_NAME}}
-                    ]
+        try:
+            index_name = "integration_info"
+            await self.create_index_if_not_exists(index_name)
+            query = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"match": {"SYSTEM": self.system}},
+                            {"match": {"TAG_NAME": self.TAG_NAME}}
+                        ]
+                    }
                 }
             }
-        }
-        try:
             res = await self.es.search(index=index_name, body=query)
             if res['hits']['total']['value'] > 0:
                 doc_id = res['hits']['hits'][0]['_id']
@@ -244,23 +266,16 @@ class ElasticsearchCollector:
             raise HTTPException(status_code=500, detail=str(e))
 
     async def manage_integration(self, action: str, request: Request):
-        config = await request.json()
-        print("==================")
-        print(f"Managing integration with action: {action}, system: {self.system}, TAG_NAME: {self.TAG_NAME}")
-        print("==================")
-
-        client_ip = request.client.host
-        client_hostname = self.get_hostname(client_ip)
-
-        if self.system in ['linux', 'windows']:
-            config = {
-                "client_ip": client_ip,
-                "client_hostname": client_hostname
-            }
+        try:
+            config = await request.json()
             print("==================")
-            print(f"Config for system {self.system}: {config}")
+            print(f"Managing integration with action: {action}, system: {self.system}, TAG_NAME: {self.TAG_NAME}")
             print("==================")
+
             if self.system == 'windows':
+                print("==================")
+                print(f"Config for system {self.system}: {config}")
+                print("==================")
                 index_name = f"{self.system}_syslog"
                 mapping = {
                     "properties": {
@@ -272,8 +287,7 @@ class ElasticsearchCollector:
                 }
                 await self.create_index_if_not_exists(index_name, mapping)
 
-        fluentd = FluentdDeployment()
-        try:
+            fluentd = FluentdDeployment()
             if action == "add":
                 await self.save_integration(config)
                 if self.system not in ['linux', 'windows']:  # genian, fortigate api 사용시 예외처리가 없음

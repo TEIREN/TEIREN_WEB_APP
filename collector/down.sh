@@ -10,6 +10,11 @@ else
     echo "Stopping elasticsearch_collector.py"
     for PID in $PIDS; do
         sudo kill $PID
-        echo "Stopped process with PID: $PID"
+        if ps -p $PID > /dev/null; then
+            echo "Process $PID did not terminate, sending SIGKILL"
+            sudo kill -9 $PID
+        else
+            echo "Stopped process with PID: $PID"
+        fi
     done
 fi
