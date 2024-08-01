@@ -47,9 +47,11 @@ class FortinetIntegration:
                 "new_dst_port": self.request['dst_port'],
                 "new_log_tag": self.request['tag_name']
             }
-            # response = requests.post(url=url, headers=headers, data=json.dumps(data))
-            # print(response.json)
-            response = {"message": f"Successfully Integrated Fortinet NGFW: \n{message_data}"}
+            response = requests.post(url=url, headers=headers, json=data)
+            if 'message' in response.json():
+                response = {"message": f"Successfully Integrated Fortinet NGFW: \n{message_data}"}
+            else:
+                raise Exception
         except Exception as e:
             print(e)
             response = {"error": f"Failed to Integrate Fortinet NGFW: \n{message_data}"}
