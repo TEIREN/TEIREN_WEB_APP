@@ -38,7 +38,7 @@ var sessionOvertime = new Chart(ctxrecentCollectedOverview, {
   data: {
     labels: Month,
     datasets: [{
-      label: "Collected Logs",
+      label: "Sessions",
       lineTension: 0.3,
       backgroundColor: "rgba(78, 115, 223, 0.05)",
       borderColor: "rgba(78, 115, 223, 1)",

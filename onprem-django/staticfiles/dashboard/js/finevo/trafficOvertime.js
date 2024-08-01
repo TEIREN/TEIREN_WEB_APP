@@ -38,7 +38,7 @@ var trafficOvertime = new Chart(ctxTrafficOvertime, {
   data: {
     labels: Month,
     datasets: [{
-      label: "MBytes Sent",
+      label: "Sent",
       lineTension: 0.3,
       backgroundColor: "rgba(244, 204, 9, 0.00)",
       borderColor: "rgba(244, 204, 9, 1)",
@@ -52,7 +52,7 @@ var trafficOvertime = new Chart(ctxTrafficOvertime, {
       pointBorderWidth: 2,
       data: collected_sent,
     },{
-      label: "MBytes Recieved",
+      label: "Recieved",
       lineTension: 0.3,
       backgroundColor: "rgba(109, 197, 143, 0.00)",
       borderColor: "rgba(109, 197, 143, 1)",
@@ -64,7 +64,7 @@ var trafficOvertime = new Chart(ctxTrafficOvertime, {
       pointHoverBorderColor: "rgba(109, 197, 143, 1)",
       pointHitRadius: 10,
       pointBorderWidth: 2,
-      data: collected_recieved,
+      data: collected_received,
     }]
   },
   options: {
@@ -86,7 +86,7 @@ var trafficOvertime = new Chart(ctxTrafficOvertime, {
       xAxes: [{
         scaleLabel: {
           display: true,
-          labelString: 'MONTH'
+          labelString: 'TIME'
         },
         time: {
           unit: 'date'
@@ -141,7 +141,7 @@ var trafficOvertime = new Chart(ctxTrafficOvertime, {
       callbacks: {
         label: function (tooltipItem, chart) {
           var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
-          return datasetLabel + ': ' + number_format(tooltipItem.yLabel);
+          return datasetLabel + ': ' + number_format(tooltipItem.yLabel) + ' MB';
         }
       }
     }

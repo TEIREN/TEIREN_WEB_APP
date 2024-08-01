@@ -14,7 +14,6 @@
 <script>
     var Month = {{traffic_overtime.month|safe }}
     var collected_sent = {{traffic_overtime.sent|safe }}
-    // var collected_recieved = {{traffic_overtime.recieved|safe }}
-    var collected_recieved = [10, 20, 10, 20, 10, 30, 30, 10, 10, 10, 30, 40, 50, 10, 0, 0, 0, 0, 30, 20]
+    var collected_received = {{traffic_overtime.received|safe }}
 </script>
 <script src="{% static 'dashboard/js/finevo/trafficOvertime.js' %}"></script>

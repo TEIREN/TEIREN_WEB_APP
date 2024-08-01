@@ -58,7 +58,7 @@ var eventCount = new Chart(ctxeventCount, {
     scales: {
       xAxes: [{
         time: {
-          unit: 'month'
+          unit: 'time'
         },
         gridLines: {
           display: false,
@@ -66,7 +66,7 @@ var eventCount = new Chart(ctxeventCount, {
         },
         ticks: {
           min:0,
-          maxTicksLimit:100,
+          maxTicksLimit: 100,
           callback: function(value, index, values) {
             return value;
           }
