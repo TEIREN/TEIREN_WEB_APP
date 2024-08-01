@@ -115,11 +115,11 @@
                         <img src="{% static '/img/genians_icon.png' %}" style="padding: 15px 0;">
                         <span class="span text-naver font-weight-bold text-uppercase">Genians NAC</span>
                     </a>
-                    <a class="regi-item shadow disabled">
+                    {% comment %} <a class="regi-item shadow disabled">
                         <span hidden>JIRANSECURITY</span>
                         <img src="{% static '/img/officekeeper_icon.png' %}">
                         <span class="span text-primary font-weight-bold text-uppercase">Office Keeper</span>
-                    </a>
+                    </a> {% endcomment %}
                 </div>
             </div>
             <div class="registration">
@@ -137,7 +137,7 @@
                         <img src="{% static '/img/mysql_icon.png' %}">
                         <span class="span text-primary font-weight-bold text-uppercase">MYSQL</span>
                     </a>
-                    <a class="regi-item shadow disabled" href="/integration/mongodb/db/">
+                    {% comment %} <a class="regi-item shadow disabled" href="/integration/mongodb/db/">
                         <span hidden>mongo db DATABASE</span>
                         <img src="{% static '/img/mongodb_icon.png' %}" style="padding: 18px 0;">
                         <span class="span text-naver font-weight-bold text-uppercase">Mongo DB</span>
@@ -146,7 +146,7 @@
                         <span hidden>amazon s3 aws SQL DATABASE</span>
                         <img src="{% static '/img/awss3_icon.png' %}">
                         <span class="span text-danger font-weight-bold text-uppercase">Amazon S3</span>
-                    </a>
+                    </a> {% endcomment %}
                 </div>
             </div>
             <div class="registration">
@@ -166,7 +166,7 @@
                     </a>
                 </div>
             </div>
-            <div class="registration">
+            {% comment %} <div class="registration">
                 <div class="regi-header">
                     <h6 class="h4 text-uppercase font-weight-bold">Network Transmission</h6>
                 </div>
@@ -182,7 +182,7 @@
                         <span class="span text-teiren font-weight-bold text-uppercase">SNMP</span>
                     </a>
                 </div>
-            </div>
+            </div> {% endcomment %}
         </div>
     </div>
 </div>
