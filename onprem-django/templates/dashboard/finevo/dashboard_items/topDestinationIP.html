@@ -1,0 +1,19 @@
+{% load static %}
+<div id="topDestinationIP_" class="h-100 w-50">
+    <div class="card shadow h-100 w-100">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-teiren text-uppercase">top destination ip</h6>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body py-2 pl-1 pr-3">
+            <div class="chart-area" style="height:100%;">
+                <canvas id='topDestinationIP' style="height:35vh;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var topDst = {{dst_ip_counter|safe }}
+</script>
+<script src="{% static '/dashboard/js/finevo/topDestinationIP.js' %}"></script>

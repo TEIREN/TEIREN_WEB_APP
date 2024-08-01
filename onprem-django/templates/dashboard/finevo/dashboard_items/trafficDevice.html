@@ -1,0 +1,19 @@
+{% load static %}
+<div id="trafficDevice_" class="h-100 w-25">
+    <div class="card shadow h-100">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header">
+            <h6 class="m-0 font-weight-bold text-teiren text-uppercase">traffic by device</h6>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body py-2 pl-1 pr-3">
+            <div class="chart-area" style="height:100%;">
+                <canvas id='trafficDevice' style="height:35vh"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var device = {{traffic_by_device|safe}}
+</script>
+<script src="{% static '/dashboard/js/finevo/trafficDevice.js' %}"></script>
