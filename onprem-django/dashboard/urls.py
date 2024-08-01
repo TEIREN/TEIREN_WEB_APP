@@ -11,6 +11,7 @@ URL_PATH = 'dashboard'
 urlpatterns = [
     path('', views.dashboard_view, name='root'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('dashboard/finevo/', views.view_finevo_dashboard, name="finevo_dashboard"),
 ]
 # /grid
 urlpatterns += [

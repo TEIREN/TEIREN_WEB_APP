@@ -29,12 +29,12 @@ def search_genian_logs(start_time=None, end_time=None):
                 }
             }
         },
-        "size": 1000
+        "size": 100000
     } if start_time and end_time else {
         "query": {
             "match_all": {}
         },
-        "size": 1000
+        "size": 100000
     }
     es.indices.put_settings(index='test_finevo_genian_syslog', body={"index.max_result_window": 1000000})
     result = es.search(index='test_finevo_genian_syslog', body=query)
@@ -45,7 +45,7 @@ def session_overtime_genian(logs):
     session_overtime = defaultdict(int)
     for hit in logs:
         log = hit['_source']
-        timestamp = datetime.strptime(log.get('@timestamp'), "%Y-%m-%dT%H:%M:%S.%f")
+        timestamp = datetime.strptime(log.get('timestamp'), "%Y-%m-%d %H:%M:%S")
         time_key = timestamp.strftime('%Y-%m-%d %H:%M')
         session_overtime[time_key] += 1
     return dict(sorted(session_overtime.items(), key=lambda x: x[0], reverse=False))
@@ -55,7 +55,7 @@ def traffic_overtime_genian(logs):
     traffic_overtime = defaultdict(lambda: {'sent': 0, 'received': 0})
     for hit in logs:
         log = hit['_source']
-        timestamp = datetime.strptime(log.get('@timestamp'), "%Y-%m-%dT%H:%M:%S.%f")
+        timestamp = datetime.strptime(log.get('timestamp'), "%Y-%m-%d %H:%M:%S")
         time_key = timestamp.strftime('%Y-%m-%d %H:%M')
         sent_byte = int(log.get('sentbyte', 0))
         rcvd_byte = int(log.get('rcvdbyte', 0))
@@ -194,6 +194,7 @@ def event_counts_fortigate(logs):
 def give_colors(_list:list):
     color_list =['#24B6D4','#1cc88a','#f6c23e','#fd7e14','#e74a3b']
     return [color_list[int(i%5)] for i in range(len(_list))]
+
 # 메인 함수
 def dashboard(request):
     # print("\n--- Initial Genian Logs ---")/
@@ -234,41 +235,4 @@ def dashboard(request):
         "latest_events": latest_events
     }
     # print(context)
-    return render(request, 'testing/finevo/dashboard.html', context)
-        
-        # initial_run = False
-        # else:
-        #     # 최근 5분간의 로그를 검색
-        #     start_time = (datetime.now(timezone.utc) - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S.%f")
-        #     end_time = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")
-            
-        #     print("\n--- Genian Logs ---")
-        #     genian_logs = search_genian_logs(start_time, end_time)
-        #     session_overtime = session_overtime_genian(genian_logs)
-        #     traffic_overtime = traffic_overtime_genian(genian_logs)
-        #     print(json.dumps({"session_overtime": session_overtime, "traffic_overtime": traffic_overtime}, ensure_ascii=False, indent=4))
-            
-        #     print("\n--- Fortigate Logs ---")
-        #     fortigate_logs = search_fortigate_logs(start_time, end_time)
-        #     src_ip_counter = top_source_ip_fortigate(fortigate_logs)
-        #     dst_ip_counter = top_destination_ip_fortigate(fortigate_logs)
-        #     traffic_by_device = traffic_by_device_fortigate(fortigate_logs)
-        #     traffic_by_user = traffic_by_user_fortigate(fortigate_logs)
-        #     traffic_by_application = traffic_by_application_fortigate(fortigate_logs)
-        #     traffic_by_interface = traffic_by_interface_fortigate(fortigate_logs)
-        #     event_counts, notable_events, latest_events = event_counts_fortigate(fortigate_logs)
-        #     print(json.dumps({
-        #         "src_ip_counter": src_ip_counter,
-        #         "dst_ip_counter": dst_ip_counter,
-        #         "traffic_by_device": traffic_by_device,
-        #         "traffic_by_user": traffic_by_user,
-        #         "traffic_by_application": traffic_by_application,
-        #         "traffic_by_interface": traffic_by_interface,
-        #         "event_counts": event_counts,
-        #         "notable_events": notable_events,
-        #         "latest_events": latest_events
-        #     }, ensure_ascii=False, indent=4))
-        
-        # print("\n--- Waiting for next cycle ---\n")
-        # # 30초 대기 (필요에 따라 조정 가능) 계속 가져올거면 예외 처리
-        # time.sleep(30)
+    return context
