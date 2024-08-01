@@ -1,3 +1,4 @@
+# elasticsearch_collector_renew.py
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import HTTPException, Request
 import datetime
@@ -5,6 +6,7 @@ import socket
 import json
 from fortigate_deployment import fortigate_parse
 from fluentd_deployment import FluentdDeployment
+from mysql_deployment import MySQLDeployment
 
 class ElasticsearchCollector:
     def __init__(self, system: str, TAG_NAME: str):
@@ -287,10 +289,23 @@ class ElasticsearchCollector:
                 }
                 await self.create_index_if_not_exists(index_name, mapping)
 
+            if self.system == 'mysql':
+                print("==================")
+                print(f"Config for system {self.system}: {config}")
+                print("==================")
+                mysql_deployment = MySQLDeployment(
+                    host=config['host'],
+                    user=config['user'],
+                    password=config['password'],
+                    database=config['database']
+                )
+                mysql_deployment.connect()
+                await mysql_deployment.save_integration(self, config)
+
             fluentd = FluentdDeployment()
             if action == "add":
                 await self.save_integration(config)
-                if self.system not in ['linux', 'windows']:  # genian, fortigate api 사용시 예외처리가 없음
+                if self.system not in ['linux', 'windows', 'mysql']:  # genian, fortigate api 사용시 예외처리가 없음
                     await fluentd.configure_fluentd(config, self.system, self.TAG_NAME)
             elif action == "start":
                 await self.update_status("started")
@@ -300,7 +315,7 @@ class ElasticsearchCollector:
                 await self.delete_integration()
             elif action == "update":
                 await self.update_integration(config)
-                if self.system not in ['linux', 'windows']: 
+                if self.system not in ['linux', 'windows', 'mysql']: 
                     await fluentd.configure_fluentd(config, self.system, self.TAG_NAME)
             else:
                 raise HTTPException(status_code=400, detail="Invalid action or missing config for update")

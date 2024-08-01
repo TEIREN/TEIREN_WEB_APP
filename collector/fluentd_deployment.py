@@ -1,6 +1,7 @@
 import subprocess
 import logging
 from fastapi import HTTPException
+# /home/ubuntu/TEIREN_WEB_APP/collector/fluentd_deployment.py:80: SyntaxWarning: invalid escape sequence '\d' 이런 경고가 뜨긴 함
 
 class FluentdDeployment:
     def __init__(self, conf_file_path='/etc/fluent/fluentd.conf'):
