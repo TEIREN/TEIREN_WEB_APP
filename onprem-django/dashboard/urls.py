@@ -5,13 +5,16 @@ from dashboard.src import gridstack_items
 from dashboard.src import gridstack
 from dashboard import views
 from django.conf.urls.static import static
+from .src.finevo_test import renew_fortigate
 
 URL_PATH = 'dashboard'
 # dashboard/
 urlpatterns = [
-    path('', views.dashboard_view, name='root'),
-    path('dashboard/', views.dashboard_view, name='dashboard'),
-    path('dashboard/finevo/', views.view_finevo_dashboard, name="finevo_dashboard"),
+    # path('', views.dashboard_view, name='root'),
+    # path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('', views.view_finevo_dashboard, name='root'),
+    path('dashboard/', views.view_finevo_dashboard, name="finevo_dashboard"),
+    path('dashboard/test/', renew_fortigate)
 ]
 # /grid
 urlpatterns += [
