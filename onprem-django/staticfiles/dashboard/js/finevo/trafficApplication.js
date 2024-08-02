@@ -30,6 +30,13 @@ var trafficApplication = new Chart(ctxtrafficApplication, {
       yPadding: 15,
       displayColors: false,
       caretPadding: 10,
+      callbacks: {
+        label: function(tooltipItem, chart) {
+          var dataset = chart.datasets[tooltipItem.datasetIndex];
+          var value = dataset.data[tooltipItem.index];
+          return chart.labels[tooltipItem.index] + ': ' + number_format(value) + ' MB';
+        }
+      }
     },
     legend: {
       display: false
