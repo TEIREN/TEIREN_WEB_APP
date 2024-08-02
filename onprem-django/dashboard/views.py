@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 
-from .src.finevo import dashboard
+from .src.finevo import FortigateDashboard
 
 @login_required
 def dashboard_view(request, uuid=None):
@@ -19,6 +19,7 @@ def dashboard_view(request, uuid=None):
 
 @login_required
 def view_finevo_dashboard(request):
-    context = dashboard(request=request)
+    context = FortigateDashboard().get_dashboard_data()
     return render(request, "dashboard/finevo/dashboard.html", context=context)
+
 
