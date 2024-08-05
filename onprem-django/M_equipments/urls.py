@@ -4,7 +4,7 @@ from . import views
 
 urlpatterns = [
     ## Configuration Ajax
-    path('configuration/config/<actionType>/', views.integration_config_ajax),
+    # path('configuration/config/<actionType>/', views.integration_config_ajax),
     
     ## Registration Page/Ajax
     path('<equipment>/<logType>/', views.registration_page),
@@ -13,7 +13,7 @@ urlpatterns = [
 
     
     # Integration Page
-    path('refresh/', views.refresh_integration_section, name='refresh-section'),
+    # path('refresh/', views.refresh_integration_section, name='refresh-section'),
     path('registration/', views.registration_view),
-    path('configuration/', views.integration_view),
+    # path('configuration/', views.integration_view),
 ]

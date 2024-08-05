@@ -7,24 +7,24 @@
     </div>
     <div class="modal-body card-body" style="font-size: 0.7rem">
         <form id="edit_account">
-            <input type="hidden" name="og_user_name" value="{{userName}}"/>
-            <div class="form-group row text-center text-dark" style="font-size:15px;">
+            <input type="hidden" name="og_username" value="{{username}}"/>
+            <div class="form-group row text-teiren" style="font-size:15px;">
                 <div class="col-12 mb-4">
                     <span>User Name</span>
-                    <input type="text" class="form-control form-control-user" name="user_name" value="{{userName}}" placeholder="User ID">
+                    <input type="text" class="form-control form-control-user" name="username" value="{{username}}" placeholder="User Name">
                 </div>
                 <div class="col-12 mb-4">
                     <span>User Password</span>
-                    <input type="text-area" class="form-control form-control-user" name="user_password" value="{{userPassword}}" placeholder="User Password">
+                    <input type="password" class="form-control form-control-user" name="password" placeholder="User Password">
                 </div>
                 <div class="col-12 mb-4">
                     <span>Email Address</span>
-                    <input type="text" class="form-control form-control-user" name="email_add" value="{{email}}" placeholder="User ID">
+                    <input type="text" class="form-control form-control-user" name="email" value="{{email}}" placeholder="User ID">
                 </div>
             </div>
         </form>
     </div>
     <div class="modal-footer " id="modal_footer">
-        <input type='button' class="btn btn-md btn-outline-teiren" onclick="editAccount()" value="Edit">
+        <input type='button' class="btn btn-md btn-teiren" onclick="editAccount()" value="Edit">
     </div>
 </div>

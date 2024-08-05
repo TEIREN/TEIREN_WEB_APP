@@ -3,5 +3,5 @@ from . import views
 
 urlpatterns = [
     # Topbar alert
-    path("topbar/alert/", views.topbar_alert),
+    # path("topbar/alert/", views.topbar_alert),
 ]

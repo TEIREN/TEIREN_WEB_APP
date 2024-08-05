@@ -69,7 +69,7 @@ function verifyAccount(){
 function editAccount(){
     var data = $('#edit_account').serialize()
     $.ajax({
-        url:'edit/',
+        url:'update/',
         headers:{
             'X-CSRFToken': getCookie()
         },
@@ -80,7 +80,7 @@ function editAccount(){
             location.reload()
         } 
         alert(response)
-        if (response.startsWith('Changed')){
+        if (response.startsWith('Successfully')){
             location.reload()
         }
     })

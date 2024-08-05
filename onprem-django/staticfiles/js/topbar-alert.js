@@ -13,42 +13,42 @@ function getCookie(name = 'csrftoken') {
     return cookieValue;
 }
 
-$(function () {
-    $.ajax({
-        url: '/topbar/alert/',
-        headers: {
-            'X-CSRFToken': getCookie()
-        },
-        type:'post'
-    }).done(function(data){
-        if (data.top_alert){
-            $('#sidebar_alert').removeAttr('hidden')
-            $('#topbar_alert').addClass('text-danger fa-bounce')
-            $('#sidebar_alert').text(data.top_alert.count)
-        }
-        else if (data.no_top_alert){
-            $('#sidebar_alert').attr('hidden', true)
-            $('#topbar_alert').removeClass('text-danger fa-bounce')
-        }
-    })
+// $(function () {
+//     $.ajax({
+//         url: '/topbar/alert/',
+//         headers: {
+//             'X-CSRFToken': getCookie()
+//         },
+//         type:'post'
+//     }).done(function(data){
+//         if (data.top_alert){
+//             $('#sidebar_alert').removeAttr('hidden')
+//             $('#topbar_alert').addClass('text-danger fa-bounce')
+//             $('#sidebar_alert').text(data.top_alert.count)
+//         }
+//         else if (data.no_top_alert){
+//             $('#sidebar_alert').attr('hidden', true)
+//             $('#topbar_alert').removeClass('text-danger fa-bounce')
+//         }
+//     })
 
-    setInterval(function(){
-        $.ajax({
-            url: '/topbar/alert/',
-            headers: {
-                'X-CSRFToken': getCookie()
-            },
-            type:'post'
-        }).done(function(data){
-            if (data.top_alert){
-                $('#sidebar_alert').removeAttr('hidden')
-                $('#topbar_alert').addClass('text-danger fa-bounce')
-                $('#sidebar_alert').text(data.top_alert.count)
-            }
-            else if (data.no_top_alert){
-                $('#sidebar_alert').attr('hidden', true)
-                $('#topbar_alert').removeClass('text-danger fa-bounce')
-            }
-        })
-    }, 5000);
-})
+//     setInterval(function(){
+//         $.ajax({
+//             url: '/topbar/alert/',
+//             headers: {
+//                 'X-CSRFToken': getCookie()
+//             },
+//             type:'post'
+//         }).done(function(data){
+//             if (data.top_alert){
+//                 $('#sidebar_alert').removeAttr('hidden')
+//                 $('#topbar_alert').addClass('text-danger fa-bounce')
+//                 $('#sidebar_alert').text(data.top_alert.count)
+//             }
+//             else if (data.no_top_alert){
+//                 $('#sidebar_alert').attr('hidden', true)
+//                 $('#topbar_alert').removeClass('text-danger fa-bounce')
+//             }
+//         })
+//     }, 5000);
+// })

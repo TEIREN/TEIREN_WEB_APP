@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container-fluid">
+<div>
 
     <!-- Page Heading -->
     <h6 class="h3 mb-2 ml-2 font-weight-bold text-gray-800">Account Settings</h6>
@@ -23,22 +23,16 @@
                     <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="table-layout:fixed;text-align:center;">
                         <thead>
                             <tr>
-                                <th>No</th>
+                                <th width="10%">No</th>
                                 <th>UserName</th>
                                 <th>Email</th>
+                                <th>Registered Date</th>
+                                <th>Active</th>
+                                <th>Last Login</th>
                                 <th>Edit Account</th>
                                 <th>Delete Account</th>
                             </tr>
                         </thead>
-                        <tfoot>
-                            <tr>
-                                <th>No</th>
-                                <th>UserName</th>
-                                <th>Email</th>
-                                <th>Edit Account</th>
-                                <th>Delete Account</th>
-                            </tr>
-                        </tfoot>
                         <tbody>
                             {% if account_list %}
                             {% for account in account_list %}
@@ -65,7 +59,7 @@
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="6" style="font-size:20px">No Data</td>
+                                <td colspan="5" style="font-size:20px">No Data</td>
                             </tr>
                             {% endif %}
                         </tbody>
@@ -87,9 +81,9 @@
                     <span aria-hidden="true">x</span>
                 </button>
             </div>
-            <div class="modal-body card-body" style="font-size: 0.7rem">
+            <div class="modal-body card-body" style="font-size: 13px">
                 <form id="verify_account">
-                    <div class="form-group row text-center">
+                    <div class="form-group row text-teiren">
                         <div class="col-12 mb-4" style="font-size:0.9rem">
                             <span class="text-danger">Verify Your Account Information Before Editing</span>
                         </div>
@@ -105,7 +99,7 @@
                 </form>
             </div>
             <div class="modal-footer " id="modal_footer">
-                <button type='button' class="btn btn-md btn-outline-teiren" onclick="verifyAccount()">Verify</button>
+                <button type='button' class="btn btn-md btn-teiren" onclick="verifyAccount()">Verify</button>
             </div>
         </div>
     </div>
