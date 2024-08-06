@@ -13,9 +13,10 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.hashers import make_password, check_password
+from django.core.exceptions import ValidationError
 
 from .src import account
-from _auth.forms import FinevoUserCreationForm
+from .forms import FinevoUserCreationForm
 
 HTML_FILE_PATH = 'configurations'
 @method_decorator(login_required, name='dispatch')
@@ -42,7 +43,6 @@ class AccountConfigView(View):
             username = request.POST.get('user_name', '')
             password = request.POST.get('user_password', '')
             user = get_user_model().objects.filter(username=username).values('username', 'email', 'password').first()
-            print(user)
             if user is not None and check_password(password, user['password']):
                 user.pop('password')
                 return render(request, f"{HTML_FILE_PATH}/account/edit.html", user)
@@ -58,16 +58,15 @@ class AccountConfigView(View):
             og_username = post_data.pop('og_username', '')
             if any(item == '' for item in post_data.values()):
                 raise Exception(f'[Invalid Information] Please Insert All Properties.')
-            print(request.user)
             form = FinevoUserCreationForm(request.POST, instance=request.user)
             if form.is_valid():
-                user = form.save()
-                user.password = make_password(request.POST.get('password'))
-                user.save()
-                update_session_auth_hash(request, user)
+                # user = form.save()
+                # user.password = make_password(request.POST.get('password'))
+                # user.save()
+                # update_session_auth_hash(request, user)
                 return HttpResponse(f'Successfully Edited Account {og_username} to {request.user}')
             else:
-                raise Exception
+                raise Exception('['+str(form))
         except Exception as e:
             print(e)
             if str(e).startswith('['):

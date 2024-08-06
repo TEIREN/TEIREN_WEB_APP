@@ -235,18 +235,18 @@ MEDIA_URL = '/media/'
 
 DEFAULT_FILE_STORAGE = 'custom.storage.customstorage.CleanFileNameStorage'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'neo4j': {
-            'handlers': ['console'],
-            'level': 'ERROR',  # WARNING 대신 ERROR로 설정
-        },
-    },
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'neo4j': {
+#             'handlers': ['console'],
+#             'level': 'ERROR',  # WARNING 대신 ERROR로 설정
+#         },
+#     },
+# }
