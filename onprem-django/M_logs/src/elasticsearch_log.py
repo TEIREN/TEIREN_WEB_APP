@@ -19,12 +19,12 @@ class LogManagement():
         self.query = {"match_all": {}}  # 기본 쿼리 설정
         self.page_number = page
         self.timestamp = self.get_timestamp()
-        self.limit = 15
+        self.limit = 25
 
     def get_timestamp(self):
         timestamp_mapping = {
             "linux": "@timestamp",
-            "genian": "@timestamp",
+            "genian": "timestamp.keyword",
             "window": "date",
             "fortigate": "eventtime.keyword",
             "mssql": "ID",
@@ -61,19 +61,18 @@ class LogManagement():
         try:
             response = es.search(index=f"table_property", body={"query": {"match": {'system': self.system}}})
             return response['hits']['hits'][0]['_source']['properties']
-        except Exception as e:
-            print(e)
+        except:
             return []
         
     # 로그 검색 함수
     def search_logs(self):
         try:
-            self.es.indices.put_settings(index=f"test_{self.system}_syslog", body={"index.max_result_window": 1000000})
+            self.es.indices.put_settings(index=f"{self.system}_syslog", body={"index.max_result_window": 1000000})
             try:
                 self.es.indices.put_settings(index=f"{self.system}_detected_log", body={"index.max_result_window": 1000000})
-            except NotFoundError:
+            except:
                 pass
-            response = self.es.search(index=f"test_{self.system}_syslog", body={"size": self.limit, "query": self.query, "sort": {f"{self.timestamp}": "desc"}, "from": ((self.page_number-1)*self.limit)})
+            response = self.es.search(index=f"{self.system}_syslog", body={"size": self.limit, "query": self.query, "sort": {f"{self.timestamp}": "desc"}, "from": ((self.page_number-1)*self.limit)})
             hits = response['hits']['hits']
             log_list = []
             for hit in hits:
@@ -99,13 +98,13 @@ class LogManagement():
                     # logging.error(f"Error searching logs: {e}")
                 finally:
                     log_list.append(log)
-            total_count = self.es.count(
-                index=f"test_{self.system}_syslog", query=self.query)['count']
+            total_count = self.es.count(index=f"{self.system}_syslog", query=self.query)['count']
             self.total_page = int(round(total_count/self.limit, 0))
         except Exception as e:
             total_count = 0
             log_list = []
             self.total_page = 1
+            print(e)
             # logging.error(f"Error searching logs: {e}")
         return total_count, log_list
     
@@ -261,11 +260,10 @@ class LogManagement():
             "size": 10000
         }
         
-        response = self.es.search(index=f"test_{self.system}_syslog", body=query)
+        response = self.es.search(index=f"{self.system}_syslog", body=query)
         hits = response['hits']['hits']
         
-        exclude_keys = {'@timestamp', 'message', 'timegenerated', '@version', 'date', 'eventtime','teiren_@timestamp', 'teiren_ddd', 'teiren_timestamp', 'Message', 'TimeGenerated', 'TimeWritten', 'RecordNumber'} # 제외할 로그 프라퍼티
-        
+        exclude_keys = ['@timestamp', 'message', 'timegenerated', '@version', 'date', 'eventtime','teiren_@timestamp', 'teiren_ddd', 'teiren_timestamp', 'Message', 'TimeGenerated', 'TimeWritten', 'RecordNumber'] # 제외할 로그 프라퍼티
         properties = {}
         for hit in hits:
             log = hit['_source']
@@ -277,7 +275,6 @@ class LogManagement():
                         properties[key].add(value)
     
         properties_list = [{key: list(values)} for key, values in properties.items()]
-        
         return properties_list
 
 
@@ -288,16 +285,18 @@ def list_logs(request, resource_type, system):
         system = 'fortigate'
     elif system == 'genians':
         system = 'genian'
-    
     page_number = int(request.GET.get('page', 1))
     system_log = LogManagement(system=system, page=page_number)    
     filters = dict(request.GET)
     if 'page' in filters:
         del filters['page']
+        # print('1'*50)
     if 'query' in filters and filters['query'][0] == '':
         del filters['query']
+        # print('2'*50)
     if 'query' not in filters:
         total_count, log_list = system_log.filter_query(filters)
+        # print('3'*50)
     # 필터 쿼리가 있는 경우 필터링된 로그만 검색
     elif 'query' in filters:
         query_string = filters.pop('query')[0]
@@ -305,8 +304,10 @@ def list_logs(request, resource_type, system):
         filters.update(parsed_filters)
         
         total_count, log_list = system_log.filter_query(filters)
+        # print('4'*50)
     else:
         total_count, log_list = system_log.search_logs()
+        # print('5'*50)
 
     # Ajax 요청 처리: Ajax 요청인 경우, 필터링된 로그 리스트와 기타 정보를 JsonResponse로 반환
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -321,10 +322,12 @@ def list_logs(request, resource_type, system):
             'resource_type': resource_type,
             'table_properties': system_log.get_property_key()
         }
+        # print('6'*50)
         return render(request, 'M_logs/elasticsearch/log_table.html', context=context)
 
     # 룰셋을 기반으로 로그를 탐지합니다.
     try:
+        # print('7'*50)
         context = {
             'total_count': total_count,
             'log_list': log_list,
@@ -339,6 +342,7 @@ def list_logs(request, resource_type, system):
         #     print(i)
         #     print('#'*50)
         #     print('\n')
+        # print('8'*50)
         return context
 
     except ConnectionError as e:
