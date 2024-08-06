@@ -16,6 +16,7 @@ function getCookie(name = 'csrftoken') {
 $('#verify_modal').on('show.bs.modal', function(event) {
     input = $(this).find('input')
     input.each(function(){
+        console.log(this)
         if(this.name === 'user_name'){
             this.value = $(event.relatedTarget).data('name')
         }
@@ -28,7 +29,7 @@ $('#verify_modal').on('show.bs.modal', function(event) {
 $('#delete_modal').on('show.bs.modal', function(event) {
     input = $(this).find('input')
     input.each(function(){
-        if(this.name === 'user_name'){
+        if(this.name === 'username'){
             this.value = $(event.relatedTarget).data('name')
         }
         else{
@@ -38,6 +39,25 @@ $('#delete_modal').on('show.bs.modal', function(event) {
 });
 
 
+function registerAccount(){
+    var data = $('#register_account').serialize()
+    $.ajax({
+        url:'register/',
+        headers:{
+            'X-CSRFToken': getCookie()
+        },
+        data: data,
+        type:'post'
+    }).done(function(response){
+        if (response.startsWith('\n<meta')){
+            location.reload()
+        } 
+        alert(response)
+        if (response.startsWith('Successfully')){
+            location.reload()
+        }
+    })
+}
 function verifyAccount(){
     var data = $('#verify_account').serialize()
     $.ajax({
@@ -96,16 +116,12 @@ function deleteAccount(){
         data: data,
         type:'post'
     }).done(function(response){
-        if (response == 'reload'){
-            alert('Deleted Account Successfully')
+        if (response.startsWith('\n<meta')){
             location.reload()
-            return 0
-        }
-        if (response.startsWith('Delete')){
-            alert(response)
+        } 
+        alert(response)
+        if (response.startsWith('Successfully')){
             location.reload()
-        } else {
-            alert(response)
         }
     })
 }
