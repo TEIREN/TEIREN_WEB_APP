@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+<!-- Page Essential -->
+<link rel="stylesheet" href="{% static '/M_equipment/css/registration.css' %}">
+<link rel="stylesheet" href="{% static '/M_equipment/css/configuration.css' %}">
+<link rel="stylesheet" href="{% static '/css/tab_table.css' %}">
+{% endblock %}
+{% block content %}
+<!-- Begin Page Content -->
+<div class="locationbar ml-2">
+    <span>Resource Management &nbsp;&nbsp;>&nbsp;&nbsp;Integreation &nbsp;&nbsp;>&nbsp;&nbsp;</span>
+    <span class="current">Registration<span>
+</div>
+<div>
+    <!-- Page Heading -->
+    <h6 class="h3 mb-2 font-weight-bold text-gray-800 ml-2">Integration Registration</h6>
+    <p class="h6 mb-4 ml-2">Register Resource To Be Integrated.</p>
+    <div class="tabs">
+        <input type="radio" id="modal-tab1" name="tab-control-modal" checked>
+        <input type="radio" id="modal-tab2" name="tab-control-modal">
+        <ul class='ul'>
+            <li title="Network Transmission (TCP/UDP)">
+                <label for="modal-tab1" role="button">
+                    <span>Integration Configuration</span>
+                </label>
+            </li>
+            <li title="Default Rule">
+                <label for="modal-tab2" role="button">
+                    <span>Register New Integration</span>
+                </label>
+            </li>
+        </ul>
+        <div class="slider">
+            <div class="indicator"></div>
+        </div>
+        <div class="content">
+            <section>
+                {% include './configuration.html' %}
+            </section>
+            <section>
+                {% include './registration.html' %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block script %}
+<script src="{% static '/M_equipment/js/registration.js' %}"></script>
+<script src="{% static '/M_equipment/js/configuration.js' %}"></script>
+{% endblock %}

@@ -1,25 +1,25 @@
-.registration{
+.registration {
     display: flex;
     flex-direction: column;
     margin-bottom: 30px;
     transition: all 0.3s;
 }
 
-.registration .regi-header{
+.registration .regi-header {
     width: 80%;
     margin-bottom: 15px;
     padding-bottom: 15px;
     color: #57626F;
 }
 
-.registration .regi-body{
+.registration .regi-body {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     flex-wrap: wrap;
 }
 
-.registration .regi-body .regi-item{
+.registration .regi-body .regi-item {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -37,23 +37,24 @@
 }
 
 .registration .regi-body .regi-item.disabled,
-.registration .regi-body .regi-item.disabled *{
+.registration .regi-body .regi-item.disabled * {
     pointer-events: none;
     color: #57626F !important;
     background-color: #ddd;
 }
 
-.registration .regi-body .regi-item img{
+.registration .regi-body .regi-item img {
     max-width: 250px;
     height: 70px;
     padding: 10px 0;
 }
 
-.registration .regi-body .regi-item.disabled img{
-    filter: grayscale(80%); opacity: 0.5;
+.registration .regi-body .regi-item.disabled img {
+    filter: grayscale(80%);
+    opacity: 0.5;
 }
 
-.registration .regi-body .regi-item .span{
+.registration .regi-body .regi-item .span {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -61,6 +62,7 @@
     width: 75%;
     text-align: center;
 }
+
 /* Searchbar */
 .searchcard {
     position: relative;
@@ -68,36 +70,39 @@
     flex-direction: column;
     min-width: 0;
     word-wrap: break-word;
-    background-color: #fbfefe;
+    /* background-color: #fbfefe; */
     background-clip: border-box;
-    border: 1px solid #eaeaea;
+    /* border: 1px solid #eaeaea; */
     border-radius: 5px;
 }
 
 .searchcard-body {
     display: flex;
     flex-direction: row;
-    align-items: center;
-    padding: 1.25rem;
+    /* align-items: center; */
+    /* padding: 1.25rem; */
 }
 
 .searchcard .searchcard-body .btn-select {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 210px;
+    width: 180px;
     overflow: hidden;
-    color: #57626F;
+    color: #12536B;
     background-color: #fff;
-    border: 1px solid #eaeaea;
+    /* border: 1px solid #eaeaea; */
+    border: 2px solid #24B6D4;
     border-radius: 5px;
-    padding: 10px 15px;
+    /* padding: 10px 15px; */
+    margin-right: 10px;
     font-size: 12px;
+    font-weight: bold;
 }
 
 .searchcard .searchcard-body .btn-select:focus {
     outline: none;
-    border: 1px solid #24b6d4;
+    border: 3px solid #12536B;
 }
 
 .searchcard .searchcard-body .search-input {
@@ -106,16 +111,17 @@
     width: 80%;
     margin: 0 auto;
     padding: 8px 15px;
-    color: #57626F;
+    color: #12536B !important;
     background-color: #fff;
-    border: 1px solid #eaeaea;
+    border: 2px solid #24B6D4;
     border-radius: 5px;
     font-size: 12px;
+    font-weight: bold;
 }
 
 .searchcard .searchcard-body .search-input:focus {
     outline: none;
-    border: 1px solid #24b6d4;
+    border: 3px solid #12536B;
 }
 
 .searchcard .searchcard-body .btn-search {
@@ -128,6 +134,7 @@
     border-radius: 5px;
     padding: 5px 25px;
     transition: all 0.3s;
+    margin-left: 10px;
 }
 
 .searchcard .searchcard-body .btn-search:hover {
