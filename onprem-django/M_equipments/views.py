@@ -46,6 +46,7 @@ class IntegrationView(View):
             result = es.search(index='integration_info', body=query)
             integration_list = [integration['_source'] for integration in result['hits']['hits']]
             print(integration_list)
+            return integration_list
         except Exception as e:
             print(e)
             return []

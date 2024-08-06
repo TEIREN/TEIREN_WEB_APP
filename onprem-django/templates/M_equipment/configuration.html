@@ -6,53 +6,48 @@
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="table-layout:fixed;text-align:center;">
                 <thead>
                     <tr>
-                        <th>Status</th>
+                        <th width=20%>Registered Time</th>
                         <th>System</th>
                         <th>Tag Name</th>
-                        <th>Registered Time</th>
                         <th>Integration Type</th>
-                        <th>Details</th>
-                        <th>Delete Integration</th>
-                        <th>Integration On/Off</th>
+                        <th width=10%>Details</th>
+                        <th width=10%>Delete</th>
+                        <th width=12%>Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% if integrations %}
-                        {% for integration in integrations %}
-                            <td>
-                                <form>
-                                    <input type="hidden" name="integration_type" value="{{ integration.integrationType }}">
-                                    <input type="hidden" name="access_key" value="{{ integration.accessKey }}">
-                                    <input type="hidden" name="region_name" value="{{ integration.regionName }}">
-                                    <input type="hidden" name="log_type" value="{{ integration.logType }}">
-                                    <input type="hidden" name="group_name" value="{{ integration.groupName }}">
-                                    <button type="button" class="btn btn-danger btn-md" onClick="checkModal(this, 'delete')">
-                                        <i class="fas fa-trash text-gray-200"></i>
+                    {% if integration_list %}
+                        {% for integration in integration_list %}
+                            <tr>
+                                <td>{{integration.inserted_at}}</td>
+                                <td><img style="max-height: 50px;" src="{% static 'img/'|add:integration.SYSTEM|add:'_icon.png' %}"></td>
+                                <td>{{integration.TAG_NAME}}</td>
+                                <td>{{integration.config.integration_type|title|default:'-'}}</td>
+                                <td>
+                                    <button class="btn btn-md btn-outline-teiren">
+                                        <i class="fa-solid fa-file"></i>
                                     </button>
-                                </form>
-                            </td>
-                            <td>
-                                <form>
-                                    <input type="hidden" name="integration_type" value="{{ integration.integrationType }}">
-                                    <input type="hidden" name="access_key" value="{{ integration.accessKey }}">
-                                    <input type="hidden" name="region_name" value="{{ integration.regionName }}">
-                                    <input type="hidden" name="log_type" value="{{ integration.logType }}">
-                                    <input type="hidden" name="group_name" value="{{ integration.groupName }}">
-                                    <input type="hidden" name="on_off" value="{{integration.isRunning}}">
-                                    {% if integration.isRunning == 0 %}
-                                        <button type="button" class="btn btn-md btn-outline-teiren" onClick="checkModal(this, 'trigger')">
-                                    {% else %}
-                                        <button type="button" class="btn btn-md btn-teiren" onClick="checkModal(this, 'trigger')">
-                                    {% endif %}
-                                            <i class="fa-solid fa-power-off"></i>
-                                        </button>
-                                </form>
-                            </td>
-                            </tr>   
+                                </td>
+                                <td>
+                                    <button class="btn btn-md btn-outline-danger">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-md btn-teiren">
+                                        {% if integration.status == 'started' %}
+                                            Running
+                                        {% else %}
+                                            Stoped
+                                        {% endif %}
+                                        <i class="fa-solid fa-power-off ml-1"></i>
+                                    </button>
+                                </td>
+                            </tr>
                         {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="7" style="font-size:20px">No Data</td>
+                        <td colspan="8" style="font-size:20px">No Data</td>
                     </tr>
                     {% endif %}
                 </tbody>
