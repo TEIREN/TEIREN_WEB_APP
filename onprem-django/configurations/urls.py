@@ -1,6 +1,4 @@
 from django.urls import include, path
-from configurations import views
-# from .views import account_view , dashboard_view
 from .views import AccountConfigView
 
 # path:
