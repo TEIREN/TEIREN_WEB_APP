@@ -360,23 +360,3 @@ class RuleSet:
         except Exception as e:
             # logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse("Failed to update ruleset. Please try again.", status=500)
-
-def rule_config_page(request, system):
-    ruleset = RuleSet(system=system)
-    context = {
-        'system': system,
-        'custom_ruleset': ruleset.get_ruleset_list(rule_type='custom'),
-        'default_ruleset': ruleset.get_ruleset_list(rule_type='default')
-    }
-    return render(request, 'M_threatD/rules/elasticsearch/rule.html', context=context)
-
-def rule_config_action(request, resourceType, system, action_type):
-    if request.method == 'POST':
-        try:
-            ruleset = RuleSet(system=system)
-            return HttpResponse(getattr(ruleset, action_type)(request=request))
-        except Exception as e:
-            # logger.error(f"Exception occurred: {e}", exc_info=True)
-            return HttpResponse('Wrong Request. Please Try Again.', status=400)
-    else:
-        return HttpResponse('Wrong Request. Please Try Again.', status=400)

@@ -1,14 +1,13 @@
 from django.urls import path
-# from . import ajax_views, views
-from .src.rule import elasticsearch_rule
+from .views import RuleView
 
 urlpatterns = [
     # Risk Management
     # ## alert
     # path('notifications/<threat>/', views.notification_view),
     # # ## rules
-    # path('rules/<resourceType>/<logType>/', views.rules_view),
-    path('rules/<resourceType>/<system>/elasticsearch/<action_type>/', elasticsearch_rule.rule_config_action),
+    path('rules/<resource_type>/<system>/', RuleView.as_view(), name="rule_page"),
+    path('rules/<resource_type>/<system>/elasticsearch/<action_type>/', RuleView.as_view(), name="rule_config"),
     
     # ## visuals
     # path('visuals/<threat>/', views.visuals_view),
