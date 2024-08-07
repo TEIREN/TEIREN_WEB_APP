@@ -18,6 +18,7 @@ class RuleView(View):
             'custom_ruleset': ruleset.get_ruleset_list(rule_type='custom'),
             'default_ruleset': ruleset.get_ruleset_list(rule_type='default')
         }
+        #test
         return render(request, 'M_threatD/rules/elasticsearch/rule.html', context=context)
 
     def post(self, request, resource_type=None, system=None, action_type=None):
