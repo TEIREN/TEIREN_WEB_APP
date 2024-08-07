@@ -23,18 +23,20 @@ class WindowsIntegration:
     
     def insert_agent(self):
         try:
-            url = f"http://{self.request['server_ip']}/windows/{self.request['tag_name']}"
+            url = f"http://{self.request['server_ip']}:8088/collector/add/windows/{self.request['tag_name']}"
             headers = {
-                "Context-Type": "application/json"
+                "content-type": "application/json"
             }
             data = {
                 "teiren_server_ip": self.request['server_ip'],
                 "tag_name": self.request['tag_name'],
                 "integration_type": self.integration
             }
-            # result = requests.post(url=url, headers=headers, data=data)
-            # print(result)
-            return self.download_agent()
+            result = requests.post(url=url, headers=headers, json=data)
+            if 'message' in result.json():
+                return self.download_agent()
+            else:
+                raise Exception
         except Exception as e:
             print(e)
             return {"error": "Wrong Agent Configurations. Please Try Again"}

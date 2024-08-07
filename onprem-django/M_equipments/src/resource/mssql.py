@@ -12,19 +12,27 @@ class MSSQLIntegartion:
             self.request =
             {'server_ip': '', 'dst_port': '', 'tag_name': ''}
         """
-        for key, val in self.request.items():
-            if val == '':
+        try:
+            return {"error": "Network Transmission Not Ready. Please Use DB Connection."}
+            if any(val == '' for val in self.request.values()):
                 return {"error": "Please Insert All Required Items."}
-        return self.insert_network()
+        except Exception as e:
+            print(e)
+            return {"error": "Please reload and try again."}
     
     # Elasticsearch Server에 연동하기 전에 예외처리 및 파싱 (API)
     def check_account(self):
         """
-            self.request = 
-            {'access_key': '', 'dst_port': '', 'tag_name': ''}
+        self.request = 
+        {'server_ip': '', 'db_server': '', 'db_name': '', 'db_uid': '', 'db_password': '', 'db_table': '', 'tag_name': ''}
         """
-        print(self.request)
-        return {"error": "Account Integration Not Ready. Please Use Network Transmission."}
+        try:
+            if any(val == '' for val in self.request.values()):
+                return {"error": "Please Insert All Required Items."}
+            return self.insert_account()
+        except Exception as e:
+            print(e)
+            return {"error": "Please reload and try again."}
     
     # Elasticsearch Server에 연동하기 (TCP/UDP => fluentd)
     def insert_network(self):
@@ -46,11 +54,46 @@ class MSSQLIntegartion:
                 "new_protocol": "udp",
                 "new_source_ip": "0.0.0.0",
                 "new_dst_port": self.request['dst_port'],
-                "new_log_tag": self.request['tag_name']
+                "new_log_tag": self.request['tag_name'],
+                "integration_type": self.integration
             }
             # response = requests.post(url=url, headers=headers, data=json.dumps(data))
             # print(response.json)
             response = {"message": f"Successfully Integrated MSSQL: \n{message_data}"}
+        except Exception as e:
+            print(e)
+            response = {"error": f"Failed to Integrate MSSQL: \n{message_data}"}
+        finally:
+            return response
+    
+    def insert_account(self):
+        message_data = {
+            "Teiren Server IP":self.request['server_ip'],
+            "MSSQL Server IP":self.request['db_server'],
+            "Database Name":self.request['db_name'],
+            "User ID":self.request['db_uid'],
+            "User Password":self.request['db_password'],
+            "Table Name": self.request['db_table'],
+        }
+        try:
+            url = f"http://{self.request['server_ip']}:8088/collector/add/mssql/{self.request['tag_name']}"
+            headers = {
+                "content-type": "application/json"
+            }
+            data = {
+                "host":self.request['db_server'],
+                "user":self.request['db_uid'],
+                "password":self.request['db_password'],
+                "database":self.request['db_name'],
+                "table_name": self.request['db_table'],
+                "teiren_server_ip": self.request['server_ip'],
+                "integration_type": self.integration
+            }
+            # response = requests.post(url=url, headers=headers, json=data)
+            if 'message' in response.json():
+                response = {"message": f"Successfully Integrated MSSQL: \n{message_data}"}
+            else:
+                raise Exception
         except Exception as e:
             print(e)
             response = {"error": f"Failed to Integrate MSSQL: \n{message_data}"}

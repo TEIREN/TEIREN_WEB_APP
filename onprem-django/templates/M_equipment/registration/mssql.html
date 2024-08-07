@@ -1,5 +1,32 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block head %}
+<!-- Page Essential -->
+<link rel="stylesheet" href="{% static '/css/tab_table.css' %}">
+<style>
+    .tabs .slider .indicator {
+        position: relative;
+        width: 500px;
+        max-width: 100%;
+        margin: 0 auto;
+        height: 4px;
+        background: #24B6D4 !important;
+        border-radius: 1px;
+    }
+    .tabs input[name=tab-control-modal]:nth-of-type(1):checked ~ ul > li:nth-child(1) > label {
+        cursor: default;
+        color: #24B6D4 !important;
+    }
+    .tabs input[name=tab-control-modal]:nth-of-type(2):checked ~ ul > li:nth-child(2) > label {
+        cursor: default;
+        color: #24B6D4 !important;
+    }
+    .tabs .ul li label:hover, .tabs ul li label:focus, .tabs ul li label:active {
+        outline: 0;
+        color: #24B6D4 !important;
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="locationbar ml-2">
     <span>Resource Management &nbsp;&nbsp;>&nbsp;&nbsp;Integreation &nbsp;&nbsp;>&nbsp;&nbsp;<a href="/integration/registration/">Registration</a> &nbsp;&nbsp;>&nbsp;&nbsp;</span>
@@ -9,65 +36,120 @@
     <!-- Page Heading -->
     <h6 class="h3 mb-2 ml-2 font-weight-bold text-gray-800">Integrate MSSQL</h6>
     <p class="h6 mb-4 ml-2">Integrate MSSQL Logs To Teiren Cloud</p>
-    <!-- Begin Page Content -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <div style="float: left">
-                <h6 class="m-0 font-weight-bold text-teiren">
-                    Verify MSSQL Account
-                </h6>
-            </div>
+    <div class="tabs">
+        <input type="radio" id="modal-tab1" name="tab-control-modal" checked>
+        <input type="radio" id="modal-tab2" name="tab-control-modal">
+        <ul class='ul'>
+            <li title="Network Transmission (TCP/UDP)">
+                <label for="modal-tab1" role="button">
+                    <span>Network Transmission (TCP/UDP)</span>
+                </label>
+            </li>
+            <li title="Default Rule">
+                <label for="modal-tab2" role="button">
+                    <span>MSSQL DB Connection</span>
+                </label>
+            </li>
+        </ul>
+        <div class="slider">
+            <div class="indicator"></div>
         </div>
-        <div class="card-body" style="font-size:12px">
-            <form method="POST" id='account_form'>
-                <div class="form-group text-teiren">MSSQL Server IP
-                    <div class="form-group text-dark">
-                        <input type='text' class="form-control" id="db_server" name="db_server" placeholder="MSSQL Server IP">
+        <div class="content">
+            <section>
+                <div class="mb-4 px-4">
+                    <div style="font-size:13px">
+                        <form method="POST" id='network_form'>
+                            <div class="form-group font-weight-bold text-teiren">Teiren Server IP
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="server_ip" name="server_ip" placeholder="Teiren Server IP">
+                                </div>
+                            </div>
+                            <div class="form-group font-weight-bold text-teiren">Destination Port
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="dst_port" name="dst_port" placeholder="Destination Port (Must be opened in Teiren Server)">
+                                </div>
+                            </div>
+                            <div class="form-group font-weight-bold text-teiren">Tag Name
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="tag_name" name="tag_name" placeholder="MSSQL Tag Name">
+                                </div>
+                            </div>
+                            <input type='hidden' id="integration_type" name="integration_type" value="network">
+                            <input type="button" class="btn btn-outline-primary" onclick="register('network_form')" id='form-check' value="Confirm MSSQL Information"/>
+                        </form>
                     </div>
                 </div>
-                <div class="form-group text-teiren">MSSQL Database Name
-                    <div class="form-group text-dark">
-                        <input type='text' class="form-control" id="db_name" name="db_name" placeholder="MSSQL Database Name">
+            </section>
+            <section>
+                <div class="mb-4 px-4">
+                    <div style="font-size:13px">
+                        <form method="POST" id='account_form'>
+                            <div class="form-group font-weight-bold text-teiren">Teiren Cloud Server IP
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="server_ip" name="server_ip" placeholder="Teiren Cloud Server IP">
+                                </div>
+                            </div>
+                            <div class="form-group font-weight-bold text-teiren">MSSQL Server IP
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="db_server" name="db_server" placeholder="MSSQL Server IP">
+                                </div>
+                            </div>
+                            <div class="form-group font-weight-bold text-teiren">MSSQL Database Name
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="db_name" name="db_name" placeholder="MSSQL Database Name">
+                                </div>
+                            </div>
+                            <div class="form-group font-weight-bold text-teiren">MSSQL User ID
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="db_uid" name="db_uid" placeholder="MSSQL User ID">
+                                </div>
+                            </div>
+                            <div class="form-group font-weight-bold text-teiren">MSSQL User Password
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="db_password" name="db_password" placeholder="MSSQL User Password">
+                                </div>
+                            </div>
+                            <div class="form-group font-weight-bold text-teiren">MSSQL Database Table Name
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="db_table" name="db_table" placeholder="MSSQL Database Table Name">
+                                </div>
+                            </div>
+                            <div class="form-group font-weight-bold text-teiren">TAG NAME
+                                <div class="form-group text-dark">
+                                    <input type='text' class="form-control" id="tag_name" name="tag_name" placeholder="MSSQL TAG NAME">
+                                </div>
+                            </div>
+                            <input type='hidden' id="integration_type" name="integration_type" value="account">
+                            <input type="button" class="btn btn-outline-primary" onclick="register('account_form')" id='form-check' value="Confirm MSSQL Information"/>
+                        </form>
                     </div>
                 </div>
-                <div class="form-group text-teiren">MSSQL User ID
-                    <div class="form-group text-dark">
-                        <input type='text' class="form-control" id="db_uid" name="db_uid" placeholder="MSSQL User ID">
-                    </div>
-                </div>
-                <div class="form-group text-teiren">MSSQL User Password
-                    <div class="form-group text-dark">
-                        <input type='text' class="form-control" id="db_password" name="db_password" placeholder="MSSQL User Password">
-                    </div>
-                </div>
-                <div class="form-group text-teiren">MSSQL Database Table Name
-                    <div class="form-group text-dark">
-                        <input type='text' class="form-control" id="db_table" name="db_table" placeholder="MSSQL Database Table Name">
-                    </div>
-                </div>
-                <input type="button" class="btn btn-outline-primary" onclick="register()" id='form-check' value="Confirm MSSQL Information"/>
-            </form>
-            </div>
+            </section>
         </div>
+    </div>
+    
     </div>
 </div>
 {% endblock %}
 {% block script %}
 <script>
-    function register(){
+    function register(mssql_form){
         $.ajax({
-            url: '/integration/mssql/db/insert/',
+            url: 'insert/',
             headers:{
                 'X-CSRFToken': '{{csrf_token}}'
             },
             type: 'post',
-            data: $('#account_form').serialize()
+            data: $(`#${mssql_form}`).serialize()
         }).done(function(response){
-            alert(response)
-            if(response.startsWith('MSSQL')){
+            var message = JSON.parse(response)
+            if('error' in message){
+                alert(message.error)
+            } else {
+                alert(message.message)
                 location.reload()
             }
         })
-    }    
+    } 
 </script>
 {% endblock %}

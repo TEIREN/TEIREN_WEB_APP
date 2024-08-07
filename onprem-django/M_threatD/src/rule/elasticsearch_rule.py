@@ -50,7 +50,7 @@ class RuleSet:
     def add_ruleset(self, request):
         try:
             # 입력 데이터 로깅
-            logger.info(f"Request POST data: {request.POST}")
+            # logger.info(f"Request POST data: {request.POST}")
 
             rule_name = request.POST.get('name', '').strip()
             severity = int(request.POST.get('severity', 1))
@@ -62,9 +62,9 @@ class RuleSet:
             if not rule_name:
                 return HttpResponse("Rule name cannot be empty.", status=400)
 
-            logger.info(
-                f"Parsed data: name={rule_name}, severity={severity}, must_property_name={must_property_name}, "
-                f"must_property_value={must_property_value}, must_property_operator={must_property_operator}, system={system}")
+            # logger.info(
+            #     f"Parsed data: name={rule_name}, severity={severity}, must_property_name={must_property_name}, "
+            #     f"must_property_value={must_property_value}, must_property_operator={must_property_operator}, system={system}")
 
             # Elasticsearch 인덱스 설정
             index_mapping = {
@@ -154,7 +154,7 @@ class RuleSet:
                         return HttpResponse("A rule with the same query already exists.", status=400)
 
             # Logging 룰셋 정보
-            logger.info(f"Adding ruleset: {json.dumps(ruleset, indent=4, ensure_ascii=False)}")
+            # logger.info(f"Adding ruleset: {json.dumps(ruleset, indent=4, ensure_ascii=False)}")
 
             # Elasticsearch에 룰셋 추가
             url = f"http://3.35.81.217:9200/{index_name}/_doc"
@@ -174,14 +174,14 @@ class RuleSet:
                     "system": system,
                     "rule_type": "custom"  # Add the rule_type property to the output
                 }
-                logger.info(f"Successfully added ruleset: {json.dumps(output, indent=4, ensure_ascii=False)}")
+                # logger.info(f"Successfully added ruleset: {json.dumps(output, indent=4, ensure_ascii=False)}")
                 return HttpResponse(f"Successfully added ruleset: {rule_name}")
             else:
-                logger.error(f"Failed to add ruleset. Status code: {response.status_code}, Response: {response.text}")
+                # logger.error(f"Failed to add ruleset. Status code: {response.status_code}, Response: {response.text}")
                 return HttpResponse(f"Failed to add ruleset. Status code: {response.status_code}", status=400)
 
         except Exception as e:
-            logger.error(f"Exception occurred: {e}", exc_info=True)
+            # logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse("Failed to add ruleset. Please try again.", status=500)
 
     def remove_ruleset(self, request):
@@ -191,7 +191,7 @@ class RuleSet:
             if not rule_name:
                 return HttpResponse("Rule name cannot be empty.", status=400)
 
-            logger.info(f"Removing rule with name: {rule_name}")
+            # logger.info(f"Removing rule with name: {rule_name}")
 
             # Elasticsearch 인덱스 설정
             index_mapping = {
@@ -215,15 +215,15 @@ class RuleSet:
             delete_url = f"http://3.35.81.217:9200/{index_name}/_delete_by_query"
             delete_response = requests.post(delete_url, headers={"Content-Type": "application/json"}, json=delete_query)
 
-            if delete_response.status_code == 200:
-                logger.info(f"Successfully removed rule: {rule_name} from {self.system} ruleset")
-            else:
-                logger.error(f"Failed to remove rule from {self.system} ruleset. Status code: {delete_response.status_code}, Response: {delete_response.text}")
+            # if delete_response.status_code == 200:
+                # logger.info(f"Successfully removed rule: {rule_name} from {self.system} ruleset")
+            # else:
+                # logger.error(f"Failed to remove rule from {self.system} ruleset. Status code: {delete_response.status_code}, Response: {delete_response.text}")
 
             return HttpResponse(f"Successfully removed rule: {rule_name}", status=200)
 
         except Exception as e:
-            logger.error(f"Exception occurred: {e}", exc_info=True)
+            # logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse("Failed to remove rule. Please try again.", status=500)
     
     def get_edit_page(self, request):
@@ -266,8 +266,8 @@ class RuleSet:
             if not rule_name:
                 return HttpResponse("Rule name cannot be empty.", status=400)
 
-            logger.info(f"Parsed data for update: name={rule_name}, severity={severity}, must_property_name={must_property_name}, "
-                        f"must_property_value={must_property_value}, must_property_operator={must_property_operator}, system={system}")
+            # logger.info(f"Parsed data for update: name={rule_name}, severity={severity}, must_property_name={must_property_name}, "
+            #             f"must_property_value={must_property_value}, must_property_operator={must_property_operator}, system={system}")
 
             # Elasticsearch 인덱스 설정
             index_mapping = {
@@ -346,18 +346,19 @@ class RuleSet:
                     update_response = requests.post(update_url, headers={"Content-Type": "application/json"}, json={"doc": updated_ruleset})
 
                     if update_response.status_code == 200:
-                        logger.info(f"Successfully updated rule: {rule_name} in {index_name}")
+                        # logger.info(f"Successfully updated rule: {rule_name} in {index_name}")
+                        pass
                     else:
-                        logger.error(f"Failed to update rule. Status code: {update_response.status_code}, Response: {update_response.text}")
+                        # logger.error(f"Failed to update rule. Status code: {update_response.status_code}, Response: {update_response.text}")
                         return HttpResponse(f"Failed to update rule. Status code: {update_response.status_code}")
 
                 return HttpResponse(f"Successfully updated rule: {rule_name}", status=200)
             else:
-                logger.error(f"Failed to search for rule to update. Status code: {search_response.status_code}, Response: {search_response.text}")
+                # logger.error(f"Failed to search for rule to update. Status code: {search_response.status_code}, Response: {search_response.text}")
                 return HttpResponse(f"Failed to search for rule to update. Status code: {search_response.status_code}")
 
         except Exception as e:
-            logger.error(f"Exception occurred: {e}", exc_info=True)
+            # logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse("Failed to update ruleset. Please try again.", status=500)
 
 def rule_config_page(request, system):
@@ -375,7 +376,7 @@ def rule_config_action(request, resourceType, system, action_type):
             ruleset = RuleSet(system=system)
             return HttpResponse(getattr(ruleset, action_type)(request=request))
         except Exception as e:
-            logger.error(f"Exception occurred: {e}", exc_info=True)
+            # logger.error(f"Exception occurred: {e}", exc_info=True)
             return HttpResponse('Wrong Request. Please Try Again.', status=400)
     else:
         return HttpResponse('Wrong Request. Please Try Again.', status=400)

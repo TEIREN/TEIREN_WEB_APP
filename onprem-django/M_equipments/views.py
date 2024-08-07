@@ -1,52 +1,52 @@
+from django.views import View
 from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from .src.integration import(integration_check, integration_insert, 
-delete_integration, container_trigger, list_integration)
-from .src.refresh_integrations import refresh_container_status
+from django.utils.decorators import method_decorator
 
-# Integration
-@login_required
-def integration_view(request):
-    context = list_integration(request.session.get('db_name'))
-    return render(request, f"M_equipment/configuration.html", context)
+from .src.resource.fortinet import fortinet_insert
+from .src.resource.linux import linux_insert
+from .src.resource.windows import windows_insert
+from .src.resource.genians import genians_insert
+from .src.resource.transmission import transmission_insert
+from .src.resource.mssql import mssql_insert
+from .src.resource.mysql import mysql_insert
 
-def refresh_integration_section(request):
-    context_ = list_integration(request.session.get('db_name'))
-    context = refresh_container_status(integration_list=context_, user_db=request.session.get('db_name'))
-    return render(request, f"M_equipment/integration_section.html", context)
 
-def integration_config_ajax(request, actionType):
-    if request.method == 'POST':
-        data = dict(request.POST.items())
-        if actionType == 'modal':
-            return render(request, 'M_equipment/configuration/modal.html', data)
-        if actionType == 'check':
-            return 
-        if actionType == 'delete':
-            context = delete_integration(request=request)
-            return JsonResponse(context)
-        if actionType == 'trigger':
-            context = container_trigger(request=request)
-            return JsonResponse(context)
+from elasticsearch import Elasticsearch
 
-@login_required
-def registration_page(request, equipment, logType):
-    context = {'logType': logType}
-    return render(request, f"M_equipment/registration/{equipment}.html", context)
+ELASTICSEARCH_URL = "http://3.35.81.217:9200"
 
-@login_required
-def registration_view(request):
-    return render(request, f"M_equipment/registration.html")
 
-def integration_registration_ajax(request, equipment, logType, actionType):
-    if request.method == 'POST':
-        if actionType == 'check':
-            context = integration_check(request, equipment, logType)
-            return JsonResponse(context)
-        elif actionType == 'insert':
-            context = integration_insert(request, equipment)
+@method_decorator(login_required, name="dispatch")
+class IntegrationView(View):
+    def get(self, request, system=None, log_type=None):
+        if system and log_type:
+            return render(request, f"M_equipment/registration/{system}.html")
+        else:
+            context = {
+                'integration_list': self.get_integration_list()
+            }
+            return render(request, f"M_equipment/integration.html", context)
+
+    def post(self, request, system=None, log_type=None, action_type=None):
+        if action_type == "check":
+            pass
+        elif action_type == "insert":
+            context = globals()[f"{system.lower()}_insert"](request=request)
             if type(context) != str:
                 return context
             else:
                 return HttpResponse(context)
+
+    def get_integration_list(self):
+        try:
+            es = Elasticsearch(ELASTICSEARCH_URL)
+            query = {"query": {"match_all": {}}, "size": 1000, "from": 0}
+            result = es.search(index='integration_info', body=query)
+            integration_list = [integration['_source'] for integration in result['hits']['hits']]
+            print(integration_list)
+            return integration_list
+        except Exception as e:
+            print(e)
+            return []

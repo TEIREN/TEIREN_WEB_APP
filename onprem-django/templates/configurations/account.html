@@ -1,153 +1,124 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block head %}
+<!-- Page Essential -->
+<link rel="stylesheet" href="{% static '/css/tab_table.css' %}">
+{% endblock %}
 {% block content %}
-<div class="container-fluid">
-
+<div>
     <!-- Page Heading -->
     <h6 class="h3 mb-2 ml-2 font-weight-bold text-gray-800">Account Settings</h6>
     <p class="h6 ml-2 mb-4">Change your configuration of SIEM accounts</p>
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-teiren">Account Configuration</h6>
+    <div class="tabs">
+        <input type="radio" id="modal-tab1" name="tab-control-modal" checked>
+        <input type="radio" id="modal-tab2" name="tab-control-modal">
+        <ul class='ul'>
+            <li title="Custom Rule">
+                <label for="modal-tab1" role="button">
+                    <span>Account Configuration</span>
+                </label>
+            </li>
+            <li title="Default Rule">
+                <label for="modal-tab2" role="button">
+                    <span>Register New Account</span>
+                </label>
+            </li>
+        </ul>
+        <div class="slider">
+            <div class="indicator"></div>
         </div>
-        <div class="card-body">            
-            <div class="row">
-                <a class="d-flex w-100 mb-4 mr-3" href="/auth/register/">
-                    <button type="button" class="btn btn-md ml-auto btn-teiren">
-                        <span class="icon text-white">
-                            Add Account<i class="fa-solid fa-user-plus ml-2"></i>
-                        </span>
-                    </button>
-                </a>
-                <div class="table-responsive " style="overflow:hidden;word-break: break-all;">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="table-layout:fixed;text-align:center;">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>UserName</th>
-                                <th>Email</th>
-                                <th>Edit Account</th>
-                                <th>Delete Account</th>
-                            </tr>
-                        </thead>
-                        <tfoot>
-                            <tr>
-                                <th>No</th>
-                                <th>UserName</th>
-                                <th>Email</th>
-                                <th>Edit Account</th>
-                                <th>Delete Account</th>
-                            </tr>
-                        </tfoot>
-                        <tbody>
-                            {% if account_list %}
-                            {% for account in account_list %}
-                            <tr>
-                                <th>{{forloop.counter}}</th>
-                                {% for key, value in  account.items%}
-                                    <td>{{value}}</td>
-                                {% endfor %}
-                                <td>
-                                    <button class="btn btn-teiren btn-md" data-toggle="modal" data-target="#verify_modal" data-name="{{account.userName}}">
-                                        <span class="icon text-white">
-                                            Edit Account<i class="fa-solid fa-user-pen ml-2"></i>
-                                        </span>
-                                    </button>
-                                </td>
-                                <td>
-                                    <button class="btn btn-danger btn-md" data-toggle="modal" data-target="#delete_modal" data-name="{{account.userName}}">
-                                        <span class="icon text-white">
-                                            Delete Account<i class="fa-solid fa-user-slash ml-2"></i>
-                                        </span>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                            {% else %}
-                            <tr>
-                                <td colspan="6" style="font-size:20px">No Data</td>
-                            </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
+        <div class="content">
+            <section>
+                <div class="card-body">            
+                    <div class="row">
+                        <div class="table-responsive " style="overflow:hidden;word-break: break-all;">
+                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0" style="table-layout:fixed;text-align:center;">
+                                <thead>
+                                    <tr>
+                                        <th width="10%">No</th>
+                                        <th>UserName</th>
+                                        <th>Email</th>
+                                        <th>Registered Date</th>
+                                        <th>Active</th>
+                                        <th>Last Login</th>
+                                        <th width="10%">Edit Account</th>
+                                        <th width="10%">Delete Account</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if account_list %}
+                                    {% for account in account_list %}
+                                    <tr>
+                                        <th>{{forloop.counter}}</th>
+                                        {% for key, value in  account.items%}
+                                            {% if value == True %}
+                                                <td class="text-teiren" style="font-weight:900"><i class="fa-solid fa-circle-check"></i></td>
+                                            {% elif value == False %}
+                                            <td class="text-danger" style="font-weight:900"><i class="fa-solid fa-circle-check"></i></td>
+                                            {% else %}
+                                                <td>{{value}}</td>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <td>
+                                            <button class="btn btn-teiren btn-md" data-toggle="modal" data-target="#verify_modal" data-name="{{account.username}}">
+                                                <span class="icon text-white">
+                                                    <i class="fa-solid fa-user-pen "></i>
+                                                </span>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger btn-md" data-toggle="modal" data-target="#delete_modal" data-name="{{account.username}}">
+                                                <span class="icon text-white">
+                                                    <i class="fa-solid fa-user-slash"></i>
+                                                </span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" style="font-size:20px">No Data</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </section>
+            <section>
+                <div class="card-body" style="font-size: 0.7rem">
+                    <form id="register_account" onsubmit="event.preventDefault(); registerAccount();">
+                        <div class="form-group row text-teiren" style="font-size:15px;">
+                            <div class="col-12 mb-4">
+                                <span>User Name</span>
+                                <input type="text" class="form-control form-control-user" name="username" placeholder="User Name">
+                            </div>
+                            <div class="col-12 mb-4">
+                                <span>User Password</span>
+                                <input type="password" class="form-control form-control-user" name="password1" placeholder="User Password">
+                            </div>
+                            <div class="col-12 mb-4">
+                                <span>Password Confirmation</span>
+                                <input type="password" class="form-control form-control-user" name="password2" placeholder="Password Confirmation">
+                            </div>
+                            <div class="col-12 mb-4">
+                                <span>Email Address</span>
+                                <input type="email" class="form-control form-control-user" name="email" placeholder="Email Address">
+                            </div>
+                        </div>
+                        <div class="modal-footer " id="modal_footer">
+                            <button type="submit" class="btn btn-md btn-block btn-teiren">Register</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
         </div>
     </div>
 </div>
 
 <!-- Modals -->
-<!-- Verify Modal -->
-<div class="modal hide fade card-body" id="verify_modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content" style='width:700px; height:auto'>
-            <div class="modal-header text-center">
-                <h4 class="m-0 font-weight-bold text-teiren">Account Verification</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">x</span>
-                </button>
-            </div>
-            <div class="modal-body card-body" style="font-size: 0.7rem">
-                <form id="verify_account">
-                    <div class="form-group row text-center">
-                        <div class="col-12 mb-4" style="font-size:0.9rem">
-                            <span class="text-danger">Verify Your Account Information Before Editing</span>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <span>User Name</span>
-                            <input type="text" class="form-control form-control-user" name="user_name" placeholder="User Name">
-                        </div>
-                        <div class="col-12">
-                            <span>User Password</span>
-                            <input type="password" class="form-control form-control-user" name="user_password" placeholder="User Password">
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer " id="modal_footer">
-                <button type='button' class="btn btn-md btn-outline-teiren" onclick="verifyAccount()">Verify</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Edit Modal -->
-<div class="modal hide fade card-body" id="edit_modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
-    <div class="modal-dialog" id="edit_detail">
-    </div>
-</div>
-<!-- Delete Modal -->
-<div class="modal hide fade card-body" id="delete_modal" role="dialog" aria-labelledby="detailLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content" style='width:700px; height:auto'>
-            <div class="modal-header text-center">
-                <h4 class="m-0 font-weight-bold text-teiren">Account Verification</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">x</span>
-                </button>
-            </div>
-            <div class="modal-body card-body" style="font-size: 0.7rem">
-                <form id="delete_account">
-                    <div class="form-group row text-center">
-                        <div class="col-12 mb-4" style="font-size:0.9rem">
-                            <span class="text-danger">Verify Your Account Information Before Deleting</span>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <span>User Name</span>
-                            <input type="text" class="form-control form-control-user" name="user_name" readonly>
-                        </div>
-                        <div class="col-12">
-                            <span>User Password</span>
-                            <input type="password" class="form-control form-control-user" name="user_password" placeholder="User Password">
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer " id="modal_footer">
-                <button type='button' class="btn btn-md btn-outline-danger" onclick="deleteAccount()">Delete</button>
-            </div>
-        </div>
-    </div>
-</div>
+{% include './account/modals.html' %}
 {% endblock %}
 {% block script %}
 <script src="{% static '/configurations/js/account.js' %}"></script>

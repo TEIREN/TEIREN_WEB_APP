@@ -1,0 +1,118 @@
+.bg-auth{
+    background-color: #0a2b40;
+    height: auto;
+    min-height: 100vh;
+}
+
+.auth-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5vh 15vw 0 15vw;
+}
+
+.auth-container .card{
+    background-color: #ffffff;
+    border-radius: 30px;
+}
+
+.auth-container .row{
+    background-color: white;
+    border-radius: 30px;
+    padding: 20px;
+}
+
+.auth-shadow{
+    box-shadow: 0px 0rem 7rem 10px #24b6d4c4 !important;
+}
+
+.auth-img{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    min-height: 50vh;
+    border-radius: 10px;
+}
+
+.auth-text{
+    font-size: 50px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto;
+    text-align:center;
+}
+
+.auth-input{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    flex-wrap: nowrap;
+}
+
+.auth-input .divider{
+    height: 1px;
+    width: 75%;
+    border: 1px solid #eaeaea;
+    margin: 10px auto;
+}
+
+.auth-input .form-group{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.auth-input .form-control-user{
+    width: 75%;
+    margin: 10px auto 10px 10px;
+}
+
+.auth-input .btn{
+    width: 75% !important;
+    margin: 10px auto;
+}
+
+.auth-btn{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+}
+
+.auth-btn .btn{
+    margin-top:0;
+    width: 45%;
+    margin: 0 10px;
+}
+
+.a {
+    text-decoration: none;
+}
+
+.a:hover{
+    text-decoration: none;
+}
+
+.auth-alert {
+    width: 70%;
+    position: relative;
+    padding: 0.75rem 1.25rem;
+    margin: 1rem auto;
+    border: 1px solid transparent;
+    border-radius: 0.35rem;
+    font-size: 15px;
+    text-align: center;
+}
+
+.auth-alert.auth-alert-warning{
+    color: #e74a3b;
+    background-color: #fff;
+    border-color: #fff;
+    box-shadow: 0px 0rem 0.5rem 1px #e74a3b!important;
+}

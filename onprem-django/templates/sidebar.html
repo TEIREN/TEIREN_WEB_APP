@@ -41,7 +41,7 @@
                         <button class="btn fa-solid fa-magnifying-glass" style="margin-left:auto" onclick="sidebarSearch($(this).parent())"></button>
                     </div>
                     <div class="divider"></div>
-                    <!-- <div class="item-toggle">
+                    {% comment %} <!-- <div class="item-toggle">
                         <button class="item-header">
                             Cloud Logs
                             <span class="material-symbols-outlined">
@@ -67,7 +67,7 @@
                             KT Logs
                         </a>
                     </div>
-                    <div class="divider"></div> -->
+                    <div class="divider"></div> --> {% endcomment %}
                     <div class="item-toggle">
                         <button class="item-header">
                             Solution Logs
@@ -84,9 +84,9 @@
                         <a class="collapse-item" href="/logs/solution/genian_nac/" style="display:none;">
                             Genians NAC Logs
                         </a>
-                        <a class="collapse-item dark disabled" href="/logs/solution/ofk/" style="display:none;">
+                        {% comment %} <a class="collapse-item dark disabled" href="/logs/solution/ofk/" style="display:none;">
                             Office Keeper Logs
-                        </a>
+                        </a> {% endcomment %}
                     </div>
                     <div class="divider"></div>
                     <div class="item-toggle">
@@ -142,7 +142,15 @@
                 </div>
             </li>
             <li>
-                <a id="integration_side" class="nav-link">
+                <a id="integration_side" class="nav-link" href="/integration/">
+                    <div class="tippy row">
+                        <span style="font-size:18px; color: #fff; margin-right: 22px;"> Resource Management </span>
+                        <span class="material-symbols-outlined">
+                            library_add
+                        </span>
+                    </div>
+                </a>
+                {% comment %} <a id="integration_side" class="nav-link">
                     <div class="tippy row">
                         <span style="font-size:18px; color: #fff; margin-right: 22px;"> Resource Management </span>
                         <span class="material-symbols-outlined">
@@ -178,7 +186,7 @@
                             Configuration
                         </a>
                     </div>
-                </div>
+                </div> {% endcomment %}
             </li>
             <li>
                 <a id="threat_side" class="nav-link">
@@ -411,6 +419,9 @@
             $(this).css('margin-left', `${2*$($(this).find('span')[0]).outerWidth()-200}px`)
         })
         .on('mouseleave', function(){
+            $(this).css('margin-left', `-250px`)
+        })
+        .on('click', function(){
             $(this).css('margin-left', `-250px`)
         })
 </script>

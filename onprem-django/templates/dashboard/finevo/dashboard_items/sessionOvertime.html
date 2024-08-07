@@ -1,0 +1,20 @@
+{% load static %}
+<div id="sessionOvertime_" class="h-100 w-50">
+    <div class="card shadow h-100 w-100">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header">
+            <div class="h6 m-0 font-weight-bold text-primary text-uppercase">Session Overtime</div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body pl-0 pb-0">
+            <div class="chart-area" style="height:100%;">
+                <canvas id="sessionOvertime" style="height:35vh;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var Month = {{session_overtime.month|safe }}
+    var collected_month = {{session_overtime.values|safe }}
+</script>
+<script src="{% static '/dashboard/js/finevo/sessionOvertime.js' %}"></script>

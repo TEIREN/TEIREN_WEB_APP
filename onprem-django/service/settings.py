@@ -75,7 +75,7 @@ INSTALLED_APPS = [
     'M_threatD',
     'configurations',
     'dashboard',
-    'compliance',
+    # 'compliance',
     'testing',
     'monitoring',
     "rest_framework",
@@ -146,12 +146,12 @@ MONGODB = {
     'LOCAL': 'local'
 }
 
-NEO4J = {
-    'HOST': '3.36.151.254',
-    'PORT': '7687',
-    'USERNAME': 'neo4j',
-    'PASSWORD': 'yuw0n!sjj@ng'
-}
+# NEO4J = {
+#     'HOST': '3.36.151.254',
+#     'PORT': '7687',
+#     'USERNAME': 'neo4j',
+#     'PASSWORD': 'yuw0n!sjj@ng'
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -222,7 +222,8 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 ACCOUNT_PASSWORD_INPUT_RENDER_VALUE = True
 
 ### DATABASE ###
-AUTH_USER_MODEL = '_auth.CustomUser'
+# AUTH_USER_MODEL = '_auth.CustomUser'
+AUTH_USER_MODEL = '_auth.FinevoUser'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -233,3 +234,19 @@ MEDIA_URL = '/media/'
 # APPEND_SLASH = True
 
 DEFAULT_FILE_STORAGE = 'custom.storage.customstorage.CleanFileNameStorage'
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'neo4j': {
+#             'handlers': ['console'],
+#             'level': 'ERROR',  # WARNING 대신 ERROR로 설정
+#         },
+#     },
+# }
