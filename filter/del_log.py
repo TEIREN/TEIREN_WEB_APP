@@ -7,13 +7,16 @@ delete_query = {
     "query": {
         "bool": {
             "must": [
-                {"match": {"SYSTEM": "fluentd"}},
+                # {"match": {"SYSTEM": "mysql"}},
+                {'match': {"TAG_NAME": "sql_tag"}},
             ]
         }
     }
 }
 
 # delete_by_query API 호출
-response = es.delete_by_query(index='integration_info', body=delete_query)
+# response = es.delete_by_query(index='integration_info', body=delete_query)
+response = es.delete_by_query(index='mysql_syslog', body=delete_query)
+
 
 print(response)

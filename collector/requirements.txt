@@ -5,4 +5,5 @@ elasticsearch==8.13.0
 aiohttp
 requests
 pymssql
+pymysql
 python-multipart
