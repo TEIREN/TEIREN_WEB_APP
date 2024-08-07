@@ -173,6 +173,7 @@ class RuleSet:
                     "must_property_operator": must_property_operator,
                     "system": system,
                     "rule_type": "custom"  # Add the rule_type property to the output
+                     #"status" : 1,
                 }
                 # logger.info(f"Successfully added ruleset: {json.dumps(output, indent=4, ensure_ascii=False)}")
                 return HttpResponse(f"Successfully added ruleset: {rule_name}")
