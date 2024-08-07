@@ -52,12 +52,34 @@ def parse_fortigate_log(log_entry):
 
 # fortigate syslog udp/tcp 수집 시 파싱
 async def fortigate_parse(log:str):
-    clean_log = log[log.find('>') + 1:]
+    clean_log = log[log.find('>') + 1:].strip()
     log_dict = {}
-    for item in clean_log.split(' '):
+    items = []
+    current_item = []
+    in_quotes = False
+
+    # 전체 문자열을 순회하며 항목을 수집
+    for char in clean_log:
+        if char == '\"':
+            in_quotes = not in_quotes  # 인용 부호가 열리거나 닫힐 때 상태 변경
+        if char == ' ' and not in_quotes:
+            if current_item:  # 현재 항목이 비어있지 않으면
+                items.append(''.join(current_item))
+                current_item = []
+        else:
+            current_item.append(char)
+
+    # 마지막 항목 추가
+    if current_item:
+        items.append(''.join(current_item))
+
+    for item in items:
         if '=' in item:
             key, value = item.split('=', 1)
-            if value.startswith('"') and value.endswith('"'):
-                value = value[1:-1]
+            value = value.strip().strip('"')  # 값에서 공백과 인용 부호 제거
+            
+            # 숫자로 변환 가능한 경우 int로 변환
+            if value.isdigit():
+                value = int(value)
             log_dict[key] = value
     return log_dict
