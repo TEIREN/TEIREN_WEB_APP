@@ -122,7 +122,7 @@ class AccountConfigView(View):
                 user.delete()
                 if user == request.user:
                     logout(request)
-                return HttpResponse(f'Successfully Deleted Account {request.POST.get('username')}')
+                return HttpResponse(f"Successfully Deleted Account {request.POST.get('username')}")
             else:
                 raise Exception
         except Exception as e:
