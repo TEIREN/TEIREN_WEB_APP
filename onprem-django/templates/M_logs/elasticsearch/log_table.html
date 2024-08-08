@@ -41,10 +41,10 @@
                                         {% with log|pop:'detected_by_rules' as log %}
                                         {% with log|pop:'severities' as log %}
                                         <div>
-                                            <span id="log_data_trunc_{{forloop.counter|add:index_num}}">
+                                            <pre id="log_data_trunc_{{forloop.counter|add:index_num}}">
                                                 {{log|pprint|truncatechars:120}}
                                                 <button class="btn" type="button" onclick="displayLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-down"></i></button>
-                                            </span>
+                                            </pre>
                                         </div>
                                         {% endwith %}
                                         {% endwith %}
@@ -75,10 +75,8 @@
                                 <div class="text-teiren">
                                     <span>Log Data:</span>
                                 </div>
-                                <span>
-                                    {{log|pprint}}
-                                    <button class="btn" type="button" onclick="hideLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-up"></i></button>
-                                </span>
+                                <pre><br />{{log|pprint}}</pre>
+                                <button class="btn" type="button" onclick="hideLogData({{forloop.counter|add:index_num}})"><i class="fa-solid fa-chevron-up"></i></button>
                             </td>
                         </tr>
                         {% endfor %}

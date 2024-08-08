@@ -18,35 +18,43 @@ class LogManagement():
         self.system = system
         self.query = {"match_all": {}}  # 기본 쿼리 설정
         self.page_number = page
-        self.timestamp = self.get_timestamp()
+        try:
+            self.timestamp = self.get_timestamp()
+        except:
+            self.timestamp = 'eventtime'
         self.limit = 25
 
     def get_timestamp(self):
         timestamp_mapping = {
             "linux": "@timestamp",
             "genian": "timestamp.keyword",
-            "window": "date",
-            "fortigate": "eventtime.keyword",
+            "windows": "date",
+            "fortigate": "eventtime",
             "mssql": "ID",
+            "mysql": "actor_id",
             "snmp": ""
         }
         return timestamp_mapping[self.system]
     
     def save_table_property(self, request):
         document = {'system': self.system, 'properties': [property for property in dict(request.GET)['properties'] if property]}
-        print(request.GET.get('properties'))
+        print(document)
         try:
-            es.update_by_query(index="table_property", body={
-                "query":{
-                    "match": {"system": self.system}
-                },
-                "script":{
-                    "source": f"ctx._source.properties = {document['properties']}",
-                    "lang": "painless" 
-                }
-            })
+            result = es.search(index="table_property", body={"query": {"match": {"system": self.system.lower()}}})
+            if len(result['hits']['hits']) < 1:
+                es.index(index=f"table_property", document=document)
+            else:
+                es.update_by_query(index="table_property", body={
+                    "query":{
+                        "match": {"system": self.system.lower()}
+                    },
+                    "script":{
+                        "source": f"ctx._source.properties = {document['properties']}",
+                        "lang": "painless" 
+                    }
+                })
             return HttpResponse('Successfully Saved')
-        except NotFoundError:
+        except NotFoundError as e:
             try:
                 es.index(index=f"table_property", document=document)
                 return HttpResponse('Successfully Saved')
@@ -220,7 +228,7 @@ class LogManagement():
                     "must_not": must_not_conditions
                 }
             }
-            # print(self.query)
+            print(self.query)
         else:
             self.query = {"match_all": {}}
 
@@ -263,7 +271,7 @@ class LogManagement():
         response = self.es.search(index=f"{self.system}_syslog", body=query)
         hits = response['hits']['hits']
         
-        exclude_keys = ['@timestamp', 'message', 'timegenerated', '@version', 'date', 'eventtime','teiren_@timestamp', 'teiren_ddd', 'teiren_timestamp', 'Message', 'TimeGenerated', 'TimeWritten', 'RecordNumber'] # 제외할 로그 프라퍼티
+        exclude_keys = ['@timestamp', 'message', 'timegenerated', '@version', 'date', 'eventtime', 'time', 'date', 'Message', 'TimeGenerated', 'TimeWritten', 'RecordNumber'] # 제외할 로그 프라퍼티
         properties = {}
         for hit in hits:
             log = hit['_source']
@@ -403,20 +411,20 @@ def logs_by_ruleset(request, resourceType, system, ruleset_name):
                 'log_properties': system_log.fetch_log_properties(), # 로그 프로퍼티 추출
                 'table_properties': system_log.get_property_key()
             }
-            return render(request, 'M_logs/elasticsearch/logs_by_ruleset.html', context=context)
-        page_obj = system_log.paginate()
-        context = {
-            'total_count': total_count,
-            'system': system.title(),
-            'page_obj': page_obj,
-            'log_list': log_list,
-            'resource_type': resourceType,
-            'ruleset_name': ruleset_name,
-            'ruleset': json.dumps(rule, indent=4),  # 룰셋 세부 정보를 prettified JSON으로 추가
-            'page': page_number,
-            'log_properties': system_log.fetch_log_properties(), # 로그 프로퍼티 추출
-            'table_properties': system_log.get_property_key()
-        }
+        else:  
+            page_obj = system_log.paginate()
+            context = {
+                'total_count': total_count,
+                'system': system.title(),
+                'page_obj': page_obj,
+                'log_list': log_list,
+                'resource_type': resourceType,
+                'ruleset_name': ruleset_name,
+                'ruleset': json.dumps(rule, indent=4),  # 룰셋 세부 정보를 prettified JSON으로 추가
+                'page': page_number,
+                'log_properties': system_log.fetch_log_properties(), # 로그 프로퍼티 추출
+                'table_properties': system_log.get_property_key()
+            }
         return render(request, 'M_logs/elasticsearch/logs_by_ruleset.html', context=context)
 
     except ConnectionError as e:
