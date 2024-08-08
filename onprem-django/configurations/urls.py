@@ -1,5 +1,5 @@
 from django.urls import include, path
-from .views import AccountConfigView
+from configurations.views import AccountConfigView
 
 # path:
 #   ./configurations/

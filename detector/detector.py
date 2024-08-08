@@ -1,4 +1,3 @@
-# detector.py
 import json
 import time
 import logging
@@ -17,6 +16,8 @@ logging.getLogger("elastic_transport.transport").setLevel(logging.CRITICAL)
 logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
 # 인덱스 매핑 설정 (TAG_NAME 기준으로 동적 설정)
+# 하드 코딩 하면 안됨
+# flunetd 설정 고민 -> TAG_NAME 방식으로 진행
 def get_index_choice(system, tag_name=None):
     try:
         if system in ["mysql", "mssql", "fluentd"] and tag_name:
@@ -63,11 +64,15 @@ def check_logs(system, tag_name=None):
         ruleset_index = index_data['ruleset_index']
         detected_log_index = index_data['detected_log_index']
 
-        # 룰셋을 검색합니다.
-        res = es.search(index=ruleset_index, body={"query": {"match_all": {}}})
-        rulesets = res['hits']['hits']
+        try:
+            # 룰셋을 검색합니다.
+            res = es.search(index=ruleset_index, body={"query": {"term": {"status": 1}}})
+            rulesets = res['hits']['hits']
+        except NotFoundError:
+            logger.error(f"Index not found: {ruleset_index}")
+            return
 
-        logger.info(f"Found {len(rulesets)} rulesets in {ruleset_index}")
+        logger.info(f"Found {len(rulesets)} active rulesets in {ruleset_index}")
 
         def process_rule(rule):
             try:
